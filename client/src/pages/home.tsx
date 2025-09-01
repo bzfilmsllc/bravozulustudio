@@ -4,6 +4,7 @@ import { MemberGuard } from "@/components/member-guard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { BannerAd, SidebarAd } from "@/components/google-ads";
 import {
@@ -20,11 +21,34 @@ import {
   BarChart3,
   Plus,
   Zap,
+  Activity,
+  Bell,
+  DollarSign,
+  Target,
+  Shield,
+  Cpu,
+  Wifi,
+  Database,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Settings,
+  Crown,
+  Infinity,
 } from "lucide-react";
 import { Link } from "wouter";
+import { useState, useEffect } from "react";
 
 export default function Home() {
   const { user } = useAuth();
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [systemStatus, setSystemStatus] = useState("OPERATIONAL");
+
+  // Update time every second for real-time display
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Fetch user's recent data
   const { data: recentScripts = [] } = useQuery<any[]>({
@@ -41,6 +65,23 @@ export default function Home() {
     queryKey: ["/api/messages/conversations"],
     retry: false,
   });
+
+  const { data: subscriptionStatus } = useQuery({
+    queryKey: ["/api/billing/subscription-status"],
+    retry: false,
+  });
+
+  const { data: notifications = [] } = useQuery<any[]>({
+    queryKey: ["/api/notifications"],
+    retry: false,
+  });
+
+  // Calculate mission progress and achievements
+  const missionProgress = Math.min(100, (recentScripts.length * 20) + (userProjects.length * 30));
+  const totalCredits = (user as any)?.credits || 0;
+  const isSuper = user?.email === "bravozulufilms@gmail.com" || user?.email === "usmc2532@gmail.com";
+  const currentHour = currentTime.getHours();
+  const timeOfDay = currentHour < 12 ? "MORNING" : currentHour < 17 ? "AFTERNOON" : "EVENING";
 
   return (
     <MemberGuard>
@@ -68,9 +109,11 @@ export default function Home() {
                         </h1>
                         <div className="flex flex-wrap items-center gap-2 sm:gap-4 font-tactical text-sm sm:text-lg">
                           <span className="text-slate-300">🎯 STATUS:</span>
-                          <span className="text-green-400 font-bold animate-pulse">OPERATIONAL</span>
+                          <span className="text-green-400 font-bold animate-pulse">{systemStatus}</span>
                           <span className="text-slate-400 hidden sm:inline">|</span>
-                          <span className="text-yellow-400">READY FOR DEPLOYMENT</span>
+                          <span className="text-yellow-400">{timeOfDay} SHIFT ACTIVE</span>
+                          <span className="text-slate-400 hidden sm:inline">|</span>
+                          <span className="text-cyan-400">{currentTime.toLocaleTimeString()}</span>
                         </div>
                       </div>
                     </div>
@@ -107,12 +150,138 @@ export default function Home() {
                       </div>
                     )}
                     
-                    {/* Service Number Dog Tag */}
-                    <div className="dog-tag">
-                      ID: {user?.id?.slice(-6) || 'XXXX'}
+                    {/* Credits & Service Number */}
+                    <div className="space-y-2">
+                      {/* Credit Balance Display */}
+                      <div className="px-4 py-2 rounded-lg bg-green-600/20 border border-green-600/50">
+                        <div className="flex items-center justify-center gap-2">
+                          <DollarSign className="w-4 h-4 text-green-400" />
+                          {isSuper ? (
+                            <div className="flex items-center gap-1">
+                              <Crown className="w-4 h-4 text-honor-gold" />
+                              <Infinity className="w-5 h-5 text-honor-gold" />
+                              <span className="font-tactical text-honor-gold text-sm">UNLIMITED</span>
+                            </div>
+                          ) : (
+                            <span className="font-tactical text-green-400 text-sm font-bold">{totalCredits} CREDITS</span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Service Number Dog Tag */}
+                      <div className="dog-tag">
+                        ID: {user?.id?.slice(-6) || 'XXXX'}
+                      </div>
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* MISSION STATUS DASHBOARD - NEW ENHANCED SECTION */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                {/* System Status Panel */}
+                <Card className="tactical-command-card border border-green-600/30 bg-green-600/5">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center justify-between text-sm">
+                      <div className="flex items-center">
+                        <Activity className="w-4 h-4 text-green-400 mr-2" />
+                        <span className="font-command text-green-400">SYSTEM STATUS</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span className="text-xs text-green-400">ONLINE</span>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Cpu className="w-4 h-4 text-blue-400" />
+                        <span className="text-sm font-tactical">AI SYSTEMS</span>
+                      </div>
+                      <Badge className="bg-green-600/20 text-green-400 text-xs">ACTIVE</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Database className="w-4 h-4 text-purple-400" />
+                        <span className="text-sm font-tactical">DATA STORAGE</span>
+                      </div>
+                      <Badge className="bg-green-600/20 text-green-400 text-xs">SECURE</Badge>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Wifi className="w-4 h-4 text-yellow-400" />
+                        <span className="text-sm font-tactical">NETWORK</span>
+                      </div>
+                      <Badge className="bg-green-600/20 text-green-400 text-xs">STABLE</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Mission Progress Panel */}
+                <Card className="tactical-command-card border border-yellow-600/30 bg-yellow-600/5">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center text-sm">
+                      <Target className="w-4 h-4 text-yellow-400 mr-2" />
+                      <span className="font-command text-yellow-400">MISSION PROGRESS</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-tactical">OPERATIONAL READINESS</span>
+                        <span className="text-sm font-bold text-yellow-400">{missionProgress}%</span>
+                      </div>
+                      <Progress value={missionProgress} className="h-2 bg-slate-800">
+                        <div className="bg-gradient-to-r from-yellow-400 to-amber-500 h-full rounded-full transition-all duration-500" 
+                             style={{ width: `${missionProgress}%` }} />
+                      </Progress>
+                      <div className="grid grid-cols-2 gap-2 mt-3">
+                        <div className="text-center p-2 bg-slate-800/50 rounded">
+                          <div className="text-lg font-bold text-blue-400">{recentScripts.length}</div>
+                          <div className="text-xs text-slate-400">SCRIPTS</div>
+                        </div>
+                        <div className="text-center p-2 bg-slate-800/50 rounded">
+                          <div className="text-lg font-bold text-purple-400">{userProjects.length}</div>
+                          <div className="text-xs text-slate-400">PROJECTS</div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Live Activity Feed */}
+                <Card className="tactical-command-card border border-purple-600/30 bg-purple-600/5">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center justify-between text-sm">
+                      <div className="flex items-center">
+                        <Bell className="w-4 h-4 text-purple-400 mr-2" />
+                        <span className="font-command text-purple-400">ACTIVITY FEED</span>
+                      </div>
+                      <Badge className="bg-purple-600/20 text-purple-400 text-xs">LIVE</Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 max-h-32 overflow-y-auto">
+                      {notifications.length > 0 ? (
+                        notifications.slice(0, 3).map((notification: any, index: number) => (
+                          <div key={index} className="flex items-start gap-2 p-2 bg-slate-800/30 rounded text-xs">
+                            <div className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-1.5 flex-shrink-0"></div>
+                            <div>
+                              <div className="text-slate-300">{notification.message}</div>
+                              <div className="text-slate-500 text-xs">{new Date(notification.createdAt).toLocaleTimeString()}</div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-4">
+                          <CheckCircle className="w-6 h-6 text-green-400 mx-auto mb-1" />
+                          <div className="text-xs text-slate-400">ALL SYSTEMS NOMINAL</div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               {/* TACTICAL OPERATIONS CENTER - Enhanced */}
@@ -190,26 +359,68 @@ export default function Home() {
                   </Link>
                 </div>
                 
-                {/* Quick Actions */}
+                {/* Enhanced Quick Actions */}
                 <div className="mt-6 p-4 bg-gradient-to-r from-yellow-600/10 to-amber-500/10 border border-yellow-600/30 rounded-lg">
-                  <h4 className="font-command text-sm text-yellow-400 mb-3 flex items-center">
-                    <Rocket className="w-4 h-4 mr-2" />
-                    QUICK DEPLOYMENT
+                  <h4 className="font-command text-sm text-yellow-400 mb-3 flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Rocket className="w-4 h-4 mr-2" />
+                      RAPID DEPLOYMENT TOOLS
+                    </div>
+                    {isSuper && (
+                      <Badge className="bg-honor-gold/20 text-honor-gold border-honor-gold/50 text-xs">
+                        <Crown className="w-3 h-3 mr-1" />
+                        ADMIN
+                      </Badge>
+                    )}
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                    <Link href="/tools?action=generate" className="flex items-center space-x-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-700/50 transition-colors text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+                    <Link href="/tools?action=generate" className="flex items-center space-x-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-700/50 transition-colors text-sm border border-yellow-600/20 hover:border-yellow-600/50">
                       <Zap className="w-4 h-4 text-yellow-400" />
-                      <span className="font-tactical text-slate-300">Generate Script</span>
+                      <span className="font-tactical text-slate-300">AI Generate</span>
                     </Link>
-                    <Link href="/portfolio?action=new" className="flex items-center space-x-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-700/50 transition-colors text-sm">
+                    <Link href="/portfolio?action=new" className="flex items-center space-x-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-700/50 transition-colors text-sm border border-blue-600/20 hover:border-blue-600/50">
                       <Plus className="w-4 h-4 text-blue-400" />
                       <span className="font-tactical text-slate-300">New Project</span>
                     </Link>
-                    <Link href="/community" className="flex items-center space-x-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-700/50 transition-colors text-sm">
+                    <Link href="/community" className="flex items-center space-x-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-700/50 transition-colors text-sm border border-purple-600/20 hover:border-purple-600/50">
                       <MessageSquare className="w-4 h-4 text-purple-400" />
-                      <span className="font-tactical text-slate-300">Join Forum</span>
+                      <span className="font-tactical text-slate-300">Battle Net</span>
+                    </Link>
+                    <Link href="/settings" className="flex items-center space-x-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-700/50 transition-colors text-sm border border-gray-600/20 hover:border-gray-600/50">
+                      <Settings className="w-4 h-4 text-gray-400" />
+                      <span className="font-tactical text-slate-300">Settings</span>
                     </Link>
                   </div>
+                  
+                  {/* Advanced Power User Controls */}
+                  {(isSuper || user?.role === "verified") && (
+                    <div className="mt-3 pt-3 border-t border-yellow-600/20">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Shield className="w-3 h-3 text-green-400" />
+                        <span className="font-tactical text-xs text-green-400">VERIFIED OPERATOR CONTROLS</span>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <button className="flex items-center space-x-1 p-2 bg-green-600/20 rounded text-xs hover:bg-green-600/30 transition-colors border border-green-600/30">
+                          <BarChart3 className="w-3 h-3 text-green-400" />
+                          <span className="font-tactical text-green-400">Analytics</span>
+                        </button>
+                        <button className="flex items-center space-x-1 p-2 bg-blue-600/20 rounded text-xs hover:bg-blue-600/30 transition-colors border border-blue-600/30">
+                          <Calendar className="w-3 h-3 text-blue-400" />
+                          <span className="font-tactical text-blue-400">Schedule</span>
+                        </button>
+                        <button className="flex items-center space-x-1 p-2 bg-purple-600/20 rounded text-xs hover:bg-purple-600/30 transition-colors border border-purple-600/30">
+                          <Users className="w-3 h-3 text-purple-400" />
+                          <span className="font-tactical text-purple-400">Team Ops</span>
+                        </button>
+                        {isSuper && (
+                          <Link href="/admin" className="flex items-center space-x-1 p-2 bg-red-600/20 rounded text-xs hover:bg-red-600/30 transition-colors border border-red-600/30">
+                            <Crown className="w-3 h-3 text-red-400" />
+                            <span className="font-tactical text-red-400">Command</span>
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
