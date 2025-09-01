@@ -19,6 +19,7 @@ import {
   Rocket,
   BarChart3,
   Plus,
+  Zap,
 } from "lucide-react";
 import { Link } from "wouter";
 
@@ -56,15 +57,23 @@ export default function Home() {
               <div className="command-console p-8 mb-8">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <h1 className="font-command text-5xl mb-4">
-                      <span className="gradient-medal-gold">WELCOME BACK</span>
-                      {user?.firstName && (
-                        <><br /><span className="text-2xl font-tactical text-primary">OPERATOR {user.firstName.toUpperCase()}</span></>
-                      )}
-                    </h1>
-                    <p className="font-tactical text-xl text-muted-foreground">
-                      🎯 MISSION STATUS: READY FOR DEPLOYMENT
-                    </p>
+                    <div className="flex items-start space-x-4">
+                      <div className="h-16 w-1 bg-gradient-to-b from-yellow-600 to-amber-500"></div>
+                      <div>
+                        <h1 className="font-command text-4xl mb-3">
+                          <span className="gradient-medal-gold">MISSION COMMAND</span>
+                          {user?.firstName && (
+                            <><br /><span className="text-xl font-tactical text-yellow-400">OPERATOR {user.firstName.toUpperCase()}</span></>
+                          )}
+                        </h1>
+                        <div className="flex items-center space-x-4 font-tactical text-lg">
+                          <span className="text-slate-300">🎯 STATUS:</span>
+                          <span className="text-green-400 font-bold animate-pulse">OPERATIONAL</span>
+                          <span className="text-slate-400">|</span>
+                          <span className="text-yellow-400">READY FOR DEPLOYMENT</span>
+                        </div>
+                      </div>
+                    </div>
                     <div className="service-ribbon mt-4"></div>
                   </div>
                   <div className="flex flex-col items-end space-y-3">
@@ -106,86 +115,158 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* TACTICAL OPERATIONS CENTER */}
-              <div className="tactical-command-card p-6 mb-8">
-                <h2 className="font-command text-xl mb-6 flex items-center">
-                  <Award className="w-6 h-6 mr-3 text-primary" />
-                  TACTICAL OPERATIONS CENTER
-                </h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* TACTICAL OPERATIONS CENTER - Enhanced */}
+              <div className="tactical-command-card p-6 mb-8 border-2 border-yellow-600/30">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-command text-xl flex items-center">
+                    <Award className="w-6 h-6 mr-3 text-yellow-400" />
+                    MISSION CONTROL CENTER
+                  </h2>
+                  <Badge className="bg-green-600/20 text-green-400 border-green-600/50 font-tactical">
+                    🎯 SYSTEMS ONLINE
+                  </Badge>
+                </div>
+                <p className="font-tactical text-sm text-slate-400 mb-6">Choose your operation to begin mission deployment</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Link href="/tools">
-                    <div className="btn-command p-6 text-center h-24 flex flex-col items-center justify-center space-y-2 animate-honor-entry" data-testid="card-quick-script">
-                      <Edit className="w-8 h-8" />
-                      <span className="text-sm font-military">SCRIPT OPS</span>
+                    <div className="btn-command p-6 h-32 flex items-center space-x-4 animate-honor-entry hover:scale-[1.02] transition-all border-2 border-transparent hover:border-yellow-500/50" data-testid="card-quick-script">
+                      <div className="p-3 bg-yellow-600/20 rounded-lg">
+                        <Edit className="w-10 h-10 text-yellow-400" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-command text-lg text-yellow-400 mb-1">AI SCRIPT STUDIO</h3>
+                        <p className="font-tactical text-sm text-slate-300">Generate, enhance & analyze scripts</p>
+                        <Badge className="mt-2 text-xs bg-green-600/20 text-green-400">
+                          ⚡ AI POWERED
+                        </Badge>
+                      </div>
                     </div>
                   </Link>
 
                   <Link href="/community">
-                    <div className="btn-command p-6 text-center h-24 flex flex-col items-center justify-center space-y-2 animate-honor-entry" data-testid="card-quick-community">
-                      <Users className="w-8 h-8" />
-                      <span className="text-sm font-military">UNIT COMM</span>
+                    <div className="btn-command p-6 h-32 flex items-center space-x-4 animate-honor-entry hover:scale-[1.02] transition-all border-2 border-transparent hover:border-purple-500/50" data-testid="card-quick-community">
+                      <div className="p-3 bg-purple-600/20 rounded-lg">
+                        <Users className="w-10 h-10 text-purple-400" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-command text-lg text-purple-400 mb-1">BATTLE NETWORK</h3>
+                        <p className="font-tactical text-sm text-slate-300">Connect with veterans & filmmakers</p>
+                        <Badge className="mt-2 text-xs bg-purple-600/20 text-purple-400">
+                          🤝 COMMUNITY
+                        </Badge>
+                      </div>
                     </div>
                   </Link>
 
-                  <div className="btn-command p-6 text-center h-24 flex flex-col items-center justify-center space-y-2 animate-honor-entry cursor-pointer" data-testid="card-quick-project">
-                    <Film className="w-8 h-8" />
-                    <span className="text-sm font-military">MISSIONS</span>
+                  <Link href="/portfolio">
+                    <div className="btn-command p-6 h-32 flex items-center space-x-4 animate-honor-entry hover:scale-[1.02] transition-all border-2 border-transparent hover:border-blue-500/50" data-testid="card-quick-project">
+                      <div className="p-3 bg-blue-600/20 rounded-lg">
+                        <Film className="w-10 h-10 text-blue-400" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-command text-lg text-blue-400 mb-1">PROJECT HQ</h3>
+                        <p className="font-tactical text-sm text-slate-300">Manage film productions</p>
+                        <Badge className="mt-2 text-xs bg-blue-600/20 text-blue-400">
+                          📁 {userProjects.length} ACTIVE
+                        </Badge>
+                      </div>
+                    </div>
+                  </Link>
+
+                  <Link href="/billing">
+                    <div className="btn-command p-6 h-32 flex items-center space-x-4 animate-honor-entry hover:scale-[1.02] transition-all border-2 border-transparent hover:border-green-500/50" data-testid="card-quick-billing">
+                      <div className="p-3 bg-green-600/20 rounded-lg">
+                        <TrendingUp className="w-10 h-10 text-green-400" />
+                      </div>
+                      <div className="text-left">
+                        <h3 className="font-command text-lg text-green-400 mb-1">SUPPLY DEPOT</h3>
+                        <p className="font-tactical text-sm text-slate-300">Credits & subscription management</p>
+                        <Badge className="mt-2 text-xs bg-green-600/20 text-green-400">
+                          💰 RESOURCES
+                        </Badge>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+                
+                {/* Quick Actions */}
+                <div className="mt-6 p-4 bg-gradient-to-r from-yellow-600/10 to-amber-500/10 border border-yellow-600/30 rounded-lg">
+                  <h4 className="font-command text-sm text-yellow-400 mb-3 flex items-center">
+                    <Rocket className="w-4 h-4 mr-2" />
+                    QUICK DEPLOYMENT
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <Link href="/tools?action=generate" className="flex items-center space-x-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-700/50 transition-colors text-sm">
+                      <Zap className="w-4 h-4 text-yellow-400" />
+                      <span className="font-tactical text-slate-300">Generate Script</span>
+                    </Link>
+                    <Link href="/portfolio?action=new" className="flex items-center space-x-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-700/50 transition-colors text-sm">
+                      <Plus className="w-4 h-4 text-blue-400" />
+                      <span className="font-tactical text-slate-300">New Project</span>
+                    </Link>
+                    <Link href="/community" className="flex items-center space-x-2 p-3 bg-slate-800/50 rounded-lg hover:bg-slate-700/50 transition-colors text-sm">
+                      <MessageSquare className="w-4 h-4 text-purple-400" />
+                      <span className="font-tactical text-slate-300">Join Forum</span>
+                    </Link>
                   </div>
-
-                  <Link href="/media">
-                    <div className="btn-command p-6 text-center h-24 flex flex-col items-center justify-center space-y-2 animate-honor-entry" data-testid="card-quick-media">
-                      <TrendingUp className="w-8 h-8" />
-                      <span className="text-sm font-military">INTEL HUB</span>
-                    </div>
-                  </Link>
                 </div>
               </div>
             </div>
 
             <div className="grid lg:grid-cols-4 gap-8">
               {/* SCRIPT OPERATIONS STATUS */}
-              <div className="tactical-command-card" data-testid="card-recent-scripts">
+              <div className="tactical-command-card border border-yellow-600/30" data-testid="card-recent-scripts">
                 <div className="p-6">
-                  <h3 className="font-command text-lg mb-4 flex items-center">
-                    <Edit className="w-5 h-5 text-primary mr-2" />
-                    SCRIPT OPS
-                  </h3>
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="font-command text-lg flex items-center">
+                      <Edit className="w-5 h-5 text-yellow-400 mr-2" />
+                      SCRIPT OPERATIONS
+                    </h3>
+                    <Badge className="bg-yellow-600/20 text-yellow-400 border-yellow-600/50 text-xs">
+                      {recentScripts.length} ACTIVE
+                    </Badge>
+                  </div>
                   {recentScripts.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Edit className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground mb-4">No scripts yet</p>
+                    <div className="text-center py-8 bg-slate-800/30 rounded-lg border border-dashed border-yellow-600/30">
+                      <div className="p-4 bg-yellow-600/10 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                        <Edit className="w-10 h-10 text-yellow-400" />
+                      </div>
+                      <h4 className="font-command text-lg text-yellow-400 mb-2">NO SCRIPTS DEPLOYED</h4>
+                      <p className="font-tactical text-sm text-slate-400 mb-4">Start your first mission by creating a script</p>
                       <Link href="/tools">
-                        <Button size="sm" data-testid="button-create-first-script">
-                          <Plus className="w-4 h-4 mr-2" />
-                          Create Your First Script
+                        <Button className="bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-400 text-black font-bold" data-testid="button-create-first-script">
+                          <Zap className="w-4 h-4 mr-2" />
+                          START SCRIPT MISSION
                         </Button>
                       </Link>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {recentScripts.slice(0, 5).map((script: any) => (
-                        <div key={script.id} className="border border-border rounded-lg p-3" data-testid={`recent-script-${script.id}`}>
+                        <div key={script.id} className="border border-slate-700 hover:border-yellow-600/50 rounded-lg p-3 bg-slate-800/30 hover:bg-slate-800/50 transition-all cursor-pointer" data-testid={`recent-script-${script.id}`}>
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-semibold text-sm">{script.title}</h4>
+                            <h4 className="font-tactical font-semibold text-sm text-yellow-400">{script.title}</h4>
                             {script.festivalScore && (
-                              <Badge variant="outline" className="text-xs">
-                                {script.festivalScore}
+                              <Badge className="bg-green-600/20 text-green-400 border-green-600/50 text-xs">
+                                🏆 {script.festivalScore}
                               </Badge>
                             )}
                           </div>
                           {script.genre && (
-                            <Badge variant="secondary" className="text-xs mb-2">
+                            <Badge variant="secondary" className="text-xs mb-2 bg-slate-700/50 text-slate-300">
                               {script.genre}
                             </Badge>
                           )}
-                          <p className="text-xs text-muted-foreground">
-                            Updated {new Date(script.updatedAt).toLocaleDateString()}
+                          <p className="text-xs text-slate-400 font-tactical">
+                            LAST UPDATE: {new Date(script.updatedAt).toLocaleDateString()}
                           </p>
                         </div>
                       ))}
                       <Link href="/tools">
-                        <Button variant="outline" size="sm" className="w-full">
-                          View All Scripts
+                        <Button variant="outline" size="sm" className="w-full border-yellow-600/50 hover:bg-yellow-600/10 font-tactical">
+                          <BarChart3 className="w-4 h-4 mr-2" />
+                          VIEW ALL SCRIPT OPERATIONS
                         </Button>
                       </Link>
                     </div>
@@ -194,44 +275,61 @@ export default function Home() {
               </div>
 
               {/* Active Projects */}
-              <Card data-testid="card-active-projects">
+              <Card className="tactical-command-card border border-blue-600/30" data-testid="card-active-projects">
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Film className="w-5 h-5 text-primary mr-2" />
-                    My Projects
+                  <CardTitle className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <Film className="w-5 h-5 text-blue-400 mr-2" />
+                      <span className="font-command text-blue-400">PROJECT MISSIONS</span>
+                    </div>
+                    <Badge className="bg-blue-600/20 text-blue-400 border-blue-600/50 text-xs">
+                      {userProjects.length} ACTIVE
+                    </Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {userProjects.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Film className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground mb-4">No projects yet</p>
-                      <Button size="sm" data-testid="button-create-project">
-                        <Rocket className="w-4 h-4 mr-2" />
-                        Start a Project
-                      </Button>
+                    <div className="text-center py-8 bg-slate-800/30 rounded-lg border border-dashed border-blue-600/30">
+                      <div className="p-4 bg-blue-600/10 rounded-full w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+                        <Film className="w-10 h-10 text-blue-400" />
+                      </div>
+                      <h4 className="font-command text-lg text-blue-400 mb-2">NO ACTIVE MISSIONS</h4>
+                      <p className="font-tactical text-sm text-slate-400 mb-4">Deploy your first film production project</p>
+                      <Link href="/portfolio">
+                        <Button className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-bold" data-testid="button-create-project">
+                          <Rocket className="w-4 h-4 mr-2" />
+                          LAUNCH PROJECT
+                        </Button>
+                      </Link>
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {userProjects.slice(0, 3).map((project: any) => (
-                        <div key={project.id} className="border border-border rounded-lg p-3" data-testid={`project-${project.id}`}>
+                        <div key={project.id} className="border border-slate-700 hover:border-blue-600/50 rounded-lg p-3 bg-slate-800/30 hover:bg-slate-800/50 transition-all cursor-pointer" data-testid={`project-${project.id}`}>
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-semibold text-sm">{project.title}</h4>
-                            <Badge variant="outline" className="text-xs">
-                              {project.status.replace("_", " ")}
+                            <h4 className="font-tactical font-semibold text-sm text-blue-400">{project.title}</h4>
+                            <Badge className={`text-xs ${
+                              project.status === 'active' ? 'bg-green-600/20 text-green-400 border-green-600/50' :
+                              project.status === 'planning' ? 'bg-yellow-600/20 text-yellow-400 border-yellow-600/50' :
+                              'bg-slate-600/20 text-slate-400 border-slate-600/50'
+                            }`}>
+                              {project.status.replace("_", " ").toUpperCase()}
                             </Badge>
                           </div>
-                          <Badge variant="secondary" className="text-xs mb-2">
-                            {project.type.replace("_", " ")}
+                          <Badge variant="secondary" className="text-xs mb-2 bg-slate-700/50 text-slate-300">
+                            {project.type.replace("_", " ").toUpperCase()}
                           </Badge>
-                          <p className="text-xs text-muted-foreground">
-                            Created {new Date(project.createdAt).toLocaleDateString()}
+                          <p className="text-xs text-slate-400 font-tactical">
+                            DEPLOYED: {new Date(project.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                       ))}
-                      <Button variant="outline" size="sm" className="w-full">
-                        View All Projects
-                      </Button>
+                      <Link href="/portfolio">
+                        <Button variant="outline" size="sm" className="w-full border-blue-600/50 hover:bg-blue-600/10 font-tactical">
+                          <Film className="w-4 h-4 mr-2" />
+                          VIEW ALL MISSIONS
+                        </Button>
+                      </Link>
                     </div>
                   )}
                 </CardContent>

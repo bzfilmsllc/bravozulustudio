@@ -38,11 +38,11 @@ export function Navigation() {
   };
 
   const navigation = [
-    { name: "Home", href: "/", icon: Home },
-    { name: "Tools", href: "/tools", icon: Wrench },
-    { name: "Portfolio", href: "/portfolio", icon: Briefcase },
-    { name: "Community", href: "/community", icon: Users },
-    { name: "Media", href: "/media", icon: Radio },
+    { name: "HOME", href: "/", icon: Home, description: "Mission Control" },
+    { name: "TOOLS", href: "/tools", icon: Wrench, description: "AI Script Studio" },
+    { name: "PORTFOLIO", href: "/portfolio", icon: Briefcase, description: "Your Projects" },
+    { name: "COMMUNITY", href: "/community", icon: Users, description: "Connect & Share" },
+    { name: "MEDIA", href: "/media", icon: Radio, description: "Gallery & Files" },
   ];
 
   return (
@@ -50,21 +50,24 @@ export function Navigation() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-3" data-testid="logo">
-            <img 
-              src={bravoZuluLogo} 
-              alt="Bravo Zulu Films" 
-              className="w-10 h-10 object-contain"
-            />
+          <Link href="/" className="flex items-center space-x-3 group" data-testid="logo">
+            <div className="relative">
+              <img 
+                src={bravoZuluLogo} 
+                alt="Bravo Zulu Films" 
+                className="w-12 h-12 object-contain ring-2 ring-yellow-600/50 rounded-lg p-1 group-hover:ring-yellow-500 transition-all"
+              />
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-600 rounded-full animate-pulse"></div>
+            </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">Bravo Zulu Films</h1>
-              <p className="text-xs text-muted-foreground">Professional Studio</p>
+              <h1 className="font-command text-xl font-bold gradient-medal-gold">BRAVO ZULU FILMS</h1>
+              <p className="font-tactical text-xs text-yellow-600 tracking-wider">🎯 MILITARY STUDIO COMMAND</p>
             </div>
           </Link>
 
           {/* Main Navigation */}
           {isAuthenticated && (
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-2">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = location === item.href;
@@ -72,15 +75,23 @@ export function Navigation() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`flex items-center space-x-2 px-3 py-2 rounded-md transition-colors ${
+                    className={`group relative flex flex-col items-center px-4 py-2 rounded-lg transition-all duration-200 ${
                       isActive
-                        ? "text-primary bg-primary/10"
-                        : "text-muted-foreground hover:text-primary"
+                        ? "bg-gradient-to-r from-yellow-600/20 to-amber-500/20 text-yellow-400 border border-yellow-600/30"
+                        : "text-slate-300 hover:text-yellow-400 hover:bg-slate-800/50 border border-transparent hover:border-yellow-600/20"
                     }`}
                     data-testid={`nav-${item.name.toLowerCase()}`}
                   >
-                    <Icon className="w-4 h-4" />
-                    <span>{item.name}</span>
+                    <Icon className={`w-5 h-5 mb-1 ${
+                      isActive ? "text-yellow-400 drop-shadow-glow" : "group-hover:text-yellow-400"
+                    }`} />
+                    <span className="font-tactical text-xs tracking-wider">{item.name}</span>
+                    <span className="text-[10px] text-slate-400 group-hover:text-yellow-500 transition-colors">
+                      {item.description}
+                    </span>
+                    {isActive && (
+                      <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-2 h-1 bg-yellow-400 rounded-full"></div>
+                    )}
                   </Link>
                 );
               })}
@@ -88,18 +99,25 @@ export function Navigation() {
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center space-x-2" data-testid="user-menu">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={user?.profileImageUrl || undefined} alt={user?.firstName || "User"} />
-                      <AvatarFallback>
-                        {user?.firstName?.[0] || user?.email?.[0] || "U"}
-                      </AvatarFallback>
-                    </Avatar>
-                    {user?.role === "verified" && (
-                      <Badge variant="secondary" className="text-xs">
-                        Verified
-                      </Badge>
-                    )}
+                  <Button variant="ghost" className="flex items-center space-x-3 px-3 py-2 border border-yellow-600/30 hover:border-yellow-500/50 bg-slate-900/50 hover:bg-slate-800/70 transition-all" data-testid="user-menu">
+                    <div className="flex items-center space-x-2">
+                      <Avatar className="w-10 h-10 ring-2 ring-yellow-600/50">
+                        <AvatarImage src={user?.profileImageUrl || undefined} alt={user?.firstName || "User"} />
+                        <AvatarFallback className="bg-slate-800 text-yellow-400 font-bold">
+                          {user?.firstName?.[0] || user?.email?.[0] || "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="text-left">
+                        <div className="font-tactical text-sm text-yellow-400">
+                          {user?.firstName || "OPERATOR"}
+                        </div>
+                        {user?.role === "verified" && (
+                          <Badge className="text-[10px] bg-yellow-600/20 text-yellow-400 border-yellow-600/50">
+                            🏅 VERIFIED
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
