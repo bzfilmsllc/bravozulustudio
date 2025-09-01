@@ -1457,6 +1457,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Tutorial and onboarding routes
+  app.put("/api/tutorial/progress", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { step, completed } = req.body;
+      
+      await storage.updateTutorialProgress(userId, { 
+        tutorialStep: step,
+        lastTutorialInteraction: new Date(),
+        ...(completed && { hasCompletedOnboarding: true, tutorialCompletedAt: new Date() })
+      });
+      
+      res.json({ message: "Tutorial progress updated" });
+    } catch (error) {
+      console.error("Error updating tutorial progress:", error);
+      res.status(500).json({ message: "Failed to update tutorial progress" });
+    }
+  });
+
+  app.post("/api/tutorial/complete", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Award welcome package if not already received
+      if (!user.hasReceivedWelcomePackage) {
+        const welcomeCredits = 25;
+        await storage.updateUserCredits(userId, user.credits + welcomeCredits);
+        
+        // Create welcome notification
+        await storage.createNotification({
+          userId,
+          type: 'system',
+          title: '🎖️ Welcome Package Delivered',
+          message: `Congratulations! You've earned ${welcomeCredits} credits for completing the tutorial. Welcome to BravoZulu Films!`,
+        });
+      }
+
+      // Mark tutorial as completed and welcome package received
+      await storage.updateTutorialProgress(userId, {
+        hasCompletedOnboarding: true,
+        hasReceivedWelcomePackage: true,
+        tutorialCompletedAt: new Date(),
+        tutorialStep: 5, // Max step
+      });
+      
+      res.json({ message: "Tutorial completed and welcome package delivered" });
+    } catch (error) {
+      console.error("Error completing tutorial:", error);
+      res.status(500).json({ message: "Failed to complete tutorial" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // WebSocket for real-time notifications

@@ -64,9 +64,16 @@ export const users = pgTable("users", {
     enum: ['free', 'weekly', 'monthly', 'yearly']
   }).default('free').notNull(),
   subscriptionExpiresAt: timestamp("subscription_expires_at"),
-  credits: integer("credits").default(10).notNull(), // Free users get 10 credits to start
+  credits: integer("credits").default(25).notNull(), // Welcome package: 25 credits to start
   totalCreditsUsed: integer("total_credits_used").default(0).notNull(),
   militaryDiscountApplied: boolean("military_discount_applied").default(false).notNull(),
+  
+  // Onboarding and tutorial tracking
+  hasCompletedOnboarding: boolean("has_completed_onboarding").default(false).notNull(),
+  hasReceivedWelcomePackage: boolean("has_received_welcome_package").default(false).notNull(),
+  tutorialStep: integer("tutorial_step").default(0).notNull(),
+  tutorialCompletedAt: timestamp("tutorial_completed_at"),
+  lastTutorialInteraction: timestamp("last_tutorial_interaction"),
   
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),

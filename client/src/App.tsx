@@ -13,6 +13,7 @@ import Community from "@/pages/community";
 import Media from "@/pages/media";
 import Verification from "@/pages/verification";
 import Billing from "@/pages/billing";
+import { TutorialBot } from "@/components/tutorial-bot";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -43,6 +44,7 @@ function App() {
       <TooltipProvider>
         <Toaster />
         <Router />
+        <TutorialBot />
       </TooltipProvider>
     </QueryClientProvider>
   );

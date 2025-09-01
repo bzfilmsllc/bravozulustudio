@@ -127,6 +127,16 @@ export interface IStorage {
   useCredits(userId: string, amount: number, description: string, relatedEntityType?: string, relatedEntityId?: string): Promise<boolean>;
   getCreditTransactions(userId: string, limit?: number): Promise<CreditTransaction[]>;
   updateUserStripeInfo(userId: string, stripeCustomerId?: string, stripeSubscriptionId?: string): Promise<User | undefined>;
+  updateUserCredits(userId: string, newAmount: number): Promise<User | undefined>;
+  
+  // Tutorial and onboarding operations
+  updateTutorialProgress(userId: string, updates: {
+    tutorialStep?: number;
+    hasCompletedOnboarding?: boolean;
+    hasReceivedWelcomePackage?: boolean;
+    tutorialCompletedAt?: Date;
+    lastTutorialInteraction?: Date;
+  }): Promise<User | undefined>;
   updateUserSubscription(userId: string, plan: string, status: string, expiresAt?: Date): Promise<User | undefined>;
   
   // Subscription plan operations
@@ -1093,6 +1103,43 @@ export class DatabaseStorage implements IStorage {
     await db
       .delete(notifications)
       .where(eq(notifications.id, notificationId));
+  }
+
+  async updateUserCredits(userId: string, newAmount: number): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        credits: newAmount,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return user;
+  }
+
+  async updateTutorialProgress(userId: string, updates: {
+    tutorialStep?: number;
+    hasCompletedOnboarding?: boolean;
+    hasReceivedWelcomePackage?: boolean;
+    tutorialCompletedAt?: Date;
+    lastTutorialInteraction?: Date;
+  }): Promise<User | undefined> {
+    const updateData: any = { updatedAt: new Date() };
+    
+    if (updates.tutorialStep !== undefined) updateData.tutorialStep = updates.tutorialStep;
+    if (updates.hasCompletedOnboarding !== undefined) updateData.hasCompletedOnboarding = updates.hasCompletedOnboarding;
+    if (updates.hasReceivedWelcomePackage !== undefined) updateData.hasReceivedWelcomePackage = updates.hasReceivedWelcomePackage;
+    if (updates.tutorialCompletedAt) updateData.tutorialCompletedAt = updates.tutorialCompletedAt;
+    if (updates.lastTutorialInteraction) updateData.lastTutorialInteraction = updates.lastTutorialInteraction;
+
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+
+    return user;
   }
 }
 
