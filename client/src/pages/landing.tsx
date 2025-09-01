@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import bravoZuluLogo from "@/assets/bravo-zulu-logo.jpg";
 import {
   Dialog,
   DialogContent,
@@ -67,9 +68,11 @@ export default function Landing() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center space-x-3" data-testid="logo">
-              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                <Film className="text-primary-foreground text-lg" />
-              </div>
+              <img 
+                src={bravoZuluLogo} 
+                alt="Bravo Zulu Films" 
+                className="w-10 h-10 object-contain"
+              />
               <div>
                 <h1 className="text-xl font-bold text-foreground">Bravo Zulu Films</h1>
                 <p className="text-xs text-muted-foreground">Professional Studio</p>
@@ -149,6 +152,15 @@ export default function Landing() {
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
+            {/* Featured Logo */}
+            <div className="mb-8">
+              <img 
+                src={bravoZuluLogo} 
+                alt="Bravo Zulu Films" 
+                className="w-32 h-32 md:w-48 md:h-48 object-contain mx-auto"
+              />
+            </div>
+            
             <Badge variant="secondary" className="mb-6" data-testid="badge-studio-type">
               <Star className="w-4 h-4 text-primary mr-2" />
               Professional Film Studio for Military Veterans

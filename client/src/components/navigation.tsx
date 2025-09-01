@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import bravoZuluLogo from "@/assets/bravo-zulu-logo.jpg";
 import {
   Film,
   Menu,
@@ -48,9 +49,11 @@ export function Navigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-3" data-testid="logo">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-              <Film className="text-primary-foreground text-lg" />
-            </div>
+            <img 
+              src={bravoZuluLogo} 
+              alt="Bravo Zulu Films" 
+              className="w-10 h-10 object-contain"
+            />
             <div>
               <h1 className="text-xl font-bold text-foreground">Bravo Zulu Films</h1>
               <p className="text-xs text-muted-foreground">Professional Studio</p>
@@ -85,7 +88,7 @@ export function Navigation() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-2" data-testid="user-menu">
                     <Avatar className="w-8 h-8">
-                      <AvatarImage src={user?.profileImageUrl} alt={user?.firstName || "User"} />
+                      <AvatarImage src={user?.profileImageUrl || undefined} alt={user?.firstName || "User"} />
                       <AvatarFallback>
                         {user?.firstName?.[0] || user?.email?.[0] || "U"}
                       </AvatarFallback>
