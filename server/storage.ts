@@ -104,7 +104,7 @@ import {
   type InsertMonthlyVeteranCredits,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, or, desc, asc, count, sql } from "drizzle-orm";
+import { eq, and, or, desc, asc, count, sql, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -237,6 +237,7 @@ export interface IStorage {
   getSystemStats(): Promise<any>;
   awardCredits(userId: string, amount: number, reason: string, adminUserId: string): Promise<void>;
   verifyMilitaryService(userId: string, verification: any): Promise<void>;
+  updateMilitaryService(userId: string, serviceData: any): Promise<User | undefined>;
   processMonthlyVeteranCredits(adminUserId: string): Promise<any>;
   getCreditTransactions(): Promise<any[]>;
   getVerificationRequests(): Promise<any[]>;
@@ -1653,7 +1654,7 @@ export class DatabaseStorage implements IStorage {
   async getSystemStats(): Promise<any> {
     const totalUsers = await db.select({ count: count() }).from(users);
     const verifiedVeterans = await db.select({ count: count() }).from(users)
-      .where(and(eq(users.role, 'verified'), sql`${users.militaryVerification} IS NOT NULL`));
+      .where(and(eq(users.role, 'verified'), isNotNull(users.militaryVerification)));
     const creditsAwarded = await db.select({ total: sql<number>`SUM(amount)` }).from(creditTransactions);
     
     return {
@@ -1697,6 +1698,29 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId));
   }
 
+  async updateMilitaryService(userId: string, serviceData: any): Promise<User | undefined> {
+    const militaryData = {
+      verified: true,
+      serviceType: serviceData.serviceType,
+      branch: serviceData.branch,
+      yearsServed: serviceData.yearsServed,
+      verifiedBy: serviceData.verifiedBy,
+      verifiedAt: new Date(),
+      notes: serviceData.notes || '',
+    };
+
+    const [user] = await db.update(users)
+      .set({ 
+        militaryVerification: militaryData,
+        role: 'verified',
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    
+    return user;
+  }
+
   async processMonthlyVeteranCredits(adminUserId: string): Promise<any> {
     const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
     const currentYear = new Date().getFullYear();
@@ -1716,7 +1740,7 @@ export class DatabaseStorage implements IStorage {
     const veterans = await db.select().from(users)
       .where(and(
         eq(users.role, 'verified'),
-        sql`${users.militaryVerification}->>'serviceType' = 'veteran'`
+        sql`${users.militaryVerification}->>'serviceType' = ${'veteran'}`
       ));
 
     let veteransProcessed = 0;
@@ -1799,7 +1823,7 @@ export class DatabaseStorage implements IStorage {
     .from(users)
     .where(and(
       eq(users.role, 'pending'),
-      sql`${users.militaryVerification} IS NOT NULL`
+      isNotNull(users.militaryVerification)
     ))
     .orderBy(desc(users.updatedAt));
   }

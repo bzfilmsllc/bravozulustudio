@@ -2170,6 +2170,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update military service information
+  app.put("/api/admin/update-military-service", isAdmin, async (req, res) => {
+    try {
+      const { userId, serviceType, branch, yearsServed, notes } = req.body;
+      const adminUserId = req.user.claims.sub;
+      
+      const updatedUser = await storage.updateMilitaryService(userId, {
+        serviceType,
+        branch,
+        yearsServed,
+        notes,
+        verifiedBy: adminUserId
+      });
+      
+      res.json({ 
+        message: "Military service information updated successfully",
+        user: updatedUser
+      });
+    } catch (error) {
+      console.error("Error updating military service:", error);
+      res.status(500).json({ message: "Failed to update military service" });
+    }
+  });
+
   // Process monthly veteran credits
   app.post("/api/admin/process-monthly-credits", isAdmin, async (req, res) => {
     try {

@@ -38,6 +38,7 @@ import {
   Download,
   RefreshCw,
   Settings,
+  Edit,
 } from "lucide-react";
 
 // Service Badge Components with Animated Glowing Effects
@@ -110,6 +111,7 @@ export default function AdminPanel() {
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [showAwardCredits, setShowAwardCredits] = useState(false);
   const [showVerifyUser, setShowVerifyUser] = useState(false);
+  const [showEditService, setShowEditService] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
@@ -175,6 +177,27 @@ export default function AdminPanel() {
         description: "Military service verification has been updated!",
       });
       setShowVerifyUser(false);
+    },
+  });
+
+  // Update military service mutation
+  const updateMilitaryServiceMutation = useMutation({
+    mutationFn: async (data: { 
+      userId: string; 
+      serviceType: string; 
+      branch: string; 
+      yearsServed: string;
+      notes?: string;
+    }) => {
+      return apiRequest('PUT', '/api/admin/update-military-service', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      toast({
+        title: "🎖️ Service Updated",
+        description: "Military service information has been updated successfully!",
+      });
+      setShowEditService(false);
     },
   });
 
@@ -419,6 +442,19 @@ export default function AdminPanel() {
                           >
                             <UserCheck className="w-3 h-3 mr-1" />
                             Verify
+                          </Button>
+                          
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setShowEditService(true);
+                            }}
+                            data-testid={`button-edit-service-${user.id}`}
+                          >
+                            <Edit className="w-3 h-3 mr-1" />
+                            Service
                           </Button>
                         </div>
                       </div>
@@ -758,6 +794,107 @@ export default function AdminPanel() {
                   data-testid="button-confirm-verify"
                 >
                   Verify Service
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Military Service Dialog */}
+        <Dialog open={showEditService} onOpenChange={setShowEditService}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>🎖️ Edit Military Service</DialogTitle>
+              <DialogDescription>
+                Update military service information for {selectedUser?.firstName} {selectedUser?.lastName}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="edit-service-type">Service Type</Label>
+                <Select 
+                  defaultValue={selectedUser?.militaryVerification?.serviceType || ""}
+                  onValueChange={(value) => {
+                    document.getElementById('edit-service-type')?.setAttribute('data-value', value);
+                  }}
+                >
+                  <SelectTrigger id="edit-service-type" data-testid="select-edit-service-type">
+                    <SelectValue placeholder="Select service type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active_duty">Active Duty</SelectItem>
+                    <SelectItem value="veteran">Veteran</SelectItem>
+                    <SelectItem value="reserve">Reserve</SelectItem>
+                    <SelectItem value="national_guard">National Guard</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="edit-branch">Military Branch</Label>
+                <Select 
+                  defaultValue={selectedUser?.militaryVerification?.branch || ""}
+                  onValueChange={(value) => {
+                    document.getElementById('edit-branch')?.setAttribute('data-value', value);
+                  }}
+                >
+                  <SelectTrigger id="edit-branch" data-testid="select-edit-branch">
+                    <SelectValue placeholder="Select branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="army">Army</SelectItem>
+                    <SelectItem value="navy">Navy</SelectItem>
+                    <SelectItem value="air_force">Air Force</SelectItem>
+                    <SelectItem value="marines">Marines</SelectItem>
+                    <SelectItem value="coast_guard">Coast Guard</SelectItem>
+                    <SelectItem value="space_force">Space Force</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="edit-years-served">Years of Service</Label>
+                <Input
+                  id="edit-years-served"
+                  placeholder="e.g., 10"
+                  defaultValue={selectedUser?.militaryVerification?.yearsServed || ""}
+                  data-testid="input-edit-years-served"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-notes">Additional Notes</Label>
+                <Textarea
+                  id="edit-notes"
+                  placeholder="Any additional notes about service..."
+                  defaultValue={selectedUser?.militaryVerification?.notes || ""}
+                  data-testid="textarea-edit-notes"
+                />
+              </div>
+              <div className="flex justify-end gap-3">
+                <Button variant="outline" onClick={() => setShowEditService(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  className="bg-blue-500 hover:bg-blue-600"
+                  onClick={() => {
+                    const serviceType = document.getElementById('edit-service-type')?.getAttribute('data-value') || 
+                                      selectedUser?.militaryVerification?.serviceType || '';
+                    const branch = document.getElementById('edit-branch')?.getAttribute('data-value') || 
+                                  selectedUser?.militaryVerification?.branch || '';
+                    const yearsServed = (document.getElementById('edit-years-served') as HTMLInputElement)?.value || '';
+                    const notes = (document.getElementById('edit-notes') as HTMLTextAreaElement)?.value || '';
+                    
+                    if (selectedUser && serviceType && branch) {
+                      updateMilitaryServiceMutation.mutate({
+                        userId: selectedUser.id,
+                        serviceType,
+                        branch,
+                        yearsServed,
+                        notes
+                      });
+                    }
+                  }}
+                  data-testid="button-confirm-edit-service"
+                >
+                  Update Service
                 </Button>
               </div>
             </div>
