@@ -1,91 +1,88 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Oswald:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Oswald:wght@300;400;500;600;700&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  /* Military-inspired background - Deep Navy */
-  --background: hsl(220, 30%, 6%);
-  --foreground: hsl(0, 0%, 95%);
+  /* HONOR AND HERITAGE - Deep Military Palette */
+  --background: hsl(210, 40%, 3%);  /* Midnight Command Black */
+  --foreground: hsl(45, 20%, 95%);  /* Honor Silver */
   
-  /* Card styling - Darker with subtle elevation */
-  --card: hsl(220, 25%, 8%);
-  --card-foreground: hsl(0, 0%, 95%);
-  --popover: hsl(220, 25%, 8%);
-  --popover-foreground: hsl(0, 0%, 95%);
+  /* TACTICAL COMMAND CARDS */
+  --card: hsl(210, 35%, 6%);        /* Command Center Dark */
+  --card-foreground: hsl(45, 20%, 95%);
+  --popover: hsl(210, 35%, 6%);
+  --popover-foreground: hsl(45, 20%, 95%);
   
-  /* Primary - Honor Gold with deep contrast */
-  --primary: hsl(45, 85%, 55%);
-  --primary-foreground: hsl(220, 30%, 6%);
+  /* VALOR GOLD - Primary Honor Color */
+  --primary: hsl(43, 96%, 56%);     /* Medal of Honor Gold */
+  --primary-foreground: hsl(210, 40%, 3%);
   
-  /* Secondary - Military Steel Blue */
-  --secondary: hsl(210, 40%, 25%);
-  --secondary-foreground: hsl(0, 0%, 95%);
+  /* STEEL COMMAND - Secondary Colors */
+  --secondary: hsl(210, 30%, 15%);  /* Battleship Steel */
+  --secondary-foreground: hsl(45, 20%, 95%);
   
-  /* Muted - Military Green undertones */
-  --muted: hsl(120, 15%, 12%);
-  --muted-foreground: hsl(120, 10%, 70%);
+  /* TACTICAL MUTED - Subdued Operations */
+  --muted: hsl(210, 25%, 8%);       /* Operational Gray */
+  --muted-foreground: hsl(210, 15%, 65%);
   
-  /* Accent - Steel Gray */
-  --accent: hsl(200, 15%, 20%);
-  --accent-foreground: hsl(0, 0%, 95%);
+  /* ACCENT COMMAND - Tactical Blue */
+  --accent: hsl(210, 50%, 12%);     /* Command Blue */
+  --accent-foreground: hsl(45, 20%, 95%);
   
-  /* Destructive - Alert Red */
-  --destructive: hsl(0, 70%, 50%);
-  --destructive-foreground: hsl(0, 0%, 95%);
+  /* ALERT SYSTEMS */
+  --destructive: hsl(0, 84%, 48%);  /* Emergency Red */
+  --destructive-foreground: hsl(45, 20%, 95%);
   
-  /* Borders and inputs */
-  --border: hsl(200, 15%, 25%);
-  --input: hsl(200, 15%, 15%);
-  --ring: hsl(45, 85%, 55%);
+  /* TACTICAL INTERFACES */
+  --border: hsl(210, 30%, 18%);     /* Tactical Border */
+  --input: hsl(210, 35%, 8%);       /* Input Command */
+  --ring: hsl(43, 96%, 56%);        /* Focus Honor Ring */
   
-  /* Military branch colors */
-  --army-green: hsl(120, 40%, 25%);
-  --navy-blue: hsl(220, 70%, 30%);
-  --air-force-blue: hsl(200, 80%, 40%);
-  --marine-red: hsl(0, 70%, 45%);
-  --coast-guard-blue: hsl(200, 90%, 35%);
-  --space-force-blue: hsl(240, 80%, 25%);
+  /* SERVICE BRANCH HONOR COLORS */
+  --army-green: hsl(120, 60%, 20%); /* Army Strong Green */
+  --navy-blue: hsl(220, 100%, 25%); /* Navy Deep Blue */
+  --air-force-blue: hsl(200, 100%, 35%); /* Air Force Sky */
+  --marine-red: hsl(0, 100%, 35%);  /* Marine Scarlet */
+  --coast-guard-blue: hsl(195, 100%, 30%); /* Coast Guard Blue */
+  --space-force-blue: hsl(240, 100%, 20%); /* Space Force Deep */
   
-  /* Honor badges */
-  --gold: hsl(45, 85%, 55%);
-  --silver: hsl(0, 0%, 75%);
-  --bronze: hsl(30, 70%, 45%);
+  /* HONOR MEDAL COLORS */
+  --medal-gold: hsl(43, 96%, 56%);  /* Gold Star */
+  --medal-silver: hsl(0, 0%, 80%);  /* Silver Star */
+  --medal-bronze: hsl(30, 100%, 40%); /* Bronze Star */
   
-  /* Sidebar */
-  --sidebar: hsl(220, 30%, 6%);
-  --sidebar-foreground: hsl(0, 0%, 95%);
-  --sidebar-primary: hsl(45, 85%, 55%);
-  --sidebar-primary-foreground: hsl(220, 30%, 6%);
-  --sidebar-accent: hsl(200, 15%, 20%);
-  --sidebar-accent-foreground: hsl(0, 0%, 95%);
-  --sidebar-border: hsl(200, 15%, 25%);
-  --sidebar-ring: hsl(45, 85%, 55%);
+  /* COMMAND SIDEBAR */
+  --sidebar: hsl(210, 40%, 3%);
+  --sidebar-foreground: hsl(45, 20%, 95%);
+  --sidebar-primary: hsl(43, 96%, 56%);
+  --sidebar-primary-foreground: hsl(210, 40%, 3%);
+  --sidebar-accent: hsl(210, 50%, 12%);
+  --sidebar-accent-foreground: hsl(45, 20%, 95%);
+  --sidebar-border: hsl(210, 30%, 18%);
+  --sidebar-ring: hsl(43, 96%, 56%);
   
-  /* Typography */
-  --font-sans: "Inter", system-ui, sans-serif;
+  /* MILITARY TYPOGRAPHY SYSTEM */
+  --font-sans: "Rajdhani", "Inter", system-ui, sans-serif;
   --font-serif: "Playfair Display", serif;
-  --font-military: "Oswald", sans-serif;
+  --font-military: "Orbitron", "Oswald", sans-serif;
+  --font-tactical: "Rajdhani", monospace;
   --font-mono: "Fira Code", monospace;
-  --radius: 0.5rem;
+  --radius: 0.375rem;
   
-  /* Chart colors - Military themed */
-  --chart-1: hsl(45, 85%, 55%);
-  --chart-2: hsl(120, 40%, 45%);
-  --chart-3: hsl(220, 70%, 45%);
-  --chart-4: hsl(0, 70%, 55%);
-  --chart-5: hsl(200, 80%, 45%);
+  /* OPERATIONAL CHART COLORS */
+  --chart-1: hsl(43, 96%, 56%);     /* Gold Command */
+  --chart-2: hsl(120, 60%, 35%);    /* Army Operations */
+  --chart-3: hsl(220, 100%, 40%);   /* Navy Operations */
+  --chart-4: hsl(0, 100%, 45%);     /* Marine Operations */
+  --chart-5: hsl(200, 100%, 45%);   /* Air Force Operations */
   
-  /* Enhanced shadows for depth */
-  --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
-  --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.4);
-  --shadow-sm: 0px 2px 4px -1px rgba(0, 0, 0, 0.4), 0px 1px 2px -1px rgba(0, 0, 0, 0.3);
-  --shadow: 0px 2px 6px -1px rgba(0, 0, 0, 0.4), 0px 1px 3px -1px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0px 4px 8px -2px rgba(0, 0, 0, 0.4), 0px 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0px 8px 16px -4px rgba(0, 0, 0, 0.4), 0px 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0px 16px 32px -8px rgba(0, 0, 0, 0.5), 0px 8px 10px -1px rgba(0, 0, 0, 0.3);
-  --shadow-2xl: 0px 24px 48px -12px rgba(0, 0, 0, 0.6);
+  /* TACTICAL SHADOWS - Enhanced Depth */
+  --shadow-command: 0 4px 20px rgba(0, 0, 0, 0.8);
+  --shadow-tactical: 0 8px 32px rgba(0, 0, 0, 0.9);
+  --shadow-honor: 0 0 30px rgba(255, 215, 0, 0.3);
+  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .dark {
@@ -134,9 +131,20 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    background-image: 
-      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
-    background-size: 20px 20px;
+    background: 
+      /* Tactical Grid Overlay */
+      radial-gradient(circle at 1px 1px, rgba(255, 215, 0, 0.1) 1px, transparent 0),
+      /* Command Stripes */
+      linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 215, 0, 0.02) 50%, 
+        transparent 100%),
+      /* Base Command Background */
+      linear-gradient(135deg, 
+        hsl(210, 40%, 3%) 0%, 
+        hsl(210, 35%, 4%) 50%, 
+        hsl(210, 40%, 2%) 100%);
+    background-size: 24px 24px, 100% 100%, 100% 100%;
   }
 
   html {
@@ -308,4 +316,134 @@
 .badge-space-force {
   background: linear-gradient(135deg, #1C2951 0%, #4B0082 100%);
   color: white;
+}
+
+/* ===== TACTICAL UI ELEMENTS ===== */
+
+/* Command Console */
+.command-console {
+  background: 
+    linear-gradient(135deg, 
+      hsl(var(--card)) 0%, 
+      hsl(var(--accent)) 100%);
+  border: 2px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.command-console::before {
+  content: 'CLASSIFIED';
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: linear-gradient(135deg, #DC143C 0%, #8B0000 100%);
+  color: white;
+  font-family: var(--font-military);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.75rem;
+  letter-spacing: 0.1em;
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
+}
+
+/* Dog Tag Style */
+.dog-tag {
+  background: 
+    linear-gradient(135deg, #C0C0C0 0%, #E5E5E5 50%, #A8A8A8 100%);
+  color: #000;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 1rem;
+  border: 2px solid #808080;
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Service Ribbon */
+.service-ribbon {
+  width: 100%;
+  height: 0.5rem;
+  background: linear-gradient(90deg, 
+    #FFD700 0%, 
+    #FF6B6B 25%, 
+    #4ECDC4 50%, 
+    #45B7D1 75%, 
+    #96CEB4 100%);
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Honor Display */
+.honor-display {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: 
+    radial-gradient(circle at center, 
+      rgba(255, 215, 0, 0.1) 0%, 
+      transparent 70%);
+}
+
+.honor-display h1 {
+  font-family: var(--font-military);
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, 
+    #FFD700 0%, 
+    #FFA500 30%, 
+    #FF8C00 70%, 
+    #DAA520 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  margin-bottom: 1rem;
+}
+
+/* Command Button */
+.btn-command {
+  background: linear-gradient(135deg, 
+    hsl(var(--primary)) 0%, 
+    hsl(var(--primary)) 100%);
+  color: hsl(var(--primary-foreground));
+  font-family: var(--font-military);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 2px solid hsl(var(--primary));
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.btn-command::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    transparent 100%);
+  transition: left 0.5s ease;
+}
+
+.btn-command:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+.btn-command:hover::before {
+  left: 100%;
 }
