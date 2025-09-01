@@ -681,6 +681,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 </html>`);
   });
 
+  app.get('/fresh', (req, res) => {
+    console.log('🚀 SERVING FRESH REBUILD - COMPLETELY CLEAN!');
+    const fs = require('fs');
+    const path = require('path');
+    const freshHTML = fs.readFileSync(path.join(process.cwd(), 'fresh-start/index.html'), 'utf8');
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.send(freshHTML);
+  });
+
   app.get('/victory', (req, res) => {
     console.log('🏆 SERVING VICTORY PAGE - DIRECT ROUTE');
     res.setHeader('Content-Type', 'text/html');
