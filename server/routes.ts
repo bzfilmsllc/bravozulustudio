@@ -2,6 +2,8 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import path from "path";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
@@ -197,17 +199,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // EMERGENCY: Block all verification routes and serve emergency page
   app.get('/verification*', (req, res) => {
     console.log('🚫 BLOCKED VERIFICATION ROUTE - SERVING EMERGENCY PAGE');
-    res.sendFile(path.join(__dirname, '../client/public/emergency.html'));
+    res.sendFile(path.resolve(process.cwd(), 'client/public/emergency.html'));
   });
   
   app.get('/emergency', (req, res) => {
     console.log('🚀 SERVING EMERGENCY ACCESS PAGE');
-    res.sendFile(path.join(__dirname, '../client/public/emergency.html'));
+    res.sendFile(path.resolve(process.cwd(), 'client/public/emergency.html'));
   });
   
   app.get('/fresh', (req, res) => {
     console.log('🚀 SERVING FRESH CLEAN BUILD');
-    res.sendFile(path.join(__dirname, '../fresh-app/simple.html'));
+    res.sendFile(path.resolve(process.cwd(), 'client/public/fresh.html'));
   });
   
   app.post('/api/users/verification*', (req, res) => {
