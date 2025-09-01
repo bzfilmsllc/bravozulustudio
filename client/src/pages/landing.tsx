@@ -332,105 +332,90 @@ export default function Landing() {
           </div>
           
           <div className="grid lg:grid-cols-3 gap-8 mb-16">
-            {/* Testimonial 1 */}
+            {/* Value Proposition 1 */}
             <Card className="military-card group hover:scale-105 transition-all duration-500 border-2 border-green-600/20 hover:border-green-600/60">
               <CardContent className="p-8">
                 <div className="flex items-center mb-6">
                   <div className="w-16 h-16 bg-green-600/20 rounded-full flex items-center justify-center mr-4">
-                    <Award className="w-8 h-8 text-green-400" />
+                    <Shield className="w-8 h-8 text-green-400" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg">Sarah M.</h4>
-                    <p className="text-sm text-green-400 font-military">ARMY VETERAN • DIRECTOR</p>
+                    <h4 className="font-bold text-lg">Military Exclusive</h4>
+                    <p className="text-sm text-green-400 font-military">VERIFIED VETERANS ONLY</p>
                   </div>
                 </div>
-                <Quote className="w-8 h-8 text-primary/30 mb-4" />
-                <p className="text-muted-foreground mb-6 italic leading-relaxed">
-                  "The AI scriptwriting tools helped me complete my first feature film script in just 3 weeks. Now I'm in pre-production with full industry backing."
+                <p className="text-muted-foreground mb-6 leading-relaxed">
+                  Connect with fellow veterans who understand your journey. Our verification process ensures an authentic military community focused on serious filmmaking.
                 </p>
                 <div className="flex items-center space-x-2">
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <span className="text-sm text-muted-foreground ml-2">Festival Winner</span>
+                  <CheckCircle className="w-4 h-4 text-green-400" />
+                  <span className="text-sm text-muted-foreground">Secure Community</span>
                 </div>
               </CardContent>
             </Card>
             
-            {/* Testimonial 2 */}
+            {/* Value Proposition 2 */}
             <Card className="military-card group hover:scale-105 transition-all duration-500 border-2 border-blue-600/20 hover:border-blue-600/60">
               <CardContent className="p-8">
                 <div className="flex items-center mb-6">
                   <div className="w-16 h-16 bg-blue-600/20 rounded-full flex items-center justify-center mr-4">
-                    <Trophy className="w-8 h-8 text-blue-400" />
+                    <Zap className="w-8 h-8 text-blue-400" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg">Marcus R.</h4>
-                    <p className="text-sm text-blue-400 font-military">NAVY VETERAN • PRODUCER</p>
+                    <h4 className="font-bold text-lg">AI-Powered Tools</h4>
+                    <p className="text-sm text-blue-400 font-military">CUTTING-EDGE TECHNOLOGY</p>
                   </div>
                 </div>
-                <Quote className="w-8 h-8 text-primary/30 mb-4" />
-                <p className="text-muted-foreground mb-6 italic leading-relaxed">
-                  "Connected with 12 veteran filmmakers in my first month. We're now co-producing a documentary that's been selected for Sundance."
+                <p className="text-muted-foreground mb-6 leading-relaxed">
+                  Advanced AI assistance for scriptwriting, story development, and creative guidance. Built specifically to understand military narratives and authentic storytelling.
                 </p>
                 <div className="flex items-center space-x-2">
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <span className="text-sm text-muted-foreground ml-2">Sundance Selected</span>
+                  <CheckCircle className="w-4 h-4 text-blue-400" />
+                  <span className="text-sm text-muted-foreground">Always Improving</span>
                 </div>
               </CardContent>
             </Card>
             
-            {/* Testimonial 3 */}
+            {/* Value Proposition 3 */}
             <Card className="military-card group hover:scale-105 transition-all duration-500 border-2 border-purple-600/20 hover:border-purple-600/60">
               <CardContent className="p-8">
                 <div className="flex items-center mb-6">
                   <div className="w-16 h-16 bg-purple-600/20 rounded-full flex items-center justify-center mr-4">
-                    <Camera className="w-8 h-8 text-purple-400" />
+                    <Users className="w-8 h-8 text-purple-400" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg">James K.</h4>
-                    <p className="text-sm text-purple-400 font-military">MARINES VETERAN • CINEMATOGRAPHER</p>
+                    <h4 className="font-bold text-lg">Growing Network</h4>
+                    <p className="text-sm text-purple-400 font-military">BUILDING TOGETHER</p>
                   </div>
                 </div>
-                <Quote className="w-8 h-8 text-primary/30 mb-4" />
-                <p className="text-muted-foreground mb-6 italic leading-relaxed">
-                  "The professional tools and veteran network opened doors I never thought possible. Landed my first Hollywood DP job through the community."
+                <p className="text-muted-foreground mb-6 leading-relaxed">
+                  Join the founding members of a platform built by veterans, for veterans. Help shape the future of military storytelling in cinema.
                 </p>
                 <div className="flex items-center space-x-2">
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <span className="text-sm text-muted-foreground ml-2">Hollywood Professional</span>
+                  <CheckCircle className="w-4 h-4 text-purple-400" />
+                  <span className="text-sm text-muted-foreground">Early Access</span>
                 </div>
               </CardContent>
             </Card>
           </div>
           
-          {/* Success Metrics */}
+          {/* Platform Values */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div className="group">
-              <div className="text-4xl font-bold gradient-gold mb-2 font-military group-hover:scale-110 transition-transform">95%</div>
-              <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">SUCCESS RATE</div>
-            </div>
-            <div className="group">
-              <div className="text-4xl font-bold gradient-gold mb-2 font-military group-hover:scale-110 transition-transform">$2.3M</div>
-              <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">FUNDING SECURED</div>
-            </div>
-            <div className="group">
-              <div className="text-4xl font-bold gradient-gold mb-2 font-military group-hover:scale-110 transition-transform">47</div>
-              <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">FESTIVAL AWARDS</div>
-            </div>
-            <div className="group">
               <div className="text-4xl font-bold gradient-gold mb-2 font-military group-hover:scale-110 transition-transform">100%</div>
-              <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">VETERAN VERIFIED</div>
+              <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">VETERAN BUILT</div>
+            </div>
+            <div className="group">
+              <div className="text-4xl font-bold gradient-gold mb-2 font-military group-hover:scale-110 transition-transform">24/7</div>
+              <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">PLATFORM ACCESS</div>
+            </div>
+            <div className="group">
+              <div className="text-4xl font-bold gradient-gold mb-2 font-military group-hover:scale-110 transition-transform">BETA</div>
+              <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">EARLY ACCESS</div>
+            </div>
+            <div className="group">
+              <div className="text-4xl font-bold gradient-gold mb-2 font-military group-hover:scale-110 transition-transform">SECURE</div>
+              <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">MILITARY GRADE</div>
             </div>
           </div>
         </div>
@@ -772,8 +757,8 @@ export default function Landing() {
                   <Trophy className="text-primary w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-xl mb-3 gradient-gold">Proven Success Rate</h3>
-                  <p className="text-muted-foreground leading-relaxed">95% of our verified veterans secure funding or distribution within 12 months. Our track record speaks for itself - we deliver results, not promises.</p>
+                  <h3 className="font-bold text-xl mb-3 gradient-gold">Built for Success</h3>
+                  <p className="text-muted-foreground leading-relaxed">Designed by veterans who understand the transition from military service to creative careers. Every tool and feature is purpose-built for authentic storytelling.</p>
                 </div>
               </div>
             </div>
@@ -1118,8 +1103,8 @@ export default function Landing() {
               <span className="text-red-400 font-military text-lg tracking-wide">LIMITED TIME ENROLLMENT</span>
             </div>
             <p className="text-muted-foreground">
-              <strong className="text-yellow-400">{stats.verifiedVeterans}</strong> verified veterans already creating. 
-              <strong className="text-red-400"> Only 50 positions remaining</strong> in this exclusive cohort.
+              Join the <strong className="text-yellow-400">{stats.verifiedVeterans}</strong> verified veterans building this community. 
+              <strong className="text-blue-400">Early access</strong> to help shape the platform.
             </p>
           </div>
           
@@ -1157,8 +1142,8 @@ export default function Landing() {
             </div>
             <div className="flex flex-col items-center">
               <Award className="w-8 h-8 text-yellow-400 mb-3" />
-              <h4 className="font-military text-lg text-yellow-400 mb-2">PROVEN RESULTS</h4>
-              <p className="text-sm text-muted-foreground">47 festival awards and $2.3M in funding secured</p>
+              <h4 className="font-military text-lg text-yellow-400 mb-2">GROWING PLATFORM</h4>
+              <p className="text-sm text-muted-foreground">New features and tools added regularly based on user feedback</p>
             </div>
             <div className="flex flex-col items-center">
               <Users2 className="w-8 h-8 text-blue-400 mb-3" />
