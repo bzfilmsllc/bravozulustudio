@@ -70,17 +70,8 @@ export default function Verification() {
   const [userRole, setUserRole] = useState<string | null>(null);
   
   useEffect(() => {
-    // Fetch user role directly since auth is having issues
-    fetch('/api/auth/user', { credentials: 'include' })
-      .then(res => res.json())
-      .then(data => {
-        console.log('Direct fetch user data:', data);
-        setUserRole(data.role);
-      })
-      .catch(err => {
-        console.log('Direct fetch failed:', err);
-        setUserRole('public'); // Default to public if fetch fails
-      });
+    // For testing: redirect all users away from verification page
+    window.location.href = '/tools';
   }, []);
 
   const form = useForm<VerificationFormData>({
