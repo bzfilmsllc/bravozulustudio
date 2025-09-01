@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
-import App from "./App";
+import MinimalApp from "./minimal-app";
+// import App from "./App";
 import "./index.css";
 
 // EMERGENCY POPUP KILLER - VERIFICATION DISABLED PERMANENTLY
@@ -33,4 +34,4 @@ if (typeof window !== 'undefined') {
   };
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<MinimalApp />);
