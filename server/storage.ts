@@ -148,7 +148,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(users)
-      .where(eq(users.isVerified, true))
+      .where(eq(users.role, 'verified'))
       .orderBy(desc(users.createdAt))
       .limit(limit);
   }
