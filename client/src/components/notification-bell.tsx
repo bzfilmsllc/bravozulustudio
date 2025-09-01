@@ -16,7 +16,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { isAuthenticated } = useAuth();
 
-  const { data: unreadCount = { count: 0 } } = useQuery({
+  const { data: unreadCount = { count: 0 } } = useQuery<{ count: number }>({
     queryKey: ['/api/notifications/unread-count'],
     refetchInterval: 10000, // Refetch every 10 seconds
     enabled: isAuthenticated,

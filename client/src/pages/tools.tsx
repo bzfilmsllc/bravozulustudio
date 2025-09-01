@@ -189,7 +189,7 @@ export default function Tools() {
                         Integrated video editing, sound design, and post-production tools are being developed 
                         to provide a complete creative workflow.
                       </p>
-                      <Button variant="outline" data-testid="button-notify-creative">
+                      <Button variant="outline" onClick={() => alert("We'll notify you when Creative Suite is available!")} data-testid="button-notify-creative">
                         <Clock className="w-4 h-4 mr-2" />
                         Notify When Available
                       </Button>
@@ -220,7 +220,7 @@ export default function Tools() {
                         Comprehensive analytics and insights for your scripts, projects, and community engagement 
                         are being developed.
                       </p>
-                      <Button variant="outline" data-testid="button-notify-analytics">
+                      <Button variant="outline" onClick={() => alert("We'll notify you when Analytics Dashboard is available!")} data-testid="button-notify-analytics">
                         <Clock className="w-4 h-4 mr-2" />
                         Notify When Available
                       </Button>
