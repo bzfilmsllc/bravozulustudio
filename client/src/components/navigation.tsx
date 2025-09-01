@@ -63,9 +63,8 @@ export function Navigation() {
               <img 
                 src={bravoZuluLogo} 
                 alt="Bravo Zulu Films" 
-                className="w-12 h-12 object-contain ring-2 ring-yellow-600/50 rounded-lg p-1 group-hover:ring-yellow-500 transition-all"
+                className="w-12 h-12 object-contain rounded-lg p-1 logo-box-breathing group-hover:scale-110 transition-transform"
               />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-600 rounded-full animate-pulse"></div>
             </div>
             <div>
               <h1 className="font-command text-xl font-bold gradient-medal-gold">BRAVO ZULU FILMS</h1>

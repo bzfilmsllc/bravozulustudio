@@ -85,6 +85,29 @@
   --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
+/* Box Breathing Logo Glow Animation */
+@keyframes box-breathing-glow {
+  0% {
+    box-shadow: 0 0 20px hsl(120, 60%, 50%); /* Green glow */
+  }
+  25% {
+    box-shadow: 0 0 30px hsl(120, 60%, 50%); /* Hold green */
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(220, 100%, 50%); /* Blue glow */
+  }
+  75% {
+    box-shadow: 0 0 30px hsl(220, 100%, 50%); /* Hold blue */
+  }
+  100% {
+    box-shadow: 0 0 20px hsl(120, 60%, 50%); /* Return to green */
+  }
+}
+
+.logo-box-breathing {
+  animation: box-breathing-glow 16s ease-in-out infinite;
+}
+
 .dark {
   --background: hsl(222, 84%, 4.9%);
   --foreground: hsl(210, 40%, 98%);
