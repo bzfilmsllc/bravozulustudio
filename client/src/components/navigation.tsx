@@ -20,6 +20,7 @@ import {
   CreditCard,
   Zap,
   Scissors,
+  Archive,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -44,6 +45,7 @@ export function Navigation() {
     { name: "TOOLS", href: "/tools", icon: Wrench, description: "AI Script Studio" },
     { name: "DIRECTOR", href: "/directors-toolkit", icon: Film, description: "Production Tools" },
     { name: "EDITOR", href: "/editors-toolkit", icon: Scissors, description: "AI Video Editing" },
+    { name: "FILES", href: "/file-manager", icon: Archive, description: "File Command Center" },
     { name: "PORTFOLIO", href: "/portfolio", icon: Briefcase, description: "Your Projects" },
     { name: "COMMUNITY", href: "/community", icon: Users, description: "Connect & Share" },
     { name: "MEDIA", href: "/media", icon: Radio, description: "Gallery & Files" },

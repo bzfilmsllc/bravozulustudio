@@ -881,6 +881,110 @@ export const insertVisualEffectsJobSchema = createInsertSchema(visualEffectsJobs
   completedAt: true,
 });
 
+// File Management System
+export const uploadedFiles = pgTable("uploaded_files", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }),
+  filename: varchar("filename").notNull(),
+  originalName: varchar("original_name").notNull(),
+  fileType: varchar("file_type", { 
+    enum: ['script', 'video', 'audio', 'image', 'document', 'other'] 
+  }).notNull(),
+  mimeType: varchar("mime_type").notNull(),
+  fileSize: integer("file_size").notNull(), // in bytes
+  filePath: varchar("file_path").notNull(), // object storage path
+  category: varchar("category", {
+    enum: ['draft', 'final', 'reference', 'asset', 'submission', 'archive']
+  }).default('draft').notNull(),
+  tags: varchar("tags").array(), // searchable tags
+  description: text("description"),
+  isPublic: boolean("is_public").default(false).notNull(),
+  downloadCount: integer("download_count").default(0).notNull(),
+  version: integer("version").default(1).notNull(), // for version control
+  parentFileId: varchar("parent_file_id").references(() => uploadedFiles.id), // for file versions
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Festival Submission Packets
+export const festivalPackets = pgTable("festival_packets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }),
+  title: varchar("title").notNull(),
+  festivalName: varchar("festival_name").notNull(),
+  submissionDeadline: timestamp("submission_deadline"),
+  status: varchar("status", {
+    enum: ['draft', 'ready', 'submitted', 'accepted', 'rejected']
+  }).default('draft').notNull(),
+  requirements: jsonb("requirements"), // festival-specific requirements
+  packagedFilePath: varchar("packaged_file_path"), // final zip/package path
+  submissionNotes: text("submission_notes"),
+  trackingNumber: varchar("tracking_number"), // submission tracking
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  submittedAt: timestamp("submitted_at"),
+});
+
+// Festival Packet Files (junction table)
+export const festivalPacketFiles = pgTable("festival_packet_files", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  packetId: varchar("packet_id").notNull().references(() => festivalPackets.id, { onDelete: 'cascade' }),
+  fileId: varchar("file_id").notNull().references(() => uploadedFiles.id, { onDelete: 'cascade' }),
+  fileRole: varchar("file_role", {
+    enum: ['main_film', 'trailer', 'poster', 'press_kit', 'director_statement', 'screenplay', 'stills', 'other']
+  }).notNull(),
+  isRequired: boolean("is_required").default(false).notNull(),
+  order: integer("order").default(0).notNull(), // display order
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Export Templates for different purposes
+export const exportTemplates = pgTable("export_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  templateType: varchar("template_type", {
+    enum: ['festival_submission', 'press_kit', 'production_package', 'distribution_package', 'custom']
+  }).notNull(),
+  requiredFiles: jsonb("required_files"), // file roles required
+  optionalFiles: jsonb("optional_files"), // optional file roles
+  fileStructure: jsonb("file_structure"), // how files should be organized
+  namingConvention: varchar("naming_convention"), // file naming rules
+  isPublic: boolean("is_public").default(true).notNull(),
+  createdBy: varchar("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schemas for File Management
+export const insertUploadedFileSchema = createInsertSchema(uploadedFiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  downloadCount: true,
+  version: true,
+});
+
+export const insertFestivalPacketSchema = createInsertSchema(festivalPackets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  submittedAt: true,
+});
+
+export const insertFestivalPacketFileSchema = createInsertSchema(festivalPacketFiles).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertExportTemplateSchema = createInsertSchema(exportTemplates).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Export Editor's Toolkit types
 export type VideoEditProject = typeof videoEditProjects.$inferSelect;
 export type InsertVideoEditProject = z.infer<typeof insertVideoEditProjectSchema>;
@@ -890,3 +994,13 @@ export type AudioProcessingJob = typeof audioProcessingJobs.$inferSelect;
 export type InsertAudioProcessingJob = z.infer<typeof insertAudioProcessingJobSchema>;
 export type VisualEffectsJob = typeof visualEffectsJobs.$inferSelect;
 export type InsertVisualEffectsJob = z.infer<typeof insertVisualEffectsJobSchema>;
+
+// Export File Management types
+export type UploadedFile = typeof uploadedFiles.$inferSelect;
+export type InsertUploadedFile = z.infer<typeof insertUploadedFileSchema>;
+export type FestivalPacket = typeof festivalPackets.$inferSelect;
+export type InsertFestivalPacket = z.infer<typeof insertFestivalPacketSchema>;
+export type FestivalPacketFile = typeof festivalPacketFiles.$inferSelect;
+export type InsertFestivalPacketFile = z.infer<typeof insertFestivalPacketFileSchema>;
+export type ExportTemplate = typeof exportTemplates.$inferSelect;
+export type InsertExportTemplate = z.infer<typeof insertExportTemplateSchema>;

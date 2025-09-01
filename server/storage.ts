@@ -73,6 +73,11 @@ import {
   type InsertLocation,
   // Editor's Toolkit tables
   videoEditProjects,
+  // File Management tables
+  uploadedFiles,
+  festivalPackets,
+  festivalPacketFiles,
+  exportTemplates,
   aiEditOperations,
   audioProcessingJobs,
   visualEffectsJobs,
@@ -85,6 +90,15 @@ import {
   type InsertAudioProcessingJob,
   type VisualEffectsJob,
   type InsertVisualEffectsJob,
+  // File Management types
+  type UploadedFile,
+  type InsertUploadedFile,
+  type FestivalPacket,
+  type InsertFestivalPacket,
+  type FestivalPacketFile,
+  type InsertFestivalPacketFile,
+  type ExportTemplate,
+  type InsertExportTemplate,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, sql } from "drizzle-orm";
@@ -1503,6 +1517,120 @@ export class DatabaseStorage implements IStorage {
       .where(eq(visualEffectsJobs.id, id))
       .returning();
     return updatedJob;
+  }
+
+  // FILE MANAGEMENT IMPLEMENTATIONS
+
+  // File operations
+  async getUserFiles(userId: string): Promise<UploadedFile[]> {
+    return await db.select().from(uploadedFiles).where(eq(uploadedFiles.userId, userId)).orderBy(desc(uploadedFiles.createdAt));
+  }
+
+  async createFile(file: InsertUploadedFile): Promise<UploadedFile> {
+    const [newFile] = await db.insert(uploadedFiles).values(file).returning();
+    return newFile;
+  }
+
+  async getFile(id: string, userId: string): Promise<UploadedFile | undefined> {
+    const [file] = await db.select().from(uploadedFiles).where(and(eq(uploadedFiles.id, id), eq(uploadedFiles.userId, userId)));
+    return file;
+  }
+
+  async updateFile(id: string, userId: string, updates: Partial<InsertUploadedFile>): Promise<UploadedFile | undefined> {
+    const [file] = await db
+      .update(uploadedFiles)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(uploadedFiles.id, id), eq(uploadedFiles.userId, userId)))
+      .returning();
+    return file;
+  }
+
+  async deleteFile(id: string, userId: string): Promise<void> {
+    await db.delete(uploadedFiles).where(and(eq(uploadedFiles.id, id), eq(uploadedFiles.userId, userId)));
+  }
+
+  async incrementFileDownload(id: string): Promise<void> {
+    await db
+      .update(uploadedFiles)
+      .set({ downloadCount: sql`${uploadedFiles.downloadCount} + 1` })
+      .where(eq(uploadedFiles.id, id));
+  }
+
+  // Festival Packet operations
+  async getFestivalPackets(userId: string): Promise<FestivalPacket[]> {
+    return await db.select().from(festivalPackets).where(eq(festivalPackets.userId, userId)).orderBy(desc(festivalPackets.createdAt));
+  }
+
+  async createFestivalPacket(packet: InsertFestivalPacket): Promise<FestivalPacket> {
+    const [newPacket] = await db.insert(festivalPackets).values(packet).returning();
+    return newPacket;
+  }
+
+  async getFestivalPacket(id: string, userId: string): Promise<FestivalPacket | undefined> {
+    const [packet] = await db.select().from(festivalPackets).where(and(eq(festivalPackets.id, id), eq(festivalPackets.userId, userId)));
+    return packet;
+  }
+
+  async updateFestivalPacket(id: string, userId: string, updates: Partial<InsertFestivalPacket>): Promise<FestivalPacket | undefined> {
+    const [packet] = await db
+      .update(festivalPackets)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(festivalPackets.id, id), eq(festivalPackets.userId, userId)))
+      .returning();
+    return packet;
+  }
+
+  async deleteFestivalPacket(id: string, userId: string): Promise<void> {
+    await db.delete(festivalPackets).where(and(eq(festivalPackets.id, id), eq(festivalPackets.userId, userId)));
+  }
+
+  // Festival Packet Files operations
+  async addFileToPacket(packetId: string, fileId: string, fileRole: string, isRequired = false): Promise<FestivalPacketFile> {
+    const [packetFile] = await db.insert(festivalPacketFiles).values({
+      packetId,
+      fileId,
+      fileRole,
+      isRequired,
+    }).returning();
+    return packetFile;
+  }
+
+  async removeFileFromPacket(packetId: string, fileId: string): Promise<void> {
+    await db.delete(festivalPacketFiles).where(
+      and(eq(festivalPacketFiles.packetId, packetId), eq(festivalPacketFiles.fileId, fileId))
+    );
+  }
+
+  async getPacketFiles(packetId: string): Promise<FestivalPacketFile[]> {
+    return await db.select().from(festivalPacketFiles).where(eq(festivalPacketFiles.packetId, packetId)).orderBy(asc(festivalPacketFiles.order));
+  }
+
+  // Export Template operations
+  async getExportTemplates(): Promise<ExportTemplate[]> {
+    return await db.select().from(exportTemplates).where(eq(exportTemplates.isPublic, true)).orderBy(asc(exportTemplates.name));
+  }
+
+  async createExportTemplate(template: InsertExportTemplate): Promise<ExportTemplate> {
+    const [newTemplate] = await db.insert(exportTemplates).values(template).returning();
+    return newTemplate;
+  }
+
+  async getExportTemplate(id: string): Promise<ExportTemplate | undefined> {
+    const [template] = await db.select().from(exportTemplates).where(eq(exportTemplates.id, id));
+    return template;
+  }
+
+  async updateExportTemplate(id: string, updates: Partial<InsertExportTemplate>): Promise<ExportTemplate | undefined> {
+    const [template] = await db
+      .update(exportTemplates)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(exportTemplates.id, id))
+      .returning();
+    return template;
+  }
+
+  async deleteExportTemplate(id: string): Promise<void> {
+    await db.delete(exportTemplates).where(eq(exportTemplates.id, id));
   }
 }
 

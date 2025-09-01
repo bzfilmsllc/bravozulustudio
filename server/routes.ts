@@ -1885,6 +1885,172 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // FILE MANAGEMENT API ROUTES
+
+  // Get user's uploaded files
+  app.get("/api/files", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const files = await storage.getUserFiles(userId);
+      res.json(files);
+    } catch (error) {
+      console.error("Error fetching files:", error);
+      res.status(500).json({ message: "Failed to fetch files" });
+    }
+  });
+
+  // Upload a file
+  app.post("/api/files/upload", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      // For now, return a mock response - file upload will be implemented with object storage
+      const mockFile = {
+        id: Math.random().toString(36).substr(2, 9),
+        userId,
+        filename: "example.pdf",
+        originalName: "Script_v1.pdf", 
+        fileType: "script",
+        mimeType: "application/pdf",
+        fileSize: 2048576,
+        filePath: "/uploads/example.pdf",
+        category: "draft",
+        tags: ["script", "draft"],
+        description: "Latest script version",
+        isPublic: false,
+        downloadCount: 0,
+        version: 1,
+      };
+      res.json(mockFile);
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ message: "Failed to upload file" });
+    }
+  });
+
+  // Download a file
+  app.get("/api/files/:id/download", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const file = await storage.getFile(req.params.id, userId);
+      if (!file) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      
+      // Increment download count
+      await storage.incrementFileDownload(req.params.id);
+      
+      // Return download URL (mock for now)
+      res.json({ downloadUrl: `/downloads/${file.filePath}` });
+    } catch (error) {
+      console.error("Error downloading file:", error);
+      res.status(500).json({ message: "Failed to download file" });
+    }
+  });
+
+  // Update file metadata
+  app.put("/api/files/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const file = await storage.updateFile(req.params.id, userId, req.body);
+      if (!file) {
+        return res.status(404).json({ message: "File not found" });
+      }
+      res.json(file);
+    } catch (error) {
+      console.error("Error updating file:", error);
+      res.status(500).json({ message: "Failed to update file" });
+    }
+  });
+
+  // Delete a file
+  app.delete("/api/files/:id", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      await storage.deleteFile(req.params.id, userId);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      res.status(500).json({ message: "Failed to delete file" });
+    }
+  });
+
+  // FESTIVAL PACKET ROUTES
+
+  // Get user's festival packets
+  app.get("/api/festival-packets", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const packets = await storage.getFestivalPackets(userId);
+      res.json(packets);
+    } catch (error) {
+      console.error("Error fetching festival packets:", error);
+      res.status(500).json({ message: "Failed to fetch festival packets" });
+    }
+  });
+
+  // Create festival packet
+  app.post("/api/festival-packets", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const packetData = { ...req.body, userId };
+      const packet = await storage.createFestivalPacket(packetData);
+      res.json(packet);
+    } catch (error) {
+      console.error("Error creating festival packet:", error);
+      res.status(500).json({ message: "Failed to create festival packet" });
+    }
+  });
+
+  // Export festival packet
+  app.post("/api/festival-packets/:id/export", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const packet = await storage.getFestivalPacket(req.params.id, userId);
+      if (!packet) {
+        return res.status(404).json({ message: "Packet not found" });
+      }
+
+      // Create export package (mock implementation)
+      const exportPackage = {
+        downloadUrl: `/exports/festival-packet-${packet.id}.zip`,
+        filename: `${packet.title}_${packet.festivalName}.zip`,
+        size: 25600000, // 25MB example
+        created: new Date().toISOString(),
+      };
+
+      res.json(exportPackage);
+    } catch (error) {
+      console.error("Error exporting festival packet:", error);
+      res.status(500).json({ message: "Failed to export packet" });
+    }
+  });
+
+  // EXPORT TEMPLATE ROUTES
+
+  // Get export templates
+  app.get("/api/export-templates", isAuthenticated, async (req, res) => {
+    try {
+      const templates = await storage.getExportTemplates();
+      res.json(templates);
+    } catch (error) {
+      console.error("Error fetching export templates:", error);
+      res.status(500).json({ message: "Failed to fetch export templates" });
+    }
+  });
+
+  // Create export template
+  app.post("/api/export-templates", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const templateData = { ...req.body, createdBy: userId };
+      const template = await storage.createExportTemplate(templateData);
+      res.json(template);
+    } catch (error) {
+      console.error("Error creating export template:", error);
+      res.status(500).json({ message: "Failed to create export template" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // WebSocket for real-time notifications

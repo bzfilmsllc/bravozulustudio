@@ -15,6 +15,7 @@ import Verification from "@/pages/verification";
 import Billing from "@/pages/billing";
 import DirectorsToolkit from "@/pages/directors-toolkit";
 import EditorsToolkit from "@/pages/editors-toolkit";
+import FileManager from "@/pages/file-manager";
 import { TutorialBot } from "@/components/tutorial-bot";
 
 function Router() {
@@ -35,6 +36,7 @@ function Router() {
           <Route path="/billing" component={Billing} />
           <Route path="/directors-toolkit" component={DirectorsToolkit} />
           <Route path="/editors-toolkit" component={EditorsToolkit} />
+          <Route path="/file-manager" component={FileManager} />
         </>
       )}
       <Route component={NotFound} />
