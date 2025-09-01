@@ -193,6 +193,22 @@ function isSuperUser(email: string): boolean {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // EMERGENCY: Block all verification routes
+  app.get('/verification*', (req, res) => {
+    console.log('🚫 BLOCKED VERIFICATION ROUTE - REDIRECTING TO HOME');
+    res.redirect('/');
+  });
+  
+  app.post('/api/users/verification*', (req, res) => {
+    console.log('🚫 BLOCKED VERIFICATION API - RETURNING SUCCESS');
+    res.json({ success: true, message: 'Verification disabled for public access' });
+  });
+  
+  app.put('/api/users/verification*', (req, res) => {
+    console.log('🚫 BLOCKED VERIFICATION API - RETURNING SUCCESS');
+    res.json({ success: true, message: 'Verification disabled for public access' });
+  });
+
   // Auth middleware
   await setupAuth(app);
 
