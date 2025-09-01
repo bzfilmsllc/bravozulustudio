@@ -1654,12 +1654,16 @@ export class DatabaseStorage implements IStorage {
   async getSystemStats(): Promise<any> {
     const totalUsers = await db.select({ count: count() }).from(users);
     const verifiedVeterans = await db.select({ count: count() }).from(users)
-      .where(and(eq(users.role, 'verified'), sql`${users.militaryVerification} IS NOT NULL`));
+      .where(eq(users.isVerified, true));
+    const totalScripts = await db.select({ count: count() }).from(scripts);
+    const totalProjects = await db.select({ count: count() }).from(projects);
     const creditsAwarded = await db.select({ total: sql<number>`COALESCE(SUM(amount), 0)` }).from(creditTransactions);
     
     return {
       totalUsers: totalUsers[0]?.count || 0,
       verifiedVeterans: verifiedVeterans[0]?.count || 0,
+      totalScripts: totalScripts[0]?.count || 0,
+      totalProjects: totalProjects[0]?.count || 0,
       creditsAwarded: creditsAwarded[0]?.total || 0,
     };
   }
@@ -1796,9 +1800,9 @@ export class DatabaseStorage implements IStorage {
     return await db.select({
       id: users.id,
       userId: users.id,
-      serviceType: sql`${users.militaryVerification}->>'serviceType'`,
-      branch: sql`${users.militaryVerification}->>'branch'`,
-      yearsServed: sql`${users.militaryVerification}->>'yearsServed'`,
+      serviceType: users.relationshipType,
+      branch: users.militaryBranch,
+      yearsServed: users.yearsOfService,
       user: {
         id: users.id,
         firstName: users.firstName,
@@ -1809,7 +1813,7 @@ export class DatabaseStorage implements IStorage {
     .from(users)
     .where(and(
       eq(users.role, 'pending'),
-      sql`${users.militaryVerification} IS NOT NULL`
+      eq(users.isVerified, false)
     ))
     .orderBy(desc(users.updatedAt));
   }

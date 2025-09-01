@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,17 @@ import {
 export default function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Fetch real stats from the API
+  const { data: stats = { totalUsers: 0, totalScripts: 0, totalProjects: 0, verifiedVeterans: 0 } } = useQuery<{
+    totalUsers: number;
+    totalScripts: number;
+    totalProjects: number;
+    verifiedVeterans: number;
+  }>({
+    queryKey: ['/api/public-stats'],
+    retry: false,
+  });
 
   const handleLogin = () => {
     window.location.href = "/api/login";
@@ -226,29 +238,29 @@ export default function Landing() {
             {/* Military Achievement Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
               <div className="military-card p-6 text-center hover:scale-105 transition-all duration-300" data-testid="stat-veterans">
-                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">500+</div>
-                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Veteran Creators</div>
+                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">{stats.verifiedVeterans}</div>
+                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Verified Veterans</div>
                 <div className="mt-2 flex justify-center">
                   <Shield className="w-5 h-5 text-primary" />
                 </div>
               </div>
               <div className="military-card p-6 text-center hover:scale-105 transition-all duration-300" data-testid="stat-scripts">
-                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">1,200+</div>
-                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Scripts Written</div>
+                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">{stats.totalScripts}</div>
+                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Scripts Created</div>
                 <div className="mt-2 flex justify-center">
                   <Edit className="w-5 h-5 text-primary" />
                 </div>
               </div>
-              <div className="military-card p-6 text-center hover:scale-105 transition-all duration-300" data-testid="stat-films">
-                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">150+</div>
-                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Films Produced</div>
+              <div className="military-card p-6 text-center hover:scale-105 transition-all duration-300" data-testid="stat-projects">
+                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">{stats.totalProjects}</div>
+                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Active Projects</div>
                 <div className="mt-2 flex justify-center">
                   <Film className="w-5 h-5 text-primary" />
                 </div>
               </div>
-              <div className="military-card p-6 text-center hover:scale-105 transition-all duration-300" data-testid="stat-awards">
-                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">50+</div>
-                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Festival Awards</div>
+              <div className="military-card p-6 text-center hover:scale-105 transition-all duration-300" data-testid="stat-users">
+                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">{stats.totalUsers}</div>
+                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Total Users</div>
                 <div className="mt-2 flex justify-center">
                   <Trophy className="w-5 h-5 text-primary" />
                 </div>

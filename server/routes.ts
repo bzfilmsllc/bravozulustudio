@@ -1457,6 +1457,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public stats for landing page
+  app.get('/api/public-stats', async (req, res) => {
+    try {
+      const stats = await storage.getSystemStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching public stats:", error);
+      res.status(500).json({ message: "Failed to fetch public stats" });
+    }
+  });
+
   // Tutorial and onboarding routes
   app.put("/api/tutorial/progress", isAuthenticated, async (req: any, res) => {
     try {
