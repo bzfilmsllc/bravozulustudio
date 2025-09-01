@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Navigation } from "@/components/navigation";
-import { MemberGuard } from "@/components/member-guard";
 import { ScriptEditor } from "@/components/script-editor";
 import { ProjectManager } from "@/components/project-manager";
 import { FestivalTracker } from "@/components/festival-tracker";
@@ -108,7 +107,6 @@ export default function Tools() {
   ];
 
   return (
-    <MemberGuard requiredRole="verified">
       <div className="min-h-screen bg-background">
         <Navigation />
         
@@ -286,6 +284,5 @@ export default function Tools() {
           </div>
         </main>
       </div>
-    </MemberGuard>
   );
 }
