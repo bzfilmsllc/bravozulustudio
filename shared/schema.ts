@@ -248,6 +248,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   reports: many(reports, { relationName: "reporterReports" }),
   reportedBy: many(reports, { relationName: "reportedUserReports" }),
   notifications: many(notifications),
+  createdGiftCodes: many(giftCodes, { relationName: "createdGiftCodes" }),
 }));
 
 export const friendRequestsRelations = relations(friendRequests, ({ one }) => ({
@@ -587,6 +588,70 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 // Export notification types
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+// Gift codes table for credit redemption system
+export const giftCodes = pgTable("gift_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: varchar("code", { length: 20 }).notNull().unique(), // The redemption code (e.g., "BZ-WELCOME-2024")
+  credits: integer("credits").notNull(), // Amount of credits this code gives
+  description: text("description"), // What this code is for (e.g., "Welcome Bonus", "Contest Winner")
+  maxUses: integer("max_uses").default(1).notNull(), // How many times this code can be used
+  usedCount: integer("used_count").default(0).notNull(), // How many times it's been used
+  isActive: boolean("is_active").default(true).notNull(), // Whether the code can still be redeemed
+  expiresAt: timestamp("expires_at"), // Optional expiration date
+  createdById: varchar("created_by_id").notNull().references(() => users.id), // Admin who created this code
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Gift code redemptions table to track who used what codes
+export const giftCodeRedemptions = pgTable("gift_code_redemptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  giftCodeId: varchar("gift_code_id").notNull().references(() => giftCodes.id, { onDelete: 'cascade' }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  creditsReceived: integer("credits_received").notNull(), // Track exactly how many credits they got
+  redeemedAt: timestamp("redeemed_at").defaultNow(),
+});
+
+// Relations for gift codes
+export const giftCodesRelations = relations(giftCodes, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [giftCodes.createdById],
+    references: [users.id],
+    relationName: "createdGiftCodes",
+  }),
+  redemptions: many(giftCodeRedemptions),
+}));
+
+export const giftCodeRedemptionsRelations = relations(giftCodeRedemptions, ({ one }) => ({
+  giftCode: one(giftCodes, {
+    fields: [giftCodeRedemptions.giftCodeId],
+    references: [giftCodes.id],
+  }),
+  user: one(users, {
+    fields: [giftCodeRedemptions.userId],
+    references: [users.id],
+  }),
+}));
+
+// Insert schemas for gift codes
+export const insertGiftCodeSchema = createInsertSchema(giftCodes).omit({
+  id: true,
+  usedCount: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertGiftCodeRedemptionSchema = createInsertSchema(giftCodeRedemptions).omit({
+  id: true,
+  redeemedAt: true,
+});
+
+// Export gift code types
+export type GiftCode = typeof giftCodes.$inferSelect;
+export type InsertGiftCode = z.infer<typeof insertGiftCodeSchema>;
+export type GiftCodeRedemption = typeof giftCodeRedemptions.$inferSelect;
+export type InsertGiftCodeRedemption = z.infer<typeof insertGiftCodeRedemptionSchema>;
 
 // DIRECTOR'S TOOLKIT TABLES
 

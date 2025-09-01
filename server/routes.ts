@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
-import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema, insertDesignAssetSchema } from "@shared/schema";
+import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema, insertDesignAssetSchema, insertGiftCodeSchema } from "@shared/schema";
 import OpenAI from "openai";
 import Stripe from "stripe";
 
@@ -2276,6 +2276,144 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching verification requests:", error);
       res.status(500).json({ message: "Failed to fetch verification requests" });
+    }
+  });
+
+  // ============================================================================
+  // GIFT CODE ROUTES
+  // ============================================================================
+
+  // Create a new gift code (Admin only)
+  app.post("/api/admin/gift-codes", isAdmin, async (req, res) => {
+    try {
+      const adminUserId = (req.user as any).claims.sub;
+      
+      // Validate the request body
+      const giftCodeData = insertGiftCodeSchema.parse({
+        ...req.body,
+        createdById: adminUserId
+      });
+
+      // Generate a unique code if none provided
+      if (!giftCodeData.code) {
+        const prefix = req.body.codePrefix || 'BZ';
+        const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+        giftCodeData.code = `${prefix}-${random}`;
+      }
+
+      const newGiftCode = await storage.createGiftCode(giftCodeData);
+      res.json(newGiftCode);
+    } catch (error) {
+      console.error("Error creating gift code:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid gift code data", 
+          errors: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to create gift code" });
+    }
+  });
+
+  // Get all gift codes (Admin only)
+  app.get("/api/admin/gift-codes", isAdmin, async (req, res) => {
+    try {
+      const giftCodes = await storage.getGiftCodes();
+      res.json(giftCodes);
+    } catch (error) {
+      console.error("Error fetching gift codes:", error);
+      res.status(500).json({ message: "Failed to fetch gift codes" });
+    }
+  });
+
+  // Update a gift code (Admin only)
+  app.put("/api/admin/gift-codes/:id", isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      
+      const updatedGiftCode = await storage.updateGiftCode(id, updates);
+      if (!updatedGiftCode) {
+        return res.status(404).json({ message: "Gift code not found" });
+      }
+      
+      res.json(updatedGiftCode);
+    } catch (error) {
+      console.error("Error updating gift code:", error);
+      res.status(500).json({ message: "Failed to update gift code" });
+    }
+  });
+
+  // Deactivate a gift code (Admin only)
+  app.delete("/api/admin/gift-codes/:id", isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      
+      const deactivatedGiftCode = await storage.deactivateGiftCode(id);
+      if (!deactivatedGiftCode) {
+        return res.status(404).json({ message: "Gift code not found" });
+      }
+      
+      res.json({ message: "Gift code deactivated successfully" });
+    } catch (error) {
+      console.error("Error deactivating gift code:", error);
+      res.status(500).json({ message: "Failed to deactivate gift code" });
+    }
+  });
+
+  // Redeem a gift code (Authenticated users)
+  app.post("/api/gift-codes/redeem", isAuthenticated, async (req, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const { code } = req.body;
+
+      if (!code || typeof code !== 'string') {
+        return res.status(400).json({ message: "Gift code is required" });
+      }
+
+      const result = await storage.redeemGiftCode(code.trim().toUpperCase(), userId);
+      
+      if (result.success) {
+        res.json({
+          message: result.message,
+          creditsReceived: result.creditsReceived
+        });
+      } else {
+        res.status(400).json({ message: result.message });
+      }
+    } catch (error) {
+      console.error("Error redeeming gift code:", error);
+      res.status(500).json({ message: "Failed to redeem gift code" });
+    }
+  });
+
+  // Check if a gift code is valid (without redeeming it)
+  app.get("/api/gift-codes/check/:code", isAuthenticated, async (req, res) => {
+    try {
+      const { code } = req.params;
+      const giftCode = await storage.getGiftCode(code.trim().toUpperCase());
+      
+      if (!giftCode) {
+        return res.status(404).json({ 
+          valid: false, 
+          message: "Gift code not found" 
+        });
+      }
+
+      const isValid = giftCode.isActive && 
+                     giftCode.usedCount < giftCode.maxUses &&
+                     (!giftCode.expiresAt || new Date() <= giftCode.expiresAt);
+
+      res.json({
+        valid: isValid,
+        credits: isValid ? giftCode.credits : 0,
+        description: giftCode.description,
+        expiresAt: giftCode.expiresAt,
+        usesLeft: Math.max(0, giftCode.maxUses - giftCode.usedCount)
+      });
+    } catch (error) {
+      console.error("Error checking gift code:", error);
+      res.status(500).json({ message: "Failed to check gift code" });
     }
   });
 

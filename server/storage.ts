@@ -16,6 +16,8 @@ import {
   creditTransactions,
   subscriptionPlans,
   notifications,
+  giftCodes,
+  giftCodeRedemptions,
   // Director's Toolkit tables
   shotLists,
   shots,
@@ -56,6 +58,10 @@ import {
   type InsertSubscriptionPlan,
   type Notification,
   type InsertNotification,
+  type GiftCode,
+  type InsertGiftCode,
+  type GiftCodeRedemption,
+  type InsertGiftCodeRedemption,
   // Director's Toolkit types
   type ShotList,
   type InsertShotList,
@@ -241,6 +247,14 @@ export interface IStorage {
   processMonthlyVeteranCredits(adminUserId: string): Promise<any>;
   getCreditTransactions(): Promise<any[]>;
   getVerificationRequests(): Promise<any[]>;
+  
+  // Gift code operations
+  createGiftCode(giftCode: InsertGiftCode): Promise<GiftCode>;
+  getGiftCode(code: string): Promise<GiftCode | undefined>;
+  getGiftCodes(createdById?: string): Promise<(GiftCode & { createdBy: User; redemptions: GiftCodeRedemption[] })[]>;
+  redeemGiftCode(code: string, userId: string): Promise<{ success: boolean; message: string; creditsReceived?: number }>;
+  updateGiftCode(id: string, updates: Partial<InsertGiftCode>): Promise<GiftCode | undefined>;
+  deactivateGiftCode(id: string): Promise<GiftCode | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1851,6 +1865,166 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return updatedUser;
+  }
+
+  // GIFT CODE OPERATIONS
+  
+  async createGiftCode(giftCode: InsertGiftCode): Promise<GiftCode> {
+    const [newGiftCode] = await db.insert(giftCodes).values(giftCode).returning();
+    return newGiftCode;
+  }
+
+  async getGiftCode(code: string): Promise<GiftCode | undefined> {
+    const [giftCode] = await db.select().from(giftCodes).where(eq(giftCodes.code, code));
+    return giftCode;
+  }
+
+  async getGiftCodes(createdById?: string): Promise<(GiftCode & { createdBy: User; redemptions: GiftCodeRedemption[] })[]> {
+    const query = db
+      .select({
+        giftCode: giftCodes,
+        createdBy: {
+          id: users.id,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          email: users.email,
+        }
+      })
+      .from(giftCodes)
+      .leftJoin(users, eq(giftCodes.createdById, users.id))
+      .orderBy(desc(giftCodes.createdAt));
+
+    if (createdById) {
+      query.where(eq(giftCodes.createdById, createdById));
+    }
+
+    const results = await query;
+    
+    // Get redemptions for each gift code
+    const giftCodesWithRedemptions = await Promise.all(
+      results.map(async (result) => {
+        const redemptions = await db
+          .select()
+          .from(giftCodeRedemptions)
+          .where(eq(giftCodeRedemptions.giftCodeId, result.giftCode.id));
+        
+        return {
+          ...result.giftCode,
+          createdBy: result.createdBy as User,
+          redemptions,
+        };
+      })
+    );
+
+    return giftCodesWithRedemptions;
+  }
+
+  async redeemGiftCode(code: string, userId: string): Promise<{ success: boolean; message: string; creditsReceived?: number }> {
+    try {
+      // First, check if the gift code exists and is valid
+      const giftCode = await this.getGiftCode(code);
+      
+      if (!giftCode) {
+        return { success: false, message: "Gift code not found." };
+      }
+
+      if (!giftCode.isActive) {
+        return { success: false, message: "This gift code is no longer active." };
+      }
+
+      if (giftCode.expiresAt && new Date() > giftCode.expiresAt) {
+        return { success: false, message: "This gift code has expired." };
+      }
+
+      if (giftCode.usedCount >= giftCode.maxUses) {
+        return { success: false, message: "This gift code has reached its usage limit." };
+      }
+
+      // Check if this user has already redeemed this code
+      const [existingRedemption] = await db
+        .select()
+        .from(giftCodeRedemptions)
+        .where(and(
+          eq(giftCodeRedemptions.giftCodeId, giftCode.id),
+          eq(giftCodeRedemptions.userId, userId)
+        ));
+
+      if (existingRedemption) {
+        return { success: false, message: "You have already redeemed this gift code." };
+      }
+
+      // All checks passed, redeem the code
+      await db.transaction(async (tx) => {
+        // Record the redemption
+        await tx.insert(giftCodeRedemptions).values({
+          giftCodeId: giftCode.id,
+          userId: userId,
+          creditsReceived: giftCode.credits,
+        });
+
+        // Update the gift code usage count
+        await tx
+          .update(giftCodes)
+          .set({ 
+            usedCount: giftCode.usedCount + 1,
+            updatedAt: new Date()
+          })
+          .where(eq(giftCodes.id, giftCode.id));
+
+        // Add credits to the user
+        await tx
+          .update(users)
+          .set({ 
+            credits: sql`${users.credits} + ${giftCode.credits}`,
+            updatedAt: new Date()
+          })
+          .where(eq(users.id, userId));
+
+        // Record the credit transaction
+        await tx.insert(creditTransactions).values({
+          userId: userId,
+          amount: giftCode.credits,
+          type: 'bonus',
+          description: `Gift code redeemed: ${code} - ${giftCode.description || 'Gift code bonus'}`,
+        });
+      });
+
+      return { 
+        success: true, 
+        message: `Successfully redeemed ${giftCode.credits} credits!`, 
+        creditsReceived: giftCode.credits 
+      };
+
+    } catch (error) {
+      console.error('Error redeeming gift code:', error);
+      return { success: false, message: "An error occurred while redeeming the gift code." };
+    }
+  }
+
+  async updateGiftCode(id: string, updates: Partial<InsertGiftCode>): Promise<GiftCode | undefined> {
+    const [updatedGiftCode] = await db
+      .update(giftCodes)
+      .set({ 
+        ...updates,
+        updatedAt: new Date()
+      })
+      .where(eq(giftCodes.id, id))
+      .returning();
+    
+    return updatedGiftCode;
+  }
+
+  async deactivateGiftCode(id: string): Promise<GiftCode | undefined> {
+    const [deactivatedGiftCode] = await db
+      .update(giftCodes)
+      .set({ 
+        isActive: false,
+        updatedAt: new Date()
+      })
+      .where(eq(giftCodes.id, id))
+      .returning();
+    
+    return deactivatedGiftCode;
   }
 }
 

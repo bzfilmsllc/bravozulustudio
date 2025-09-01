@@ -41,6 +41,277 @@ import {
   Edit,
 } from "lucide-react";
 
+// Gift Code Generator Component
+const GiftCodeGenerator = () => {
+  const { toast } = useToast();
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [formData, setFormData] = useState({
+    credits: 100,
+    description: '',
+    maxUses: 1,
+    expiresAt: '',
+    codePrefix: 'BZ'
+  });
+
+  const createGiftCodeMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest('/api/admin/gift-codes', {
+        method: 'POST',
+        body: JSON.stringify(data)
+      });
+    },
+    onSuccess: (newCode) => {
+      toast({
+        title: "Gift Code Created",
+        description: `Code ${newCode.code} created successfully!`
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/gift-codes'] });
+      setFormData({
+        credits: 100,
+        description: '',
+        maxUses: 1,
+        expiresAt: '',
+        codePrefix: 'BZ'
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create gift code",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleSubmit = () => {
+    if (!formData.credits || formData.credits <= 0) {
+      toast({
+        title: "Invalid Credits",
+        description: "Credits must be greater than 0",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      toast({
+        title: "Description Required",
+        description: "Please provide a description for the gift code",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const submitData = {
+      ...formData,
+      expiresAt: formData.expiresAt ? new Date(formData.expiresAt).toISOString() : null
+    };
+
+    createGiftCodeMutation.mutate(submitData);
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="credits">Credits to Award</Label>
+          <Input
+            id="credits"
+            type="number"
+            min="1"
+            max="10000"
+            value={formData.credits}
+            onChange={(e) => setFormData(prev => ({ ...prev, credits: parseInt(e.target.value) || 0 }))}
+            placeholder="100"
+            data-testid="input-gift-credits"
+          />
+        </div>
+        
+        <div>
+          <Label htmlFor="description">Description</Label>
+          <Input
+            id="description"
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            placeholder="Contest prize, promotion, etc."
+            data-testid="input-gift-description"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="max-uses">Max Uses</Label>
+          <Input
+            id="max-uses"
+            type="number"
+            min="1"
+            max="1000"
+            value={formData.maxUses}
+            onChange={(e) => setFormData(prev => ({ ...prev, maxUses: parseInt(e.target.value) || 1 }))}
+            placeholder="1"
+            data-testid="input-gift-max-uses"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <Label htmlFor="code-prefix">Code Prefix</Label>
+          <Input
+            id="code-prefix"
+            value={formData.codePrefix}
+            onChange={(e) => setFormData(prev => ({ ...prev, codePrefix: e.target.value }))}
+            placeholder="BZ"
+            maxLength={5}
+            data-testid="input-gift-prefix"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="expires-at">Expiration Date (Optional)</Label>
+          <Input
+            id="expires-at"
+            type="datetime-local"
+            value={formData.expiresAt}
+            onChange={(e) => setFormData(prev => ({ ...prev, expiresAt: e.target.value }))}
+            data-testid="input-gift-expiry"
+          />
+        </div>
+
+        <Button
+          onClick={handleSubmit}
+          disabled={createGiftCodeMutation.isPending}
+          className="w-full bg-honor-gold hover:bg-honor-gold/90 text-tactical-black font-bold"
+          data-testid="button-create-gift-code"
+        >
+          {createGiftCodeMutation.isPending ? (
+            <>
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              Creating...
+            </>
+          ) : (
+            <>
+              <Gift className="w-4 h-4 mr-2" />
+              Generate Gift Code
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+// Gift Code List Component
+const GiftCodeList = () => {
+  const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const { data: giftCodes = [], isLoading } = useQuery({
+    queryKey: ['/api/admin/gift-codes']
+  });
+
+  const deactivateCodeMutation = useMutation({
+    mutationFn: async (codeId: string) => {
+      return await apiRequest(`/api/admin/gift-codes/${codeId}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Gift Code Deactivated",
+        description: "The gift code has been deactivated successfully"
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/gift-codes'] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to deactivate gift code",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const filteredCodes = giftCodes.filter((code: any) =>
+    code.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    code.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  if (isLoading) {
+    return <div>Loading gift codes...</div>;
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+            <Input
+              placeholder="Search gift codes..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+              data-testid="input-search-gift-codes"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {filteredCodes.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            {giftCodes.length === 0 ? "No gift codes created yet" : "No gift codes match your search"}
+          </div>
+        ) : (
+          filteredCodes.map((code: any) => (
+            <div key={code.id} className="flex items-center justify-between p-4 border rounded-lg bg-card">
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center gap-3">
+                  <code className="px-2 py-1 bg-muted rounded font-mono font-bold text-lg">
+                    {code.code}
+                  </code>
+                  <Badge variant={code.isActive ? "default" : "secondary"}>
+                    {code.isActive ? "Active" : "Inactive"}
+                  </Badge>
+                  {code.expiresAt && new Date(code.expiresAt) < new Date() && (
+                    <Badge variant="destructive">Expired</Badge>
+                  )}
+                </div>
+                <p className="text-sm text-muted-foreground">{code.description}</p>
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <CreditCard className="w-3 h-3" />
+                    {code.credits} credits
+                  </span>
+                  <span>{code.usedCount}/{code.maxUses} uses</span>
+                  {code.expiresAt && (
+                    <span>Expires: {new Date(code.expiresAt).toLocaleDateString()}</span>
+                  )}
+                  <span>Created: {new Date(code.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+              
+              <div className="flex gap-2 ml-4">
+                {code.isActive && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => deactivateCodeMutation.mutate(code.id)}
+                    disabled={deactivateCodeMutation.isPending}
+                    data-testid={`button-deactivate-${code.code}`}
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
 // Service Badge Components with Animated Glowing Effects
 const ServiceBadge = ({ serviceType, size = "md" }: { serviceType: string; size?: "sm" | "md" | "lg" }) => {
   const sizeClasses = {
@@ -365,7 +636,7 @@ export default function AdminPanel() {
 
         {/* Main Admin Interface */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-tactical-black/20 h-auto">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 bg-tactical-black/20 h-auto">
             <TabsTrigger value="users" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
               <span className="hidden sm:inline">User Management</span>
               <span className="sm:hidden">Users</span>
@@ -377,6 +648,10 @@ export default function AdminPanel() {
             <TabsTrigger value="credits" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
               <span className="hidden sm:inline">Credit System</span>
               <span className="sm:hidden">Credits</span>
+            </TabsTrigger>
+            <TabsTrigger value="gift-codes" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
+              <span className="hidden sm:inline">Gift Codes</span>
+              <span className="sm:hidden">Codes</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
               <span className="hidden sm:inline">System Settings</span>
@@ -690,6 +965,38 @@ export default function AdminPanel() {
                     </div>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Gift Code Management Tab */}
+          <TabsContent value="gift-codes" className="space-y-6">
+            <h2 className="font-command text-2xl font-bold">Gift Code Management</h2>
+            
+            {/* Create New Gift Code */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Gift className="w-5 h-5 text-honor-gold" />
+                  Create New Gift Code
+                </CardTitle>
+                <CardDescription>
+                  Generate gift codes for contests, giveaways, and promotions
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <GiftCodeGenerator />
+              </CardContent>
+            </Card>
+
+            {/* Existing Gift Codes */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Active Gift Codes</CardTitle>
+                <CardDescription>Manage and monitor existing gift codes</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <GiftCodeList />
               </CardContent>
             </Card>
           </TabsContent>

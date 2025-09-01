@@ -38,6 +38,115 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Gift, RefreshCw } from "lucide-react";
+
+// Gift Code Redemption Component
+const GiftCodeRedemption = ({ onCreditsUpdated }: { onCreditsUpdated: () => void }) => {
+  const { toast } = useToast();
+  const [isOpen, setIsOpen] = useState(false);
+  const [code, setCode] = useState('');
+
+  const redeemMutation = useMutation({
+    mutationFn: async (giftCode: string) => {
+      const response = await apiRequest("POST", "/api/gift-codes/redeem", { code: giftCode });
+      return response.json();
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "Gift Code Redeemed!",
+        description: `You received ${data.creditsReceived} credits!`
+      });
+      setCode('');
+      setIsOpen(false);
+      onCreditsUpdated();
+    },
+    onError: (error) => {
+      toast({
+        title: "Redemption Failed",
+        description: error.message || "Invalid or expired gift code",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleRedeem = () => {
+    if (!code.trim()) {
+      toast({
+        title: "Code Required",
+        description: "Please enter a gift code",
+        variant: "destructive"
+      });
+      return;
+    }
+    redeemMutation.mutate(code.trim().toUpperCase());
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <div className="px-3 py-2 rounded-lg bg-honor-gold/20 border border-honor-gold/50 cursor-pointer hover:bg-honor-gold/30 transition-colors">
+          <div className="flex items-center justify-center gap-2">
+            <Gift className="w-4 h-4 text-honor-gold" />
+            <span className="font-tactical text-honor-gold text-sm">REDEEM CODE</span>
+          </div>
+        </div>
+      </DialogTrigger>
+      <DialogContent className="bg-tactical-black/95 border-honor-gold/30">
+        <DialogHeader>
+          <DialogTitle className="font-command text-honor-gold flex items-center gap-2">
+            <Gift className="w-5 h-5" />
+            Redeem Gift Code
+          </DialogTitle>
+          <DialogDescription>
+            Enter your gift code to receive bonus credits
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4">
+          <Input
+            value={code}
+            onChange={(e) => setCode(e.target.value.toUpperCase())}
+            placeholder="Enter gift code (e.g., BZ-ABC123)"
+            className="font-mono uppercase"
+            maxLength={20}
+            data-testid="input-gift-code"
+          />
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRedeem}
+              disabled={redeemMutation.isPending || !code.trim()}
+              className="flex-1 bg-honor-gold hover:bg-honor-gold/90 text-tactical-black font-bold"
+              data-testid="button-redeem-code"
+            >
+              {redeemMutation.isPending ? (
+                <>
+                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                  Redeeming...
+                </>
+              ) : (
+                <>
+                  <Gift className="w-4 h-4 mr-2" />
+                  Redeem
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 export default function Home() {
   const { user } = useAuth();
@@ -167,6 +276,11 @@ export default function Home() {
                           )}
                         </div>
                       </div>
+                      
+                      {/* Gift Code Redemption */}
+                      <GiftCodeRedemption onCreditsUpdated={() => {
+                        queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+                      }} />
                       
                       {/* Service Number Dog Tag */}
                       <div className="dog-tag">
