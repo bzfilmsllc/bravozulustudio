@@ -16,6 +16,8 @@ import {
   Settings,
   User,
   Briefcase,
+  CreditCard,
+  Zap,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -115,6 +117,12 @@ export function Navigation() {
                       </Link>
                     </DropdownMenuItem>
                   )}
+                  <DropdownMenuItem asChild>
+                    <Link href="/billing" data-testid="menu-billing">
+                      <CreditCard className="w-4 h-4 mr-2" />
+                      Billing & Credits
+                    </Link>
+                  </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleLogout} data-testid="menu-logout">
                     <LogOut className="w-4 h-4 mr-2" />

@@ -5,8 +5,16 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
 import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema, insertDesignAssetSchema } from "@shared/schema";
 import OpenAI from "openai";
+import Stripe from "stripe";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
+}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: "2023-10-16",
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -780,6 +788,436 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error recording download:", error);
       res.status(500).json({ message: "Failed to record download" });
+    }
+  });
+
+  // AI-powered features with credit requirements
+  app.post('/api/ai/generate-script', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { prompt, genre, tone, length } = req.body;
+      
+      // Check if user has enough credits (10 credits for script generation)
+      const userCredits = await storage.getUserCredits(userId);
+      const requiredCredits = 10;
+      
+      if (userCredits < requiredCredits) {
+        return res.status(402).json({ 
+          message: "Insufficient credits", 
+          required: requiredCredits, 
+          available: userCredits 
+        });
+      }
+
+      // Use credits
+      const success = await storage.useCredits(userId, requiredCredits, 'AI Script Generation', 'ai_generation', 'script');
+      if (!success) {
+        return res.status(402).json({ message: "Unable to deduct credits" });
+      }
+
+      // Generate script with OpenAI
+      const response = await openai.chat.completions.create({
+        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: `You are a professional screenplay writer for military and action films. Generate a compelling script based on the user's requirements. Format it properly with scene headings, action lines, and dialogue. Keep it authentic to military culture and respectful to service members.`
+          },
+          {
+            role: "user",
+            content: `Generate a ${length || 'short'} script with the following requirements:
+            Genre: ${genre || 'action'}
+            Tone: ${tone || 'dramatic'}
+            Prompt: ${prompt}
+            
+            Please format it as a proper screenplay with:
+            - Scene headings (INT./EXT. LOCATION - TIME)
+            - Character names in caps
+            - Action lines
+            - Dialogue
+            - Proper formatting
+            
+            Keep it military-themed and authentic.`
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7,
+      });
+
+      const generatedScript = response.choices[0].message.content;
+
+      res.json({
+        script: generatedScript,
+        creditsUsed: requiredCredits,
+        remainingCredits: userCredits - requiredCredits
+      });
+    } catch (error: any) {
+      console.error("Error generating script:", error);
+      res.status(500).json({ message: "Failed to generate script: " + error.message });
+    }
+  });
+
+  app.post('/api/ai/enhance-script', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { scriptContent, enhancement } = req.body;
+      
+      // Check if user has enough credits (5 credits for script enhancement)
+      const userCredits = await storage.getUserCredits(userId);
+      const requiredCredits = 5;
+      
+      if (userCredits < requiredCredits) {
+        return res.status(402).json({ 
+          message: "Insufficient credits", 
+          required: requiredCredits, 
+          available: userCredits 
+        });
+      }
+
+      // Use credits
+      const success = await storage.useCredits(userId, requiredCredits, 'AI Script Enhancement', 'ai_generation', 'script_enhancement');
+      if (!success) {
+        return res.status(402).json({ message: "Unable to deduct credits" });
+      }
+
+      // Enhance script with OpenAI
+      const response = await openai.chat.completions.create({
+        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: `You are a professional script doctor specializing in military and action films. Enhance the provided script based on the user's requirements while maintaining military authenticity and respect for service members.`
+          },
+          {
+            role: "user",
+            content: `Please enhance this script with the following focus: ${enhancement}
+
+            Original Script:
+            ${scriptContent}
+            
+            Provide an improved version that maintains the original structure but enhances:
+            - Character development
+            - Dialogue quality
+            - Action sequences
+            - Military authenticity
+            - Emotional impact
+            
+            Keep the military theme authentic and respectful.`
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.7,
+      });
+
+      const enhancedScript = response.choices[0].message.content;
+
+      res.json({
+        enhancedScript,
+        creditsUsed: requiredCredits,
+        remainingCredits: userCredits - requiredCredits
+      });
+    } catch (error: any) {
+      console.error("Error enhancing script:", error);
+      res.status(500).json({ message: "Failed to enhance script: " + error.message });
+    }
+  });
+
+  app.post('/api/ai/analyze-script', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { scriptContent } = req.body;
+      
+      // Check if user has enough credits (3 credits for script analysis)
+      const userCredits = await storage.getUserCredits(userId);
+      const requiredCredits = 3;
+      
+      if (userCredits < requiredCredits) {
+        return res.status(402).json({ 
+          message: "Insufficient credits", 
+          required: requiredCredits, 
+          available: userCredits 
+        });
+      }
+
+      // Use credits
+      const success = await storage.useCredits(userId, requiredCredits, 'AI Script Analysis', 'ai_generation', 'script_analysis');
+      if (!success) {
+        return res.status(402).json({ message: "Unable to deduct credits" });
+      }
+
+      // Analyze script with OpenAI
+      const response = await openai.chat.completions.create({
+        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: `You are a professional script analyst with expertise in military and action films. Provide detailed feedback on the script's strengths, weaknesses, and suggestions for improvement. Focus on military authenticity, character development, pacing, and commercial viability.`
+          },
+          {
+            role: "user",
+            content: `Please analyze this script and provide detailed feedback:
+
+            ${scriptContent}
+            
+            Please provide analysis on:
+            1. Overall structure and pacing
+            2. Character development and dialogue
+            3. Military authenticity and accuracy
+            4. Commercial viability and target audience
+            5. Strengths and areas for improvement
+            6. Festival submission potential
+            
+            Be constructive and specific in your feedback.`
+          }
+        ],
+        max_tokens: 1500,
+        temperature: 0.3,
+      });
+
+      const analysis = response.choices[0].message.content;
+
+      res.json({
+        analysis,
+        creditsUsed: requiredCredits,
+        remainingCredits: userCredits - requiredCredits
+      });
+    } catch (error: any) {
+      console.error("Error analyzing script:", error);
+      res.status(500).json({ message: "Failed to analyze script: " + error.message });
+    }
+  });
+
+  // Credit system and billing routes
+  app.get('/api/billing/credits', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const credits = await storage.getUserCredits(userId);
+      res.json({ credits });
+    } catch (error) {
+      console.error("Error fetching user credits:", error);
+      res.status(500).json({ message: "Failed to fetch credits" });
+    }
+  });
+
+  app.get('/api/billing/transactions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { limit } = req.query;
+      const transactions = await storage.getCreditTransactions(userId, limit ? parseInt(limit as string) : 50);
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      res.status(500).json({ message: "Failed to fetch transactions" });
+    }
+  });
+
+  app.get('/api/billing/plans', async (req, res) => {
+    try {
+      const plans = await storage.getSubscriptionPlans();
+      res.json(plans);
+    } catch (error) {
+      console.error("Error fetching subscription plans:", error);
+      res.status(500).json({ message: "Failed to fetch subscription plans" });
+    }
+  });
+
+  // Create payment intent for credit purchases
+  app.post("/api/billing/create-payment-intent", isAuthenticated, async (req: any, res) => {
+    try {
+      const { amount, credits, plan } = req.body;
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Apply military discount if eligible
+      let finalAmount = amount;
+      if (user.militaryBranch && user.militaryBranch !== 'civilian' && user.militaryBranch !== 'not_applicable') {
+        finalAmount = Math.round(amount * 0.8); // 20% military discount
+      }
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: finalAmount,
+        currency: "usd",
+        metadata: {
+          userId,
+          credits: credits.toString(),
+          plan: plan || 'one_time',
+          originalAmount: amount.toString(),
+          discountApplied: finalAmount !== amount ? 'military_20' : 'none'
+        },
+      });
+      
+      res.json({ 
+        clientSecret: paymentIntent.client_secret,
+        finalAmount,
+        discountApplied: finalAmount !== amount
+      });
+    } catch (error: any) {
+      console.error("Error creating payment intent:", error);
+      res.status(500).json({ message: "Error creating payment intent: " + error.message });
+    }
+  });
+
+  // Handle successful payment and add credits
+  app.post("/api/billing/confirm-payment", isAuthenticated, async (req: any, res) => {
+    try {
+      const { paymentIntentId } = req.body;
+      const userId = req.user.claims.sub;
+
+      // Retrieve the payment intent from Stripe
+      const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+      if (paymentIntent.status !== 'succeeded') {
+        return res.status(400).json({ message: "Payment not completed" });
+      }
+
+      if (paymentIntent.metadata.userId !== userId) {
+        return res.status(403).json({ message: "Payment belongs to different user" });
+      }
+
+      const credits = parseInt(paymentIntent.metadata.credits);
+      const plan = paymentIntent.metadata.plan;
+
+      // Add credits to user account
+      await storage.addCredits(
+        userId,
+        credits,
+        'purchase',
+        `Credit purchase - ${plan}`,
+        'billing',
+        paymentIntentId,
+        paymentIntentId
+      );
+
+      res.json({ 
+        success: true,
+        credits,
+        message: `Successfully added ${credits} credits to your account`
+      });
+    } catch (error: any) {
+      console.error("Error confirming payment:", error);
+      res.status(500).json({ message: "Error confirming payment: " + error.message });
+    }
+  });
+
+  // Create subscription
+  app.post('/api/billing/create-subscription', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { planId } = req.body;
+      
+      const user = await storage.getUser(userId);
+      if (!user || !user.email) {
+        return res.status(400).json({ message: "User email required for subscription" });
+      }
+
+      // Get or create Stripe customer
+      let stripeCustomerId = user.stripeCustomerId;
+      if (!stripeCustomerId) {
+        const customer = await stripe.customers.create({
+          email: user.email,
+          name: `${user.firstName} ${user.lastName}`.trim() || user.email,
+          metadata: { userId }
+        });
+        stripeCustomerId = customer.id;
+        await storage.updateUserStripeInfo(userId, stripeCustomerId);
+      }
+
+      // Get subscription plan
+      const plans = await storage.getSubscriptionPlans();
+      const plan = plans.find(p => p.id === planId);
+      if (!plan || !plan.stripePriceId) {
+        return res.status(400).json({ message: "Invalid subscription plan" });
+      }
+
+      // Create subscription
+      const subscription = await stripe.subscriptions.create({
+        customer: stripeCustomerId,
+        items: [{ price: plan.stripePriceId }],
+        payment_behavior: 'default_incomplete',
+        expand: ['latest_invoice.payment_intent'],
+        metadata: {
+          userId,
+          planId,
+          creditsIncluded: plan.creditsIncluded.toString()
+        }
+      });
+
+      // Update user subscription info
+      await storage.updateUserStripeInfo(userId, stripeCustomerId, subscription.id);
+      await storage.updateUserSubscription(
+        userId, 
+        plan.id, 
+        subscription.status, 
+        new Date(subscription.current_period_end * 1000)
+      );
+
+      res.json({
+        subscriptionId: subscription.id,
+        clientSecret: (subscription.latest_invoice as any)?.payment_intent?.client_secret,
+        status: subscription.status
+      });
+    } catch (error: any) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ message: "Error creating subscription: " + error.message });
+    }
+  });
+
+  // Initialize default subscription plans
+  app.post('/api/admin/init-plans', async (req, res) => {
+    try {
+      const existingPlans = await storage.getSubscriptionPlans();
+      if (existingPlans.length > 0) {
+        return res.json({ message: "Plans already initialized" });
+      }
+
+      const defaultPlans = [
+        {
+          id: 'weekly',
+          name: 'Weekly Pass',
+          description: 'Perfect for short-term projects and testing our platform',
+          price: 500, // $5.00
+          currency: 'usd',
+          interval: 'week' as const,
+          creditsIncluded: 100,
+          militaryDiscountPercent: 20,
+          isActive: true
+        },
+        {
+          id: 'monthly', 
+          name: 'Monthly Plan',
+          description: 'Best value for regular users and ongoing projects',
+          price: 1500, // $15.00
+          currency: 'usd',
+          interval: 'month' as const,
+          creditsIncluded: 500,
+          militaryDiscountPercent: 20,
+          isActive: true
+        },
+        {
+          id: 'yearly',
+          name: 'Annual Plan', 
+          description: 'Maximum savings for serious filmmakers and studios',
+          price: 12000, // $120.00
+          currency: 'usd',
+          interval: 'year' as const,
+          creditsIncluded: 6000,
+          militaryDiscountPercent: 20,
+          isActive: true
+        }
+      ];
+
+      for (const plan of defaultPlans) {
+        await storage.createSubscriptionPlan(plan);
+      }
+
+      res.json({ message: "Default subscription plans created successfully" });
+    } catch (error) {
+      console.error("Error initializing plans:", error);
+      res.status(500).json({ message: "Failed to initialize plans" });
     }
   });
 

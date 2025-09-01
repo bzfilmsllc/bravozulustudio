@@ -53,6 +53,21 @@ export const users = pgTable("users", {
   isVerified: boolean("is_verified").default(false).notNull(),
   bio: text("bio"),
   specialties: text("specialties"),
+  
+  // Billing and subscription fields
+  stripeCustomerId: varchar("stripe_customer_id"),
+  stripeSubscriptionId: varchar("stripe_subscription_id"),
+  subscriptionStatus: varchar("subscription_status", { 
+    enum: ['none', 'active', 'past_due', 'canceled', 'unpaid'] 
+  }).default('none').notNull(),
+  subscriptionPlan: varchar("subscription_plan", {
+    enum: ['free', 'weekly', 'monthly', 'yearly']
+  }).default('free').notNull(),
+  subscriptionExpiresAt: timestamp("subscription_expires_at"),
+  credits: integer("credits").default(10).notNull(), // Free users get 10 credits to start
+  totalCreditsUsed: integer("total_credits_used").default(0).notNull(),
+  militaryDiscountApplied: boolean("military_discount_applied").default(false).notNull(),
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -474,3 +489,51 @@ export type DesignAsset = typeof designAssets.$inferSelect;
 export type InsertDesignAsset = z.infer<typeof insertDesignAssetSchema>;
 export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
+
+// Credit transactions table
+export const creditTransactions = pgTable("credit_transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  amount: integer("amount").notNull(), // Positive for credits added, negative for credits used
+  type: varchar("type", {
+    enum: ['purchase', 'usage', 'bonus', 'refund', 'subscription_grant']
+  }).notNull(),
+  description: text("description").notNull(),
+  relatedEntityType: varchar("related_entity_type"), // 'script', 'project', 'ai_generation', etc.
+  relatedEntityId: varchar("related_entity_id"),
+  stripePaymentIntentId: varchar("stripe_payment_intent_id"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Subscription plans table
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: varchar("id").primaryKey(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  price: integer("price").notNull(), // Price in cents
+  currency: varchar("currency").default('usd').notNull(),
+  interval: varchar("interval", { enum: ['week', 'month', 'year'] }).notNull(),
+  creditsIncluded: integer("credits_included").notNull(),
+  stripePriceId: varchar("stripe_price_id").unique(),
+  militaryDiscountPercent: integer("military_discount_percent").default(0).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schemas for credit system
+export const insertCreditTransactionSchema = createInsertSchema(creditTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Export credit system types
+export type CreditTransaction = typeof creditTransactions.$inferSelect;
+export type InsertCreditTransaction = z.infer<typeof insertCreditTransactionSchema>;
+export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
+export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;

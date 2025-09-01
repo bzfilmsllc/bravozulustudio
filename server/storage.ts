@@ -13,6 +13,8 @@ import {
   festivalSubmissions,
   designAssets,
   activities,
+  creditTransactions,
+  subscriptionPlans,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -39,6 +41,10 @@ import {
   type InsertDesignAsset,
   type Activity,
   type InsertActivity,
+  type CreditTransaction,
+  type InsertCreditTransaction,
+  type SubscriptionPlan,
+  type InsertSubscriptionPlan,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, sql } from "drizzle-orm";
@@ -111,6 +117,18 @@ export interface IStorage {
   updateDesignAsset(id: string, updates: Partial<InsertDesignAsset>): Promise<DesignAsset | undefined>;
   deleteDesignAsset(id: string): Promise<void>;
   incrementDownloadCount(id: string): Promise<void>;
+  
+  // Credit system operations
+  getUserCredits(userId: string): Promise<number>;
+  addCredits(userId: string, amount: number, type: string, description: string, relatedEntityType?: string, relatedEntityId?: string, stripePaymentIntentId?: string): Promise<CreditTransaction>;
+  useCredits(userId: string, amount: number, description: string, relatedEntityType?: string, relatedEntityId?: string): Promise<boolean>;
+  getCreditTransactions(userId: string, limit?: number): Promise<CreditTransaction[]>;
+  updateUserStripeInfo(userId: string, stripeCustomerId?: string, stripeSubscriptionId?: string): Promise<User | undefined>;
+  updateUserSubscription(userId: string, plan: string, status: string, expiresAt?: Date): Promise<User | undefined>;
+  
+  // Subscription plan operations
+  getSubscriptionPlans(): Promise<SubscriptionPlan[]>;
+  createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -890,6 +908,134 @@ export class DatabaseStorage implements IStorage {
     }
 
     return { status: 'none' };
+  }
+
+  // Credit system operations
+  async getUserCredits(userId: string): Promise<number> {
+    const [user] = await db.select({ credits: users.credits }).from(users).where(eq(users.id, userId));
+    return user?.credits || 0;
+  }
+
+  async addCredits(userId: string, amount: number, type: string, description: string, relatedEntityType?: string, relatedEntityId?: string, stripePaymentIntentId?: string): Promise<CreditTransaction> {
+    const [transaction] = await db.transaction(async (tx) => {
+      // Update user credits
+      await tx
+        .update(users)
+        .set({ 
+          credits: sql`${users.credits} + ${amount}`,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      // Create transaction record
+      return await tx
+        .insert(creditTransactions)
+        .values({
+          userId,
+          amount,
+          type,
+          description,
+          relatedEntityType,
+          relatedEntityId,
+          stripePaymentIntentId,
+        })
+        .returning();
+    });
+
+    return transaction;
+  }
+
+  async useCredits(userId: string, amount: number, description: string, relatedEntityType?: string, relatedEntityId?: string): Promise<boolean> {
+    const [result] = await db.transaction(async (tx) => {
+      // Check if user has enough credits
+      const [user] = await tx.select({ credits: users.credits }).from(users).where(eq(users.id, userId));
+      
+      if (!user || user.credits < amount) {
+        return [false];
+      }
+
+      // Deduct credits
+      await tx
+        .update(users)
+        .set({ 
+          credits: sql`${users.credits} - ${amount}`,
+          totalCreditsUsed: sql`${users.totalCreditsUsed} + ${amount}`,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, userId));
+
+      // Create transaction record
+      await tx
+        .insert(creditTransactions)
+        .values({
+          userId,
+          amount: -amount, // Negative for usage
+          type: 'usage',
+          description,
+          relatedEntityType,
+          relatedEntityId,
+        });
+
+      return [true];
+    });
+
+    return result;
+  }
+
+  async getCreditTransactions(userId: string, limit = 50): Promise<CreditTransaction[]> {
+    return await db
+      .select()
+      .from(creditTransactions)
+      .where(eq(creditTransactions.userId, userId))
+      .orderBy(desc(creditTransactions.createdAt))
+      .limit(limit);
+  }
+
+  async updateUserStripeInfo(userId: string, stripeCustomerId?: string, stripeSubscriptionId?: string): Promise<User | undefined> {
+    const updateData: any = { updatedAt: new Date() };
+    if (stripeCustomerId) updateData.stripeCustomerId = stripeCustomerId;
+    if (stripeSubscriptionId) updateData.stripeSubscriptionId = stripeSubscriptionId;
+
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+
+    return user;
+  }
+
+  async updateUserSubscription(userId: string, plan: string, status: string, expiresAt?: Date): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({
+        subscriptionPlan: plan,
+        subscriptionStatus: status,
+        subscriptionExpiresAt: expiresAt,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId))
+      .returning();
+
+    return user;
+  }
+
+  // Subscription plan operations
+  async getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
+    return await db
+      .select()
+      .from(subscriptionPlans)
+      .where(eq(subscriptionPlans.isActive, true))
+      .orderBy(asc(subscriptionPlans.price));
+  }
+
+  async createSubscriptionPlan(plan: InsertSubscriptionPlan): Promise<SubscriptionPlan> {
+    const [newPlan] = await db
+      .insert(subscriptionPlans)
+      .values(plan)
+      .returning();
+
+    return newPlan;
   }
 }
 

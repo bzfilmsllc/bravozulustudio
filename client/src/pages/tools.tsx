@@ -5,6 +5,7 @@ import { ScriptEditor } from "@/components/script-editor";
 import { ProjectManager } from "@/components/project-manager";
 import { FestivalTracker } from "@/components/festival-tracker";
 import { DesignStudio } from "@/components/design-studio";
+import { AIScriptGenerator } from "@/components/ai-script-generator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -72,6 +73,13 @@ export default function Tools() {
       icon: BarChart3,
       description: "Track performance and engagement metrics",
       features: ["Performance metrics", "Audience insights", "Revenue tracking", "Growth analysis"],
+    },
+    {
+      id: "ai-generator",
+      name: "AI Script Generator",
+      icon: Sparkles,
+      description: "Advanced AI-powered script generation and enhancement",
+      features: ["Script generation", "Script enhancement", "Script analysis", "Character development"],
     },
   ];
 
@@ -186,6 +194,11 @@ export default function Tools() {
                 </Card>
               </TabsContent>
 
+              {/* AI Script Generator */}
+              <TabsContent value="ai-generator" className="space-y-6">
+                <AIScriptGenerator />
+              </TabsContent>
+
               {/* Analytics */}
               <TabsContent value="analytics" className="space-y-6">
                 <Card>
@@ -219,7 +232,7 @@ export default function Tools() {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {tools.map((tool) => {
                   const Icon = tool.icon;
-                  const isActive = tool.id === "scripts" || tool.id === "projects" || tool.id === "festival" || tool.id === "design"; // Active tools
+                  const isActive = tool.id === "scripts" || tool.id === "projects" || tool.id === "festival" || tool.id === "design" || tool.id === "ai-generator"; // Active tools
                   
                   return (
                     <Card 

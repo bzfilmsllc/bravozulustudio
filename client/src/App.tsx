@@ -12,6 +12,7 @@ import Portfolio from "@/pages/portfolio";
 import Community from "@/pages/community";
 import Media from "@/pages/media";
 import Verification from "@/pages/verification";
+import Billing from "@/pages/billing";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -28,6 +29,7 @@ function Router() {
           <Route path="/community" component={Community} />
           <Route path="/media" component={Media} />
           <Route path="/verification" component={Verification} />
+          <Route path="/billing" component={Billing} />
         </>
       )}
       <Route component={NotFound} />
