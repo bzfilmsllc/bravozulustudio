@@ -25,17 +25,17 @@ export default function Home() {
   const { user } = useAuth();
 
   // Fetch user's recent data
-  const { data: recentScripts = [] } = useQuery({
+  const { data: recentScripts = [] } = useQuery<any[]>({
     queryKey: ["/api/scripts"],
     retry: false,
   });
 
-  const { data: userProjects = [] } = useQuery({
+  const { data: userProjects = [] } = useQuery<any[]>({
     queryKey: ["/api/projects/my"],
     retry: false,
   });
 
-  const { data: conversations = [] } = useQuery({
+  const { data: conversations = [] } = useQuery<any[]>({
     queryKey: ["/api/messages/conversations"],
     retry: false,
   });

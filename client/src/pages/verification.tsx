@@ -671,7 +671,7 @@ export default function Verification() {
                               <div>
                                 <h4 className="font-medium text-sm mb-2">Military Information</h4>
                                 <div className="space-y-1 text-sm text-muted-foreground">
-                                  <p>Email: {form.watch("militaryEmail")}</p>
+                                  <p>Email: {form.watch("contactEmail")}</p>
                                   <p>Branch: {militaryBranches.find(b => b.value === form.watch("militaryBranch"))?.label}</p>
                                   <p>Years of Service: {form.watch("yearsOfService")}</p>
                                   {form.watch("rank") && <p>Rank: {form.watch("rank")}</p>}

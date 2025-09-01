@@ -144,7 +144,7 @@ export const forumReplies = pgTable("forum_replies", {
   content: text("content").notNull(),
   authorId: varchar("author_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   postId: varchar("post_id").notNull().references(() => forumPosts.id, { onDelete: 'cascade' }),
-  parentReplyId: varchar("parent_reply_id").references(() => forumReplies.id),
+  parentReplyId: varchar("parent_reply_id"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
