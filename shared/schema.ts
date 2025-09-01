@@ -239,6 +239,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   activities: many(activities),
   reports: many(reports, { relationName: "reporterReports" }),
   reportedBy: many(reports, { relationName: "reportedUserReports" }),
+  notifications: many(notifications),
 }));
 
 export const friendRequestsRelations = relations(friendRequests, ({ one }) => ({
@@ -532,8 +533,49 @@ export const insertSubscriptionPlanSchema = createInsertSchema(subscriptionPlans
   updatedAt: true,
 });
 
+// Notification type enum
+export const notificationTypeEnum = pgEnum('notification_type', [
+  'ai_task_complete', 'message_received', 'friend_request', 'project_invite', 
+  'script_shared', 'forum_reply', 'system_alert', 'credit_awarded'
+]);
+
+// Notifications table
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: notificationTypeEnum("type").notNull(),
+  title: varchar("title").notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false).notNull(),
+  actionUrl: varchar("action_url"), // Optional URL to navigate to when clicked
+  relatedEntityType: varchar("related_entity_type"), // 'script', 'message', 'project', etc.
+  relatedEntityId: varchar("related_entity_id"),
+  metadata: jsonb("metadata"), // Additional data for the notification
+  createdAt: timestamp("created_at").defaultNow(),
+  readAt: timestamp("read_at"),
+});
+
+// Insert schema for notifications
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  readAt: true,
+});
+
 // Export credit system types
 export type CreditTransaction = typeof creditTransactions.$inferSelect;
 export type InsertCreditTransaction = z.infer<typeof insertCreditTransactionSchema>;
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type InsertSubscriptionPlan = z.infer<typeof insertSubscriptionPlanSchema>;
+
+// Notification relations
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
+  }),
+}));
+
+// Export notification types
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;

@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { NotificationBell } from "@/components/notification-bell";
 import bravoZuluLogo from "@/assets/bravo-zulu-logo.jpg";
 import {
   Film,
@@ -95,6 +96,9 @@ export function Navigation() {
                   </Link>
                 );
               })}
+
+              {/* Notification Bell */}
+              <NotificationBell />
 
               {/* User Menu */}
               <DropdownMenu>

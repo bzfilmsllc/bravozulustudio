@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
@@ -865,6 +866,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const generatedScript = response.choices[0].message.content;
 
+      // Create notification for AI task completion
+      const notification = await storage.createNotification({
+        userId,
+        type: 'ai_task_complete',
+        title: '🎬 Script Generation Complete',
+        message: `Your AI-generated script is ready! Generated with ${genre || 'action'} genre and ${tone || 'dramatic'} tone.`,
+        actionUrl: `/ai-tools`,
+        relatedEntityType: 'ai_generation',
+        relatedEntityId: 'script_generation',
+        metadata: { 
+          taskType: 'script_generation',
+          genre: genre || 'action',
+          tone: tone || 'dramatic',
+          length: length || 'short',
+          creditsUsed: requiredCredits
+        },
+        isRead: false
+      });
+
+      // Send real-time notification
+      if (global.sendRealtimeNotification) {
+        global.sendRealtimeNotification(userId, notification);
+      }
+
       res.json({
         script: generatedScript,
         creditsUsed: requiredCredits,
@@ -938,6 +963,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const enhancedScript = response.choices[0].message.content;
 
+      // Create notification for AI task completion
+      const notification = await storage.createNotification({
+        userId,
+        type: 'ai_task_complete',
+        title: '⚡ Script Enhancement Complete',
+        message: `Your script has been enhanced successfully with AI improvements!`,
+        actionUrl: `/ai-tools`,
+        relatedEntityType: 'ai_generation',
+        relatedEntityId: 'script_enhancement',
+        metadata: { 
+          taskType: 'script_enhancement',
+          enhancement: enhancement,
+          creditsUsed: requiredCredits
+        },
+        isRead: false
+      });
+
+      // Send real-time notification
+      if (global.sendRealtimeNotification) {
+        global.sendRealtimeNotification(userId, notification);
+      }
+
       res.json({
         enhancedScript,
         creditsUsed: requiredCredits,
@@ -1010,6 +1057,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const analysis = response.choices[0].message.content;
+
+      // Create notification for AI task completion
+      const notification = await storage.createNotification({
+        userId,
+        type: 'ai_task_complete',
+        title: '📊 Script Analysis Complete',
+        message: `Your script analysis is ready with detailed insights and recommendations!`,
+        actionUrl: `/ai-tools`,
+        relatedEntityType: 'ai_generation',
+        relatedEntityId: 'script_analysis',
+        metadata: { 
+          taskType: 'script_analysis',
+          creditsUsed: requiredCredits
+        },
+        isRead: false
+      });
+
+      // Send real-time notification
+      if (global.sendRealtimeNotification) {
+        global.sendRealtimeNotification(userId, notification);
+      }
 
       res.json({
         analysis,
@@ -1331,6 +1399,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     next();
   });
 
+  // Notification routes
+  app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const limit = parseInt(req.query.limit as string) || 50;
+      
+      const notifications = await storage.getUserNotifications(userId, limit);
+      res.json(notifications);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get("/api/notifications/unread-count", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const count = await storage.getUnreadNotificationCount(userId);
+      res.json({ count });
+    } catch (error) {
+      console.error("Error fetching unread count:", error);
+      res.status(500).json({ message: "Failed to fetch unread count" });
+    }
+  });
+
+  app.patch("/api/notifications/:id/read", isAuthenticated, async (req: any, res) => {
+    try {
+      const notificationId = req.params.id;
+      await storage.markNotificationAsRead(notificationId);
+      res.json({ message: "Notification marked as read" });
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      res.status(500).json({ message: "Failed to mark notification as read" });
+    }
+  });
+
+  app.patch("/api/notifications/mark-all-read", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      await storage.markAllNotificationsAsRead(userId);
+      res.json({ message: "All notifications marked as read" });
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error);
+      res.status(500).json({ message: "Failed to mark notifications as read" });
+    }
+  });
+
+  app.delete("/api/notifications/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const notificationId = req.params.id;
+      await storage.deleteNotification(notificationId);
+      res.json({ message: "Notification deleted" });
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+      res.status(500).json({ message: "Failed to delete notification" });
+    }
+  });
+
   const httpServer = createServer(app);
+  
+  // WebSocket for real-time notifications
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store active WebSocket connections by user ID
+  const userConnections = new Map<string, WebSocket>();
+  
+  wss.on('connection', (ws, req) => {
+    console.log('WebSocket connection established');
+    let userId: string | null = null;
+    
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log('Received WebSocket message:', data);
+        
+        if (data.type === 'authenticate' && data.userId) {
+          userId = data.userId;
+          userConnections.set(userId, ws);
+          console.log(`User ${userId} authenticated via WebSocket`);
+          ws.send(JSON.stringify({ type: 'authenticated', userId }));
+        }
+        
+      } catch (error) {
+        console.error('WebSocket message error:', error);
+      }
+    });
+    
+    ws.on('close', () => {
+      if (userId) {
+        userConnections.delete(userId);
+        console.log(`User ${userId} WebSocket disconnected`);
+      }
+      console.log('WebSocket connection closed');
+    });
+  });
+
+  // Helper function to send real-time notifications
+  global.sendRealtimeNotification = (userId: string, notification: any) => {
+    const userWs = userConnections.get(userId);
+    if (userWs && userWs.readyState === WebSocket.OPEN) {
+      userWs.send(JSON.stringify({
+        type: 'notification',
+        data: notification
+      }));
+    }
+  };
+
   return httpServer;
 }
