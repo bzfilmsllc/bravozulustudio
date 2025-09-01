@@ -162,6 +162,93 @@ export function VideoAd({ className }: { className?: string }) {
   );
 }
 
+// Bottom Ad Component - Elegant and Unobtrusive
+export function BottomAd({ className }: { className?: string }) {
+  const adRef = useRef<HTMLDivElement>(null);
+  
+  const { data: billingInfo } = useQuery<UserBilling>({
+    queryKey: ['/api/billing/subscription-status'],
+  });
+
+  const hasActiveSubscription = billingInfo?.subscription?.status === 'active';
+  const isSuperUser = billingInfo?.subscription?.isSuperUser === true;
+
+  useEffect(() => {
+    // Only load ads if user doesn't have active subscription and is not a super user
+    if (!hasActiveSubscription && !isSuperUser && adRef.current) {
+      try {
+        // Load Google AdSense script if not already loaded
+        if (!window.adsbygoogle) {
+          const script = document.createElement('script');
+          script.async = true;
+          script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_ADSENSE_ID';
+          script.crossOrigin = 'anonymous';
+          document.head.appendChild(script);
+        }
+
+        // Initialize ad
+        if (window.adsbygoogle) {
+          window.adsbygoogle.push({});
+        }
+      } catch (error) {
+        console.error('Error loading Google Ads:', error);
+      }
+    }
+  }, [hasActiveSubscription, isSuperUser]);
+
+  // Don't render ads for premium subscribers or super users
+  if (hasActiveSubscription || isSuperUser) {
+    return null;
+  }
+
+  return (
+    <div className={`w-full ${className}`}>
+      {/* Elegant separator line */}
+      <div className="flex items-center mb-6">
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-600/50 to-transparent"></div>
+        <div className="px-4">
+          <Badge variant="outline" className="text-xs text-slate-400 border-slate-600/50 bg-tactical-black/50">
+            <Zap className="w-3 h-3 mr-1" />
+            Advertisement
+          </Badge>
+        </div>
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-600/50 to-transparent"></div>
+      </div>
+
+      {/* Ad container with sophisticated styling */}
+      <div className="max-w-4xl mx-auto">
+        <Card className="bg-gradient-to-br from-tactical-black/60 to-slate-900/40 border-honor-gold/20 backdrop-blur-sm">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-honor-gold rounded-full animate-pulse"></div>
+                <span className="font-tactical text-xs text-slate-300 tracking-wider">SPONSORED CONTENT</span>
+              </div>
+              <Badge variant="outline" className="text-xs text-honor-gold/70 hover:text-honor-gold border-honor-gold/30">
+                Remove with Premium
+              </Badge>
+            </div>
+            
+            <div ref={adRef} style={{ minHeight: '120px', width: '100%' }}>
+              <ins
+                className="adsbygoogle"
+                style={{ display: 'block' }}
+                data-ad-client="ca-pub-YOUR_ADSENSE_ID"
+                data-ad-slot="9876543210"
+                data-ad-format="horizontal"
+                data-full-width-responsive="true"
+              />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Bottom fade effect */}
+      <div className="mt-6 h-8 bg-gradient-to-b from-transparent to-tactical-black/30 pointer-events-none"></div>
+    </div>
+  );
+}
+
 declare global {
   interface Window {
     adsbygoogle: any;

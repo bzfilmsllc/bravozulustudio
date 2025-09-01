@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
-import { BannerAd, SidebarAd } from "@/components/google-ads";
+import { BannerAd, SidebarAd, BottomAd } from "@/components/google-ads";
 import {
   Film,
   Edit,
@@ -765,6 +765,11 @@ export default function Home() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Bottom Ad - Elegant Integration */}
+            <div className="mt-16 mb-8">
+              <BottomAd />
+            </div>
           </div>
         </main>
       </div>
