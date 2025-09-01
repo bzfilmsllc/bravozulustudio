@@ -78,6 +78,7 @@ import {
   festivalPackets,
   festivalPacketFiles,
   exportTemplates,
+  monthlyVeteranCredits,
   aiEditOperations,
   audioProcessingJobs,
   visualEffectsJobs,
@@ -99,6 +100,8 @@ import {
   type InsertFestivalPacketFile,
   type ExportTemplate,
   type InsertExportTemplate,
+  type MonthlyVeteranCredits,
+  type InsertMonthlyVeteranCredits,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, sql } from "drizzle-orm";
@@ -228,6 +231,15 @@ export interface IStorage {
   createVisualEffectsJob(job: InsertVisualEffectsJob): Promise<VisualEffectsJob>;
   getVisualEffectsJob(id: string, userId: string): Promise<VisualEffectsJob | undefined>;
   updateVisualEffectsJob(id: string, userId: string, updates: Partial<InsertVisualEffectsJob>): Promise<VisualEffectsJob | undefined>;
+
+  // Admin Functions
+  getAllUsers(): Promise<User[]>;
+  getSystemStats(): Promise<any>;
+  awardCredits(userId: string, amount: number, reason: string, adminUserId: string): Promise<void>;
+  verifyMilitaryService(userId: string, verification: any): Promise<void>;
+  processMonthlyVeteranCredits(adminUserId: string): Promise<any>;
+  getCreditTransactions(): Promise<any[]>;
+  getVerificationRequests(): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1631,6 +1643,165 @@ export class DatabaseStorage implements IStorage {
 
   async deleteExportTemplate(id: string): Promise<void> {
     await db.delete(exportTemplates).where(eq(exportTemplates.id, id));
+  }
+
+  // Admin Functions Implementation
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getSystemStats(): Promise<any> {
+    const totalUsers = await db.select({ count: count() }).from(users);
+    const verifiedVeterans = await db.select({ count: count() }).from(users)
+      .where(and(eq(users.role, 'verified'), sql`${users.militaryVerification} IS NOT NULL`));
+    const creditsAwarded = await db.select({ total: sql<number>`SUM(amount)` }).from(creditTransactions);
+    
+    return {
+      totalUsers: totalUsers[0]?.count || 0,
+      verifiedVeterans: verifiedVeterans[0]?.count || 0,
+      creditsAwarded: creditsAwarded[0]?.total || 0,
+    };
+  }
+
+  async awardCredits(userId: string, amount: number, reason: string, adminUserId: string): Promise<void> {
+    // First add credits to user balance
+    await this.addCredits(userId, amount, reason, 'admin_award', reason);
+    
+    // Create credit transaction record
+    await db.insert(creditTransactions).values({
+      userId,
+      amount,
+      type: 'admin_award',
+      description: reason,
+      awardedBy: adminUserId,
+    });
+  }
+
+  async verifyMilitaryService(userId: string, verification: any): Promise<void> {
+    const verificationData = {
+      verified: verification.verified,
+      serviceType: verification.serviceType,
+      branch: verification.branch,
+      yearsServed: verification.yearsServed,
+      verifiedBy: verification.verifiedBy,
+      verifiedAt: new Date(),
+      notes: verification.notes,
+    };
+
+    await db.update(users)
+      .set({ 
+        militaryVerification: verificationData,
+        role: verification.verified ? 'verified' : 'pending',
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+  }
+
+  async processMonthlyVeteranCredits(adminUserId: string): Promise<any> {
+    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM format
+    const currentYear = new Date().getFullYear();
+
+    // Check if already processed this month
+    const [existingRecord] = await db.select().from(monthlyVeteranCredits)
+      .where(and(
+        eq(monthlyVeteranCredits.month, currentMonth),
+        eq(monthlyVeteranCredits.year, currentYear)
+      ));
+
+    if (existingRecord) {
+      throw new Error('Monthly veteran credits have already been processed for this month');
+    }
+
+    // Get all verified veterans
+    const veterans = await db.select().from(users)
+      .where(and(
+        eq(users.role, 'verified'),
+        sql`${users.militaryVerification}->>'serviceType' = 'veteran'`
+      ));
+
+    let veteransProcessed = 0;
+    let creditsAwarded = 0;
+
+    // Award 150 credits to each veteran
+    for (const veteran of veterans) {
+      await this.addCredits(
+        veteran.id, 
+        150, 
+        'Monthly Veteran Appreciation Credits', 
+        'monthly_veteran_gift', 
+        'automatic_monthly_award'
+      );
+      
+      await db.insert(creditTransactions).values({
+        userId: veteran.id,
+        amount: 150,
+        type: 'monthly_veteran_gift',
+        description: 'Monthly Veteran Appreciation Credits',
+        awardedBy: adminUserId,
+      });
+
+      veteransProcessed++;
+      creditsAwarded += 150;
+    }
+
+    // Record the monthly processing
+    await db.insert(monthlyVeteranCredits).values({
+      month: currentMonth,
+      year: currentYear,
+      veteransProcessed,
+      creditsAwarded,
+      processedBy: adminUserId,
+      notes: `Automatically processed ${veteransProcessed} veterans for ${creditsAwarded} total credits`,
+    });
+
+    return {
+      veteransAwarded: veteransProcessed,
+      totalCredits: creditsAwarded,
+      month: currentMonth,
+    };
+  }
+
+  async getCreditTransactions(): Promise<any[]> {
+    return await db.select({
+      id: creditTransactions.id,
+      amount: creditTransactions.amount,
+      type: creditTransactions.type,
+      description: creditTransactions.description,
+      createdAt: creditTransactions.createdAt,
+      user: {
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+      },
+    })
+    .from(creditTransactions)
+    .leftJoin(users, eq(creditTransactions.userId, users.id))
+    .orderBy(desc(creditTransactions.createdAt))
+    .limit(100);
+  }
+
+  async getVerificationRequests(): Promise<any[]> {
+    // This would return users who have submitted verification but aren't verified yet
+    return await db.select({
+      id: users.id,
+      userId: users.id,
+      serviceType: sql`${users.militaryVerification}->>'serviceType'`,
+      branch: sql`${users.militaryVerification}->>'branch'`,
+      yearsServed: sql`${users.militaryVerification}->>'yearsServed'`,
+      user: {
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+      },
+    })
+    .from(users)
+    .where(and(
+      eq(users.role, 'pending'),
+      sql`${users.militaryVerification} IS NOT NULL`
+    ))
+    .orderBy(desc(users.updatedAt));
   }
 }
 

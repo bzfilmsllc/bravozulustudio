@@ -21,6 +21,7 @@ import {
   Zap,
   Scissors,
   Archive,
+  Shield,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -40,6 +41,8 @@ export function Navigation() {
     window.location.href = "/api/logout";
   };
 
+  const isAdmin = user?.email === "bravozulufilms@gmail.com";
+
   const navigation = [
     { name: "HOME", href: "/", icon: Home, description: "Mission Control" },
     { name: "TOOLS", href: "/tools", icon: Wrench, description: "AI Script Studio" },
@@ -47,6 +50,7 @@ export function Navigation() {
     { name: "PORTFOLIO", href: "/portfolio", icon: Briefcase, description: "Your Projects" },
     { name: "COMMUNITY", href: "/community", icon: Users, description: "Connect & Share" },
     { name: "MEDIA", href: "/media", icon: Radio, description: "Gallery & Files" },
+    ...(isAdmin ? [{ name: "ADMIN", href: "/admin", icon: Shield, description: "Admin Control" }] : []),
   ];
 
   return (

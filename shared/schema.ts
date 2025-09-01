@@ -958,6 +958,18 @@ export const exportTemplates = pgTable("export_templates", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Monthly Veteran Credits Tracking
+export const monthlyVeteranCredits = pgTable("monthly_veteran_credits", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  month: varchar("month").notNull(), // Format: YYYY-MM
+  year: integer("year").notNull(),
+  veteransProcessed: integer("veterans_processed").default(0).notNull(),
+  creditsAwarded: integer("credits_awarded").default(0).notNull(),
+  processedAt: timestamp("processed_at").defaultNow(),
+  processedBy: varchar("processed_by").references(() => users.id),
+  notes: text("notes"),
+});
+
 // Insert schemas for File Management
 export const insertUploadedFileSchema = createInsertSchema(uploadedFiles).omit({
   id: true,
@@ -985,6 +997,11 @@ export const insertExportTemplateSchema = createInsertSchema(exportTemplates).om
   updatedAt: true,
 });
 
+export const insertMonthlyVeteranCreditsSchema = createInsertSchema(monthlyVeteranCredits).omit({
+  id: true,
+  processedAt: true,
+});
+
 // Export Editor's Toolkit types
 export type VideoEditProject = typeof videoEditProjects.$inferSelect;
 export type InsertVideoEditProject = z.infer<typeof insertVideoEditProjectSchema>;
@@ -1004,3 +1021,5 @@ export type FestivalPacketFile = typeof festivalPacketFiles.$inferSelect;
 export type InsertFestivalPacketFile = z.infer<typeof insertFestivalPacketFileSchema>;
 export type ExportTemplate = typeof exportTemplates.$inferSelect;
 export type InsertExportTemplate = z.infer<typeof insertExportTemplateSchema>;
+export type MonthlyVeteranCredits = typeof monthlyVeteranCredits.$inferSelect;
+export type InsertMonthlyVeteranCredits = z.infer<typeof insertMonthlyVeteranCreditsSchema>;

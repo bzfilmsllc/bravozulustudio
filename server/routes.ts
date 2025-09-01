@@ -2100,5 +2100,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
+  // ADMIN ROUTES - Only accessible by BravoZuluFilms@gmail.com
+  const isAdmin = (req: any, res: any, next: any) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    if (req.user?.claims?.email !== "bravozulufilms@gmail.com") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    next();
+  };
+
+  // Get all users for admin
+  app.get("/api/admin/users", isAdmin, async (req, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  // Get system statistics
+  app.get("/api/admin/stats", isAdmin, async (req, res) => {
+    try {
+      const stats = await storage.getSystemStats();
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+      res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Award credits to user
+  app.post("/api/admin/award-credits", isAdmin, async (req, res) => {
+    try {
+      const { userId, amount, reason } = req.body;
+      const adminUserId = req.user.claims.sub;
+      
+      await storage.awardCredits(userId, amount, reason, adminUserId);
+      res.json({ message: "Credits awarded successfully" });
+    } catch (error) {
+      console.error("Error awarding credits:", error);
+      res.status(500).json({ message: "Failed to award credits" });
+    }
+  });
+
+  // Verify military service
+  app.post("/api/admin/verify-service", isAdmin, async (req, res) => {
+    try {
+      const { userId, serviceType, branch, verified, notes } = req.body;
+      const adminUserId = req.user.claims.sub;
+      
+      await storage.verifyMilitaryService(userId, {
+        serviceType,
+        branch,
+        verified,
+        notes,
+        verifiedBy: adminUserId
+      });
+      
+      res.json({ message: "Military service verification updated" });
+    } catch (error) {
+      console.error("Error verifying service:", error);
+      res.status(500).json({ message: "Failed to verify service" });
+    }
+  });
+
+  // Process monthly veteran credits
+  app.post("/api/admin/process-monthly-credits", isAdmin, async (req, res) => {
+    try {
+      const adminUserId = req.user.claims.sub;
+      const result = await storage.processMonthlyVeteranCredits(adminUserId);
+      res.json(result);
+    } catch (error) {
+      console.error("Error processing monthly credits:", error);
+      res.status(500).json({ message: "Failed to process monthly credits" });
+    }
+  });
+
+  // Get credit transactions
+  app.get("/api/admin/credit-transactions", isAdmin, async (req, res) => {
+    try {
+      const transactions = await storage.getCreditTransactions();
+      res.json(transactions);
+    } catch (error) {
+      console.error("Error fetching credit transactions:", error);
+      res.status(500).json({ message: "Failed to fetch credit transactions" });
+    }
+  });
+
+  // Get verification requests
+  app.get("/api/admin/verification-requests", isAdmin, async (req, res) => {
+    try {
+      const requests = await storage.getVerificationRequests();
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching verification requests:", error);
+      res.status(500).json({ message: "Failed to fetch verification requests" });
+    }
+  });
+
   return httpServer;
 }
