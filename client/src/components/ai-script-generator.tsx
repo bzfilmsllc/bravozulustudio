@@ -277,7 +277,7 @@ export function AIScriptGenerator() {
     }
     
     // Check credits before sending
-    if (!requireCredits(3, "AI Chat")) {
+    if (!requireCredits(5, "AI Chat")) {
       return;
     }
 
@@ -718,7 +718,7 @@ export function AIScriptGenerator() {
                 </CardDescription>
                 <Badge className="bg-purple-900/50 text-purple-300 border-purple-600/50 w-fit">
                   <AlertTriangle className="w-3 h-3 mr-1" />
-                  3 Credits per Message
+                  5 Credits per Message
                 </Badge>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -801,7 +801,7 @@ export function AIScriptGenerator() {
                     <div className="flex flex-col gap-2">
                       <Button 
                         type="submit" 
-                        disabled={chatMutation.isPending || (!isSuperUser && currentCredits < 3) || !chatMessage.trim()}
+                        disabled={chatMutation.isPending || (!isSuperUser && currentCredits < 5) || !chatMessage.trim()}
                         className="bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-bold px-6"
                         data-testid="button-send-message"
                       >

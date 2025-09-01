@@ -1088,7 +1088,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      const requiredCredits = 3; // Lower cost for chat interactions
+      const requiredCredits = 5; // Updated cost for enhanced interactive AI chat
 
       // Check if user is super user (unlimited credits)
       if (!isSuperUser(user.email || '')) {
