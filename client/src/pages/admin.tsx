@@ -193,9 +193,10 @@ export default function AdminPanel() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }); // Refresh user session
       toast({
         title: "🎖️ Service Updated",
-        description: "Military service information has been updated successfully!",
+        description: "Military service information has been updated successfully! Please refresh to see changes.",
       });
       setShowEditService(false);
     },
