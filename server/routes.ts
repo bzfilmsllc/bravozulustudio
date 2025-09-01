@@ -403,9 +403,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const scriptData = insertScriptSchema.parse({ ...req.body, authorId: userId });
       const script = await storage.createScript(scriptData);
@@ -431,9 +432,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const scripts = await storage.getUserScripts(userId);
       res.json(scripts);
@@ -448,9 +450,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const script = await storage.getScript(req.params.id);
       
@@ -475,9 +478,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const script = await storage.getScript(req.params.id);
       
@@ -499,9 +503,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const script = await storage.getScript(req.params.id);
       
@@ -523,9 +528,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const projectData = insertProjectSchema.parse({ ...req.body, creatorId: userId });
       const project = await storage.createProject(projectData);
@@ -551,9 +557,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const projects = await storage.getPublicProjects(20);
       res.json(projects);
@@ -568,9 +575,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const projects = await storage.getUserProjects(userId);
       res.json(projects);
@@ -585,9 +593,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const { role } = req.body;
       const collaborator = await storage.joinProject(req.params.id, userId, role);
@@ -658,9 +667,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const replyData = insertForumReplySchema.parse({ ...req.body, authorId: userId });
       const reply = await storage.createForumReply(replyData);
@@ -677,9 +687,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const senderId = req.user.claims.sub;
       const user = await storage.getUser(senderId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const messageData = insertMessageSchema.parse({ ...req.body, senderId });
       const message = await storage.sendMessage(messageData);
@@ -695,9 +706,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const conversations = await storage.getUserConversations(userId);
       res.json(conversations);
@@ -712,9 +724,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUserId = req.user.claims.sub;
       const user = await storage.getUser(currentUserId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
-      }
+      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
+      // if (!user || user.role !== 'verified') {
+      //   return res.status(403).json({ message: "Verified membership required" });
+      // }
 
       const { userId } = req.params;
       const conversation = await storage.getConversation(currentUserId, userId);
