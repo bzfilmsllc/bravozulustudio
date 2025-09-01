@@ -17,8 +17,9 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Initialize Google Gemini client
-const genAI = process.env.GOOGLE_GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY) : null;
+// Initialize Google Gemini client - TEMPORARILY DISABLED FOR TESTING
+// const genAI = process.env.GOOGLE_GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY) : null;
+const genAI = null; // Force disable to test if this is causing verification popup issues
 
 // API usage limits and reset logic
 const PLATFORM_DAILY_LIMIT = 950; // Leave buffer from 1000 limit
