@@ -183,15 +183,15 @@ export default function Tools() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-center py-12">
-                      <WandSparkles className="w-24 h-24 text-muted-foreground mx-auto mb-6" />
-                      <h3 className="text-2xl font-semibold mb-4">Creative Suite Coming Soon</h3>
+                      <WandSparkles className="w-24 h-24 text-primary mx-auto mb-6" />
+                      <h3 className="text-2xl font-semibold mb-4">Launch Creative Suite</h3>
                       <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                        Integrated video editing, sound design, and post-production tools are being developed 
-                        to provide a complete creative workflow.
+                        Access the full Creative Suite with video editing, sound design, and post-production tools 
+                        for complete creative workflow management.
                       </p>
-                      <Button variant="outline" onClick={() => alert("We'll notify you when Creative Suite is available!")} data-testid="button-notify-creative">
-                        <Clock className="w-4 h-4 mr-2" />
-                        Notify When Available
+                      <Button onClick={() => window.location.href = '/creative-suite'} data-testid="button-launch-creative">
+                        <WandSparkles className="w-4 h-4 mr-2" />
+                        Launch Creative Suite
                       </Button>
                     </div>
                   </CardContent>
