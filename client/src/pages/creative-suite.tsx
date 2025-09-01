@@ -170,33 +170,60 @@ export default function CreativeSuite() {
     <div className="min-h-screen bg-background pt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header Section */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="p-3 bg-honor-gold/20 rounded-full ring-2 ring-honor-gold/50">
-              <CircuitBoard className="w-8 h-8 text-honor-gold" />
+        <div className="relative bg-gradient-to-br from-slate-900 via-slate-800 to-black rounded-2xl p-8 mb-8 border border-yellow-600/30 shadow-2xl">
+          {/* Bravo Zulu Branded Header */}
+          <div className="absolute top-4 right-4 opacity-20">
+            <div className="text-6xl font-bold text-yellow-600/40 tracking-wider transform -rotate-12">
+              BZ FILMS
             </div>
           </div>
-          <h1 className="font-command text-4xl font-bold gradient-medal-gold mb-2">
-            🎬 CREATIVE COMMAND CENTER
-          </h1>
-          <p className="font-rajdhani text-xl text-tactical-gray mb-4">
-            UNIFIED FILM PRODUCTION SUITE - DIRECTOR • EDITOR • FILES
-          </p>
-          <div className="flex items-center justify-center gap-2">
-            <Target className="w-5 h-5 text-honor-gold" />
-            <Badge variant="secondary" className="bg-honor-gold text-tactical-black font-bold">
-              PROFESSIONAL GRADE
-            </Badge>
-            {isSuperUser && (
-              <>
-                <Crown className="w-4 h-4 text-honor-gold" />
-                <Badge variant="secondary" className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-bold">
-                  <Infinity className="w-3 h-3 mr-1" />
-                  UNLIMITED ACCESS
+          
+          <div className="relative z-10">
+            <div className="flex items-center justify-center mb-6">
+              <div className="p-4 bg-gradient-to-br from-yellow-600/30 to-amber-500/30 rounded-2xl ring-4 ring-yellow-600/50 shadow-xl animate-pulse">
+                <Film className="w-12 h-12 text-yellow-400" />
+              </div>
+            </div>
+            
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <div className="w-8 h-1 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full"></div>
+                <span className="font-military text-sm tracking-[0.3em] text-yellow-400">BRAVO ZULU FILMS</span>
+                <div className="w-8 h-1 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full"></div>
+              </div>
+              
+              <h1 className="font-heading text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 bg-clip-text text-transparent drop-shadow-lg">
+                HOLLYWOOD STUDIO WORKSPACE
+              </h1>
+              
+              <p className="font-military text-xl text-slate-300 mb-6 max-w-3xl mx-auto leading-relaxed">
+                PROFESSIONAL FILM PRODUCTION SUITE • INDUSTRY-GRADE EDITING • MILITARY PRECISION
+              </p>
+              
+              <div className="flex items-center justify-center gap-4 flex-wrap">
+                <Badge className="bg-gradient-to-r from-yellow-600 to-amber-600 text-black font-bold px-4 py-2 text-sm">
+                  <Award className="w-4 h-4 mr-2" />
+                  HOLLYWOOD GRADE
                 </Badge>
-              </>
-            )}
-            <Target className="w-5 h-5 text-honor-gold" />
+                
+                <Badge className="bg-gradient-to-r from-red-600 to-red-700 text-white font-bold px-4 py-2 text-sm">
+                  <Target className="w-4 h-4 mr-2" />
+                  MILITARY PRECISION
+                </Badge>
+                
+                {isSuperUser && (
+                  <Badge className="bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold px-4 py-2 text-sm">
+                    <Crown className="w-4 h-4 mr-2" />
+                    UNLIMITED ACCESS
+                  </Badge>
+                )}
+                
+                <Badge className="bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold px-4 py-2 text-sm">
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  AI POWERED
+                </Badge>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -252,26 +279,221 @@ export default function CreativeSuite() {
         </div>
 
         {/* Main Interface */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 bg-tactical-black/20">
-            <TabsTrigger value="overview" className="font-rajdhani data-[state=active]:text-tactical-black data-[state=active]:bg-honor-gold">
-              Overview
+        <Tabs defaultValue="workspace" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-slate-900 to-slate-800 border border-yellow-600/30 rounded-xl p-2">
+            <TabsTrigger value="workspace" className="font-military data-[state=active]:text-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-400 data-[state=active]:to-amber-500 transition-all duration-300">
+              <Film className="w-4 h-4 mr-2" />
+              Main Studio
             </TabsTrigger>
-            <TabsTrigger value="editor" className="font-rajdhani data-[state=active]:text-tactical-black data-[state=active]:bg-honor-gold">
-              AI Editor
+            <TabsTrigger value="timeline" className="font-military data-[state=active]:text-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-400 data-[state=active]:to-amber-500 transition-all duration-300">
+              <Scissors className="w-4 h-4 mr-2" />
+              Timeline
             </TabsTrigger>
-            <TabsTrigger value="director" className="font-rajdhani data-[state=active]:text-tactical-black data-[state=active]:bg-honor-gold">
-              Director Tools
+            <TabsTrigger value="effects" className="font-military data-[state=active]:text-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-400 data-[state=active]:to-amber-500 transition-all duration-300">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Effects
             </TabsTrigger>
-            <TabsTrigger value="files" className="font-rajdhani data-[state=active]:text-tactical-black data-[state=active]:bg-honor-gold">
-              File Manager
+            <TabsTrigger value="audio" className="font-military data-[state=active]:text-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-400 data-[state=active]:to-amber-500 transition-all duration-300">
+              <Volume2 className="w-4 h-4 mr-2" />
+              Audio Studio
             </TabsTrigger>
-            <TabsTrigger value="festival" className="font-rajdhani data-[state=active]:text-tactical-black data-[state=active]:bg-honor-gold">
-              Festival Hub
+            <TabsTrigger value="render" className="font-military data-[state=active]:text-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-400 data-[state=active]:to-amber-500 transition-all duration-300">
+              <Download className="w-4 h-4 mr-2" />
+              Export
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="font-military data-[state=active]:text-black data-[state=active]:bg-gradient-to-r data-[state=active]:from-yellow-400 data-[state=active]:to-amber-500 transition-all duration-300">
+              <Settings className="w-4 h-4 mr-2" />
+              Studio Config
             </TabsTrigger>
           </TabsList>
 
-          {/* Overview Tab */}
+          {/* Main Studio Workspace */}
+          <TabsContent value="workspace" className="space-y-6">
+            {/* Professional Video Editor Interface */}
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6 h-[800px]">
+              
+              {/* Preview Window */}
+              <div className="xl:col-span-2 space-y-4">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-yellow-600/30 h-full">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2 text-yellow-400">
+                        <Play className="w-5 h-5" />
+                        Preview Monitor
+                      </CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Badge className="bg-red-600/20 text-red-400 border-red-600/50">
+                          ● REC
+                        </Badge>
+                        <span className="font-mono text-yellow-400 text-sm">00:00:00:00</span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="bg-black rounded-lg aspect-video flex items-center justify-center border border-yellow-600/20 relative overflow-hidden">
+                      {/* Bravo Zulu Watermark */}
+                      <div className="absolute top-4 right-4 z-10">
+                        <div className="bg-black/80 px-3 py-1 rounded text-yellow-400 text-xs font-bold border border-yellow-600/50">
+                          BRAVO ZULU FILMS
+                        </div>
+                      </div>
+                      
+                      <div className="text-center">
+                        <Film className="w-16 h-16 text-yellow-600/50 mx-auto mb-4" />
+                        <p className="text-yellow-600/70 font-military">PREVIEW WINDOW</p>
+                        <p className="text-slate-500 text-sm mt-2">Load project to begin editing</p>
+                      </div>
+                      
+                      {/* Professional Overlay Elements */}
+                      <div className="absolute bottom-4 left-4 right-4">
+                        <div className="bg-black/80 rounded px-3 py-1 text-yellow-400 text-xs font-mono border border-yellow-600/30">
+                          4K • 23.976 fps • Rec.709 • 16:9
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Playback Controls */}
+                    <div className="flex items-center justify-center gap-2 mt-4 p-3 bg-slate-800/50 rounded-lg border border-yellow-600/20">
+                      <Button size="sm" variant="ghost" className="text-yellow-400 hover:bg-yellow-400/20">
+                        <ChevronRight className="w-4 h-4 rotate-180" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-yellow-400 hover:bg-yellow-400/20">
+                        <Pause className="w-5 h-5" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-yellow-400 hover:bg-yellow-400/20">
+                        <Play className="w-5 h-5" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-yellow-400 hover:bg-yellow-400/20">
+                        <ChevronRight className="w-4 h-4" />
+                      </Button>
+                      <div className="flex-1 mx-4">
+                        <div className="bg-slate-700 h-2 rounded-full relative">
+                          <div className="bg-yellow-400 h-2 rounded-full w-1/3"></div>
+                        </div>
+                      </div>
+                      <span className="text-yellow-400 font-mono text-sm">33%</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Project Panel */}
+              <div className="space-y-4">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-yellow-600/30">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-yellow-400">
+                      <Archive className="w-5 h-5" />
+                      Project Browser
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3">
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                      {allProjects.slice(0, 5).map((project: any) => (
+                        <div key={project.id} className="p-3 bg-slate-800/50 rounded border border-yellow-600/20 hover:border-yellow-600/50 transition-colors cursor-pointer">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-white text-sm">{project.title}</p>
+                              <p className="text-slate-400 text-xs">{project.description || "No description"}</p>
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              {project.status || 'Active'}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {allProjects.length === 0 && (
+                        <div className="text-center py-8">
+                          <Film className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                          <p className="text-slate-500 text-sm">No projects yet</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                {/* Quick Actions */}
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-yellow-600/30">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-yellow-400">
+                      <Zap className="w-5 h-5" />
+                      Quick Actions
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button size="sm" className="bg-yellow-600/20 text-yellow-400 border-yellow-600/50 hover:bg-yellow-600/30">
+                        <Upload className="w-4 h-4 mr-1" />
+                        Import
+                      </Button>
+                      <Button size="sm" className="bg-blue-600/20 text-blue-400 border-blue-600/50 hover:bg-blue-600/30">
+                        <Scissors className="w-4 h-4 mr-1" />
+                        Cut
+                      </Button>
+                      <Button size="sm" className="bg-green-600/20 text-green-400 border-green-600/50 hover:bg-green-600/30">
+                        <Palette className="w-4 h-4 mr-1" />
+                        Color
+                      </Button>
+                      <Button size="sm" className="bg-purple-600/20 text-purple-400 border-purple-600/50 hover:bg-purple-600/30">
+                        <Volume2 className="w-4 h-4 mr-1" />
+                        Audio
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Tools Panel */}
+              <div className="space-y-4">
+                <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-yellow-600/30">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="flex items-center gap-2 text-yellow-400">
+                      <Wand2 className="w-5 h-5" />
+                      Professional Tools
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-3">
+                    <div className="space-y-3">
+                      <div className="p-3 bg-slate-800/50 rounded border border-yellow-600/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Crown className="w-4 h-4 text-yellow-400" />
+                          <span className="text-sm font-medium text-white">AI Director</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-2">Automated editing decisions</p>
+                        <Button size="sm" className="w-full bg-yellow-600 text-black hover:bg-yellow-500">
+                          Activate AI
+                        </Button>
+                      </div>
+                      
+                      <div className="p-3 bg-slate-800/50 rounded border border-blue-600/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles className="w-4 h-4 text-blue-400" />
+                          <span className="text-sm font-medium text-white">Smart Effects</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-2">Auto-apply professional effects</p>
+                        <Button size="sm" variant="outline" className="w-full border-blue-600/50 text-blue-400">
+                          Browse Effects
+                        </Button>
+                      </div>
+                      
+                      <div className="p-3 bg-slate-800/50 rounded border border-green-600/20">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Music className="w-4 h-4 text-green-400" />
+                          <span className="text-sm font-medium text-white">Audio Suite</span>
+                        </div>
+                        <p className="text-xs text-slate-400 mb-2">Professional audio mixing</p>
+                        <Button size="sm" variant="outline" className="w-full border-green-600/50 text-green-400">
+                          Open Mixer
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+          
+          {/* Overview Tab - Keep original content */}
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Recent Projects */}
@@ -426,6 +648,182 @@ export default function CreativeSuite() {
             )}
           </TabsContent>
 
+          {/* Timeline Editor */}
+          <TabsContent value="timeline" className="space-y-6">
+            <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-yellow-600/30">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2 text-yellow-400">
+                    <Scissors className="w-5 h-5" />
+                    Professional Timeline Editor
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-yellow-600/20 text-yellow-400 border-yellow-600/50">
+                      BRAVO ZULU FILMS
+                    </Badge>
+                    <Button size="sm" className="bg-red-600 text-white hover:bg-red-500">
+                      <DollarSign className="w-4 h-4 mr-1" />
+                      Remove Branding (500 Credits)
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Timeline Tracks */}
+                  <div className="bg-black/50 rounded-lg p-4 border border-yellow-600/20">
+                    <div className="space-y-2">
+                      {/* Video Track */}
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 text-xs text-yellow-400 font-mono">VIDEO 1</div>
+                        <div className="flex-1 h-12 bg-slate-800 rounded relative border border-yellow-600/30">
+                          <div className="absolute inset-1 bg-gradient-to-r from-blue-600/50 to-blue-400/50 rounded w-1/3"></div>
+                          <div className="absolute inset-1 bg-gradient-to-r from-green-600/50 to-green-400/50 rounded w-1/4 left-1/3"></div>
+                        </div>
+                      </div>
+                      
+                      {/* Audio Track */}
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 text-xs text-green-400 font-mono">AUDIO 1</div>
+                        <div className="flex-1 h-8 bg-slate-800 rounded relative border border-green-600/30">
+                          <div className="absolute inset-1 bg-gradient-to-r from-green-600/30 to-green-400/30 rounded w-2/3">
+                            <div className="h-full flex items-center justify-center">
+                              <div className="w-full h-1 bg-green-400 opacity-50"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Effects Track */}
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 text-xs text-purple-400 font-mono">FX 1</div>
+                        <div className="flex-1 h-6 bg-slate-800 rounded relative border border-purple-600/30">
+                          <div className="absolute inset-1 bg-gradient-to-r from-purple-600/30 to-purple-400/30 rounded w-1/6 left-1/4"></div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Timeline Controls */}
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-700">
+                      <div className="flex items-center gap-2">
+                        <span className="text-yellow-400 font-mono text-sm">00:00:15:12</span>
+                        <div className="w-px h-4 bg-yellow-400"></div>
+                        <span className="text-slate-400 font-mono text-sm">01:24:33:08</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" variant="ghost" className="text-yellow-400">
+                          <Scissors className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-yellow-400">
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-yellow-400">
+                          <Wand2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Export & Render */}
+          <TabsContent value="render" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-yellow-600/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-yellow-400">
+                    <Download className="w-5 h-5" />
+                    Export Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-slate-300">Resolution</Label>
+                      <Select>
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="4K (3840x2160)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="8k">8K (7680x4320)</SelectItem>
+                          <SelectItem value="4k">4K (3840x2160)</SelectItem>
+                          <SelectItem value="1080p">1080p (1920x1080)</SelectItem>
+                          <SelectItem value="720p">720p (1280x720)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label className="text-slate-300">Format</Label>
+                      <Select>
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="MP4 (H.264)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="mp4">MP4 (H.264)</SelectItem>
+                          <SelectItem value="mov">MOV (ProRes)</SelectItem>
+                          <SelectItem value="avi">AVI</SelectItem>
+                          <SelectItem value="mkv">MKV</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {/* Branding Options */}
+                    <div className="p-4 bg-slate-800/50 rounded border border-yellow-600/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-yellow-400 font-medium">Bravo Zulu Branding</Label>
+                        <Badge className="bg-yellow-600/20 text-yellow-400">INCLUDED</Badge>
+                      </div>
+                      <p className="text-slate-400 text-xs mb-3">
+                        Professional watermark and credits included in export
+                      </p>
+                      <Button className="w-full bg-red-600 text-white hover:bg-red-500">
+                        <DollarSign className="w-4 h-4 mr-2" />
+                        Remove Branding (500 Credits)
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="bg-gradient-to-br from-slate-900 to-slate-800 border-yellow-600/30">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-yellow-400">
+                    <Zap className="w-5 h-5" />
+                    Render Queue
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="p-3 bg-slate-800/50 rounded border border-green-600/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-green-400 font-medium text-sm">Project_Final_v3.mp4</span>
+                        <Badge className="bg-green-600/20 text-green-400">COMPLETE</Badge>
+                      </div>
+                      <div className="text-xs text-slate-400">4K • 02:34:12 • 2.3 GB</div>
+                    </div>
+                    
+                    <div className="p-3 bg-slate-800/50 rounded border border-yellow-600/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-yellow-400 font-medium text-sm">Trailer_Cut.mp4</span>
+                        <Badge className="bg-yellow-600/20 text-yellow-400">RENDERING</Badge>
+                      </div>
+                      <div className="text-xs text-slate-400 mb-2">1080p • Est. 00:45:00</div>
+                      <Progress value={67} className="h-1" />
+                    </div>
+                    
+                    <Button className="w-full bg-yellow-600 text-black hover:bg-yellow-500">
+                      <Play className="w-4 h-4 mr-2" />
+                      Start New Render
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+          
           {/* AI Editor Tab */}
           <TabsContent value="editor" className="space-y-6">
             <div className="flex justify-between items-center">
@@ -732,6 +1130,15 @@ export default function CreativeSuite() {
             </div>
           </TabsContent>
         </Tabs>
+        
+        {/* Bravo Zulu Footer Branding */}
+        <div className="mt-12 text-center">
+          <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-slate-900 to-slate-800 rounded-full border border-yellow-600/30">
+            <Crown className="w-5 h-5 text-yellow-400" />
+            <span className="font-military text-yellow-400 tracking-wider">POWERED BY BRAVO ZULU FILMS</span>
+            <Award className="w-5 h-5 text-yellow-400" />
+          </div>
+        </div>
       </div>
     </div>
   );
