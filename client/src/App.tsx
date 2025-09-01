@@ -28,8 +28,8 @@ function Router() {
 
   return (
     <Switch>
-      {/* Public pages */}
-      <Route path="/verification" component={Verification} />
+      {/* DISABLED FOR TESTING: Public pages */}
+      {/* <Route path="/verification" component={Verification} /> */}
       
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
