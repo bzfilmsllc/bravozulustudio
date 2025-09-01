@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -65,6 +65,23 @@ export default function Verification() {
   console.log('Verification page - user:', user);
   console.log('Verification page - user role:', user?.role);
   console.log('Verification page - isLoading:', isLoading);
+
+  // Temporary fix: Check if we can fetch user data directly
+  const [userRole, setUserRole] = useState<string | null>(null);
+  
+  useEffect(() => {
+    // Fetch user role directly since auth is having issues
+    fetch('/api/auth/user', { credentials: 'include' })
+      .then(res => res.json())
+      .then(data => {
+        console.log('Direct fetch user data:', data);
+        setUserRole(data.role);
+      })
+      .catch(err => {
+        console.log('Direct fetch failed:', err);
+        setUserRole('public'); // Default to public if fetch fails
+      });
+  }, []);
 
   const form = useForm<VerificationFormData>({
     resolver: zodResolver(verificationSchema),
@@ -183,7 +200,7 @@ export default function Verification() {
   ];
 
   // Show loading while user data is being fetched
-  if (isLoading) {
+  if (isLoading || userRole === null) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
@@ -191,7 +208,11 @@ export default function Verification() {
     );
   }
 
-  if (user?.role === "verified") {
+  // Use direct fetch result if available, fallback to useAuth
+  const effectiveRole = userRole || user?.role;
+  console.log('Effective role:', effectiveRole);
+
+  if (effectiveRole === "verified") {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
@@ -227,7 +248,7 @@ export default function Verification() {
     );
   }
 
-  if (user?.role === "pending") {
+  if (effectiveRole === "pending") {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
