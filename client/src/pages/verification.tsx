@@ -294,7 +294,6 @@ export default function Verification() {
   }
 
   return (
-    <MemberGuard>
       <div className="min-h-screen bg-background">
         <Navigation />
         
@@ -803,6 +802,5 @@ export default function Verification() {
           </div>
         </main>
       </div>
-    </MemberGuard>
   );
 }
