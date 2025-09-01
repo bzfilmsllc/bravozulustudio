@@ -1817,6 +1817,37 @@ export class DatabaseStorage implements IStorage {
     ))
     .orderBy(desc(users.updatedAt));
   }
+
+  async updateUserProfile(userId: string, profileData: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    location?: string;
+    bio?: string;
+    specialties?: string;
+  }): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ 
+        ...profileData,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser;
+  }
+
+  async updateUserProfilePicture(userId: string, profileImageUrl: string): Promise<User> {
+    const [updatedUser] = await db
+      .update(users)
+      .set({ 
+        profileImageUrl,
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, userId))
+      .returning();
+    return updatedUser;
+  }
 }
 
 export const storage = new DatabaseStorage();

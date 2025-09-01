@@ -147,6 +147,12 @@ export function Navigation() {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem asChild>
+                    <Link href="/settings" data-testid="menu-settings">
+                      <User className="w-4 h-4 mr-2" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
                     <Link href="/billing" data-testid="menu-billing">
                       <CreditCard className="w-4 h-4 mr-2" />
                       Billing & Credits

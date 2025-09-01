@@ -18,6 +18,7 @@ import EditorsToolkit from "@/pages/editors-toolkit";
 import FileManager from "@/pages/file-manager";
 import CreativeSuite from "@/pages/creative-suite";
 import AdminPanel from "@/pages/admin";
+import Settings from "@/pages/settings";
 import { TutorialBot } from "@/components/tutorial-bot";
 
 function Router() {
@@ -41,6 +42,7 @@ function Router() {
           <Route path="/file-manager" component={FileManager} />
           <Route path="/creative-suite" component={CreativeSuite} />
           <Route path="/admin" component={AdminPanel} />
+          <Route path="/settings" component={Settings} />
         </>
       )}
       <Route component={NotFound} />

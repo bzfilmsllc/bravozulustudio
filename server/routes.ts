@@ -1468,6 +1468,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Profile update routes
+  app.put('/api/profile', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { firstName, lastName, email, location, bio, specialties } = req.body;
+      
+      const updatedUser = await storage.updateUserProfile(userId, {
+        firstName,
+        lastName,
+        email,
+        location,
+        bio,
+        specialties,
+      });
+      
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: "Failed to update profile" });
+    }
+  });
+
+  app.put('/api/profile/picture', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { profileImageURL } = req.body;
+      
+      if (!profileImageURL) {
+        return res.status(400).json({ error: "profileImageURL is required" });
+      }
+
+      const updatedUser = await storage.updateUserProfilePicture(userId, profileImageURL);
+      res.json(updatedUser);
+    } catch (error) {
+      console.error("Error updating profile picture:", error);
+      res.status(500).json({ message: "Failed to update profile picture" });
+    }
+  });
+
   // Tutorial and onboarding routes
   app.put("/api/tutorial/progress", isAuthenticated, async (req: any, res) => {
     try {
