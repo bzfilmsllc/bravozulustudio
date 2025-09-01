@@ -113,9 +113,10 @@ export function AIScriptGenerator() {
           variant: "destructive",
         });
         // Redirect to login after a delay
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 2000);
+        // DISABLED FOR TESTING: Skip login redirect for Facebook launch
+        // setTimeout(() => {
+        //   window.location.href = "/api/login";
+        // }, 2000);
       } else if (error.message?.includes('402')) {
         // Credit management hook will handle this
         return;

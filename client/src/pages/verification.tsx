@@ -112,7 +112,8 @@ export default function Verification() {
       setCurrentStep(4);
     },
     onError: (error) => {
-      if (isUnauthorizedError(error)) {
+      // DISABLED FOR TESTING: Skip unauthorized error handling for Facebook launch
+      if (false && isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",
