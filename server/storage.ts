@@ -71,6 +71,20 @@ import {
   type InsertEquipment,
   type Location,
   type InsertLocation,
+  // Editor's Toolkit tables
+  videoEditProjects,
+  aiEditOperations,
+  audioProcessingJobs,
+  visualEffectsJobs,
+  // Editor's Toolkit types
+  type VideoEditProject,
+  type InsertVideoEditProject,
+  type AiEditOperation,
+  type InsertAiEditOperation,
+  type AudioProcessingJob,
+  type InsertAudioProcessingJob,
+  type VisualEffectsJob,
+  type InsertVisualEffectsJob,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, sql } from "drizzle-orm";
@@ -173,6 +187,33 @@ export interface IStorage {
   markAllNotificationsAsRead(userId: string): Promise<void>;
   getUnreadNotificationCount(userId: string): Promise<number>;
   deleteNotification(notificationId: string): Promise<void>;
+
+  // EDITOR'S TOOLKIT METHODS (Premium AI Features)
+  
+  // Video Edit Projects
+  getVideoEditProjects(userId: string): Promise<VideoEditProject[]>;
+  createVideoEditProject(project: InsertVideoEditProject): Promise<VideoEditProject>;
+  getVideoEditProject(id: string, userId: string): Promise<VideoEditProject | undefined>;
+  updateVideoEditProject(id: string, userId: string, updates: Partial<InsertVideoEditProject>): Promise<VideoEditProject | undefined>;
+  deleteVideoEditProject(id: string, userId: string): Promise<void>;
+
+  // AI Edit Operations
+  getAiEditOperations(projectId: string, userId: string): Promise<AiEditOperation[]>;
+  createAiEditOperation(operation: InsertAiEditOperation): Promise<AiEditOperation>;
+  getAiEditOperation(id: string, userId: string): Promise<AiEditOperation | undefined>;
+  updateAiEditOperation(id: string, userId: string, updates: Partial<InsertAiEditOperation>): Promise<AiEditOperation | undefined>;
+
+  // Audio Processing Jobs
+  getAudioProcessingJobs(projectId: string, userId: string): Promise<AudioProcessingJob[]>;
+  createAudioProcessingJob(job: InsertAudioProcessingJob): Promise<AudioProcessingJob>;
+  getAudioProcessingJob(id: string, userId: string): Promise<AudioProcessingJob | undefined>;
+  updateAudioProcessingJob(id: string, userId: string, updates: Partial<InsertAudioProcessingJob>): Promise<AudioProcessingJob | undefined>;
+
+  // Visual Effects Jobs
+  getVisualEffectsJobs(projectId: string, userId: string): Promise<VisualEffectsJob[]>;
+  createVisualEffectsJob(job: InsertVisualEffectsJob): Promise<VisualEffectsJob>;
+  getVisualEffectsJob(id: string, userId: string): Promise<VisualEffectsJob | undefined>;
+  updateVisualEffectsJob(id: string, userId: string, updates: Partial<InsertVisualEffectsJob>): Promise<VisualEffectsJob | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1325,6 +1366,143 @@ export class DatabaseStorage implements IStorage {
 
   async deleteLocation(id: string): Promise<void> {
     await db.delete(locations).where(eq(locations.id, id));
+  }
+  // EDITOR'S TOOLKIT IMPLEMENTATIONS (Premium AI Features)
+
+  // Video Edit Projects
+  async getVideoEditProjects(userId: string): Promise<VideoEditProject[]> {
+    return await db.select().from(videoEditProjects).where(eq(videoEditProjects.userId, userId)).orderBy(desc(videoEditProjects.createdAt));
+  }
+
+  async createVideoEditProject(project: InsertVideoEditProject): Promise<VideoEditProject> {
+    const [newProject] = await db.insert(videoEditProjects).values(project).returning();
+    return newProject;
+  }
+
+  async getVideoEditProject(id: string, userId: string): Promise<VideoEditProject | undefined> {
+    const [project] = await db.select().from(videoEditProjects).where(and(eq(videoEditProjects.id, id), eq(videoEditProjects.userId, userId)));
+    return project;
+  }
+
+  async updateVideoEditProject(id: string, userId: string, updates: Partial<InsertVideoEditProject>): Promise<VideoEditProject | undefined> {
+    const [project] = await db
+      .update(videoEditProjects)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(and(eq(videoEditProjects.id, id), eq(videoEditProjects.userId, userId)))
+      .returning();
+    return project;
+  }
+
+  async deleteVideoEditProject(id: string, userId: string): Promise<void> {
+    await db.delete(videoEditProjects).where(and(eq(videoEditProjects.id, id), eq(videoEditProjects.userId, userId)));
+  }
+
+  // AI Edit Operations
+  async getAiEditOperations(projectId: string, userId: string): Promise<AiEditOperation[]> {
+    // First verify the project belongs to the user
+    const project = await this.getVideoEditProject(projectId, userId);
+    if (!project) return [];
+    
+    return await db.select().from(aiEditOperations).where(eq(aiEditOperations.projectId, projectId)).orderBy(desc(aiEditOperations.createdAt));
+  }
+
+  async createAiEditOperation(operation: InsertAiEditOperation): Promise<AiEditOperation> {
+    const [newOperation] = await db.insert(aiEditOperations).values(operation).returning();
+    return newOperation;
+  }
+
+  async getAiEditOperation(id: string, userId: string): Promise<AiEditOperation | undefined> {
+    const [operation] = await db
+      .select()
+      .from(aiEditOperations)
+      .innerJoin(videoEditProjects, eq(aiEditOperations.projectId, videoEditProjects.id))
+      .where(and(eq(aiEditOperations.id, id), eq(videoEditProjects.userId, userId)));
+    return operation.ai_edit_operations;
+  }
+
+  async updateAiEditOperation(id: string, userId: string, updates: Partial<InsertAiEditOperation>): Promise<AiEditOperation | undefined> {
+    // First verify the operation belongs to the user through project ownership
+    const operation = await this.getAiEditOperation(id, userId);
+    if (!operation) return undefined;
+
+    const [updatedOperation] = await db
+      .update(aiEditOperations)
+      .set(updates)
+      .where(eq(aiEditOperations.id, id))
+      .returning();
+    return updatedOperation;
+  }
+
+  // Audio Processing Jobs
+  async getAudioProcessingJobs(projectId: string, userId: string): Promise<AudioProcessingJob[]> {
+    // First verify the project belongs to the user
+    const project = await this.getVideoEditProject(projectId, userId);
+    if (!project) return [];
+    
+    return await db.select().from(audioProcessingJobs).where(eq(audioProcessingJobs.projectId, projectId)).orderBy(desc(audioProcessingJobs.createdAt));
+  }
+
+  async createAudioProcessingJob(job: InsertAudioProcessingJob): Promise<AudioProcessingJob> {
+    const [newJob] = await db.insert(audioProcessingJobs).values(job).returning();
+    return newJob;
+  }
+
+  async getAudioProcessingJob(id: string, userId: string): Promise<AudioProcessingJob | undefined> {
+    const [job] = await db
+      .select()
+      .from(audioProcessingJobs)
+      .innerJoin(videoEditProjects, eq(audioProcessingJobs.projectId, videoEditProjects.id))
+      .where(and(eq(audioProcessingJobs.id, id), eq(videoEditProjects.userId, userId)));
+    return job.audio_processing_jobs;
+  }
+
+  async updateAudioProcessingJob(id: string, userId: string, updates: Partial<InsertAudioProcessingJob>): Promise<AudioProcessingJob | undefined> {
+    // First verify the job belongs to the user through project ownership
+    const job = await this.getAudioProcessingJob(id, userId);
+    if (!job) return undefined;
+
+    const [updatedJob] = await db
+      .update(audioProcessingJobs)
+      .set(updates)
+      .where(eq(audioProcessingJobs.id, id))
+      .returning();
+    return updatedJob;
+  }
+
+  // Visual Effects Jobs
+  async getVisualEffectsJobs(projectId: string, userId: string): Promise<VisualEffectsJob[]> {
+    // First verify the project belongs to the user
+    const project = await this.getVideoEditProject(projectId, userId);
+    if (!project) return [];
+    
+    return await db.select().from(visualEffectsJobs).where(eq(visualEffectsJobs.projectId, projectId)).orderBy(desc(visualEffectsJobs.createdAt));
+  }
+
+  async createVisualEffectsJob(job: InsertVisualEffectsJob): Promise<VisualEffectsJob> {
+    const [newJob] = await db.insert(visualEffectsJobs).values(job).returning();
+    return newJob;
+  }
+
+  async getVisualEffectsJob(id: string, userId: string): Promise<VisualEffectsJob | undefined> {
+    const [job] = await db
+      .select()
+      .from(visualEffectsJobs)
+      .innerJoin(videoEditProjects, eq(visualEffectsJobs.projectId, videoEditProjects.id))
+      .where(and(eq(visualEffectsJobs.id, id), eq(videoEditProjects.userId, userId)));
+    return job.visual_effects_jobs;
+  }
+
+  async updateVisualEffectsJob(id: string, userId: string, updates: Partial<InsertVisualEffectsJob>): Promise<VisualEffectsJob | undefined> {
+    // First verify the job belongs to the user through project ownership
+    const job = await this.getVisualEffectsJob(id, userId);
+    if (!job) return undefined;
+
+    const [updatedJob] = await db
+      .update(visualEffectsJobs)
+      .set(updates)
+      .where(eq(visualEffectsJobs.id, id))
+      .returning();
+    return updatedJob;
   }
 }
 

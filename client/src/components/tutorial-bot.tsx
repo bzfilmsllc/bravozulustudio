@@ -236,6 +236,8 @@ export function TutorialBot({ onComplete }: TutorialBotProps) {
     if (user && !(user as any).hasCompletedOnboarding && !(user as any).tutorialCompletedAt) {
       setIsOpen(true);
       setCurrentStep((user as any).tutorialStep || 0);
+    } else {
+      setIsOpen(false); // Ensure it's closed if tutorial is completed
     }
   }, [user]);
 

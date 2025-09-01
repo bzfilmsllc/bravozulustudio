@@ -14,6 +14,7 @@ import Media from "@/pages/media";
 import Verification from "@/pages/verification";
 import Billing from "@/pages/billing";
 import DirectorsToolkit from "@/pages/directors-toolkit";
+import EditorsToolkit from "@/pages/editors-toolkit";
 import { TutorialBot } from "@/components/tutorial-bot";
 
 function Router() {
@@ -33,6 +34,7 @@ function Router() {
           <Route path="/verification" component={Verification} />
           <Route path="/billing" component={Billing} />
           <Route path="/directors-toolkit" component={DirectorsToolkit} />
+          <Route path="/editors-toolkit" component={EditorsToolkit} />
         </>
       )}
       <Route component={NotFound} />

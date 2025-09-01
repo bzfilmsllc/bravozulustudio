@@ -1727,6 +1727,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // EDITOR'S TOOLKIT API ROUTES (Premium AI Features)
+
+  // Video Edit Projects
+  app.get("/api/video-edit-projects", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const projects = await storage.getVideoEditProjects(userId);
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching video edit projects:", error);
+      res.status(500).json({ message: "Failed to fetch projects" });
+    }
+  });
+
+  app.post("/api/video-edit-projects", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const projectData = { ...req.body, userId };
+      const project = await storage.createVideoEditProject(projectData);
+      res.json(project);
+    } catch (error) {
+      console.error("Error creating video edit project:", error);
+      res.status(500).json({ message: "Failed to create project" });
+    }
+  });
+
+  // AI Edit Operations
+  app.get("/api/ai-edit-operations/:projectId", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const operations = await storage.getAiEditOperations(req.params.projectId, userId);
+      res.json(operations);
+    } catch (error) {
+      console.error("Error fetching AI operations:", error);
+      res.status(500).json({ message: "Failed to fetch operations" });
+    }
+  });
+
+  app.post("/api/ai-edit-operations", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const { operationType, projectId, parameters } = req.body;
+
+      // Credit cost mapping for different operations
+      const creditCosts: Record<string, number> = {
+        color_correction: 50,
+        scene_detection: 30,
+        transition_generation: 40,
+        noise_reduction: 25,
+        audio_enhancement: 35,
+        background_removal: 60,
+        object_tracking: 45,
+        stabilization: 30,
+        slow_motion: 20,
+        speed_ramping: 25,
+        text_overlay: 15,
+        visual_effects: 80,
+      };
+
+      const creditsRequired = creditCosts[operationType] || 50;
+      
+      // Check if user has enough credits
+      const user = await storage.getUser(userId);
+      if (!user || (user.credits || 0) < creditsRequired) {
+        return res.status(402).json({ 
+          message: "Insufficient credits", 
+          required: creditsRequired,
+          available: user?.credits || 0 
+        });
+      }
+
+      // Deduct credits
+      await storage.updateUserCredits(userId, (user.credits || 0) - creditsRequired);
+
+      // Create AI operation
+      const operationData = {
+        projectId,
+        operationType,
+        parameters: parameters || {},
+        creditsUsed: creditsRequired,
+      };
+      
+      const operation = await storage.createAiEditOperation(operationData);
+
+      // Create notification for processing
+      await storage.createNotification({
+        userId,
+        type: 'system',
+        title: 'AI Operation Started',
+        message: `${operationType.replace('_', ' ').toUpperCase()} processing has begun. You'll be notified when complete.`,
+        read: false,
+      });
+
+      res.json(operation);
+    } catch (error) {
+      console.error("Error creating AI operation:", error);
+      res.status(500).json({ message: "Failed to create operation" });
+    }
+  });
+
+  // Audio Processing Jobs
+  app.get("/api/audio-processing-jobs/:projectId", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const jobs = await storage.getAudioProcessingJobs(req.params.projectId, userId);
+      res.json(jobs);
+    } catch (error) {
+      console.error("Error fetching audio jobs:", error);
+      res.status(500).json({ message: "Failed to fetch audio jobs" });
+    }
+  });
+
+  app.post("/api/audio-processing-jobs", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const jobData = req.body;
+      const job = await storage.createAudioProcessingJob(jobData);
+      res.json(job);
+    } catch (error) {
+      console.error("Error creating audio job:", error);
+      res.status(500).json({ message: "Failed to create audio job" });
+    }
+  });
+
+  // Visual Effects Jobs
+  app.get("/api/visual-effects-jobs/:projectId", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const jobs = await storage.getVisualEffectsJobs(req.params.projectId, userId);
+      res.json(jobs);
+    } catch (error) {
+      console.error("Error fetching VFX jobs:", error);
+      res.status(500).json({ message: "Failed to fetch VFX jobs" });
+    }
+  });
+
+  app.post("/api/visual-effects-jobs", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const jobData = req.body;
+      const job = await storage.createVisualEffectsJob(jobData);
+      res.json(job);
+    } catch (error) {
+      console.error("Error creating VFX job:", error);
+      res.status(500).json({ message: "Failed to create VFX job" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // WebSocket for real-time notifications

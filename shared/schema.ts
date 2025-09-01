@@ -8,6 +8,7 @@ import {
   text,
   boolean,
   integer,
+  decimal,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
@@ -777,3 +778,115 @@ export type Equipment = typeof equipment.$inferSelect;
 export type InsertEquipment = z.infer<typeof insertEquipmentSchema>;
 export type Location = typeof locations.$inferSelect;
 export type InsertLocation = z.infer<typeof insertLocationSchema>;
+
+// EDITOR'S TOOLKIT TABLES (Premium AI Features)
+
+// AI Video Edit Projects
+export const videoEditProjects = pgTable("video_edit_projects", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  sourceVideoUrl: varchar("source_video_url"),
+  editedVideoUrl: varchar("edited_video_url"),
+  status: varchar("status", { enum: ['draft', 'processing', 'completed', 'failed'] }).default('draft').notNull(),
+  aiInstructions: text("ai_instructions"), // User's editing instructions for AI
+  processingLog: text("processing_log"), // JSON log of AI processing steps
+  creditsCost: integer("credits_cost").default(0).notNull(), // Total credits consumed
+  duration: integer("duration"), // Video duration in seconds
+  resolution: varchar("resolution"), // e.g., "1920x1080"
+  format: varchar("format"), // e.g., "mp4", "mov"
+  metadata: jsonb("metadata"), // Additional video metadata
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+// AI Edit Operations (tracks individual AI operations)
+export const aiEditOperations = pgTable("ai_edit_operations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => videoEditProjects.id, { onDelete: 'cascade' }),
+  operationType: varchar("operation_type", { 
+    enum: ['color_correction', 'audio_enhancement', 'scene_detection', 'transition_generation', 'sound_effects', 'music_sync', 'noise_reduction', 'stabilization', 'slow_motion', 'speed_ramping', 'text_overlay', 'visual_effects'] 
+  }).notNull(),
+  parameters: jsonb("parameters"), // JSON parameters for the operation
+  status: varchar("status", { enum: ['queued', 'processing', 'completed', 'failed'] }).default('queued').notNull(),
+  creditsUsed: integer("credits_used").default(0).notNull(),
+  processingTime: integer("processing_time"), // Time in seconds
+  resultUrl: varchar("result_url"), // URL to the processed clip/result
+  errorMessage: text("error_message"),
+  aiModel: varchar("ai_model"), // Which AI model was used
+  confidence: decimal("confidence", { precision: 3, scale: 2 }), // AI confidence score
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+// AI Audio Processing
+export const audioProcessingJobs = pgTable("audio_processing_jobs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => videoEditProjects.id, { onDelete: 'cascade' }),
+  audioType: varchar("audio_type", { enum: ['voice', 'music', 'sfx', 'ambient'] }).notNull(),
+  operation: varchar("operation", { enum: ['noise_reduction', 'enhancement', 'normalization', 'eq_adjustment', 'compression', 'reverb', 'dialogue_isolation'] }).notNull(),
+  sourceAudioUrl: varchar("source_audio_url").notNull(),
+  processedAudioUrl: varchar("processed_audio_url"),
+  settings: jsonb("settings"), // Audio processing settings
+  status: varchar("status", { enum: ['pending', 'processing', 'completed', 'failed'] }).default('pending').notNull(),
+  creditsUsed: integer("credits_used").default(0).notNull(),
+  qualityScore: decimal("quality_score", { precision: 3, scale: 2 }), // Audio quality improvement score
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+// AI Visual Effects
+export const visualEffectsJobs = pgTable("visual_effects_jobs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => videoEditProjects.id, { onDelete: 'cascade' }),
+  effectType: varchar("effect_type", { 
+    enum: ['color_grading', 'background_removal', 'object_tracking', 'motion_blur', 'lens_flare', 'particle_effects', 'lighting_enhancement', 'skin_smoothing', 'sky_replacement'] 
+  }).notNull(),
+  parameters: jsonb("parameters"), // Effect-specific parameters
+  sourceClipUrl: varchar("source_clip_url").notNull(),
+  processedClipUrl: varchar("processed_clip_url"),
+  maskData: jsonb("mask_data"), // For effects requiring masks
+  status: varchar("status", { enum: ['queued', 'processing', 'completed', 'failed'] }).default('queued').notNull(),
+  creditsUsed: integer("credits_used").default(0).notNull(),
+  renderTime: integer("render_time"), // Rendering time in seconds
+  createdAt: timestamp("created_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+});
+
+// Insert schemas for Editor's Toolkit
+export const insertVideoEditProjectSchema = createInsertSchema(videoEditProjects).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+});
+
+export const insertAiEditOperationSchema = createInsertSchema(aiEditOperations).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+export const insertAudioProcessingJobSchema = createInsertSchema(audioProcessingJobs).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+export const insertVisualEffectsJobSchema = createInsertSchema(visualEffectsJobs).omit({
+  id: true,
+  createdAt: true,
+  completedAt: true,
+});
+
+// Export Editor's Toolkit types
+export type VideoEditProject = typeof videoEditProjects.$inferSelect;
+export type InsertVideoEditProject = z.infer<typeof insertVideoEditProjectSchema>;
+export type AiEditOperation = typeof aiEditOperations.$inferSelect;
+export type InsertAiEditOperation = z.infer<typeof insertAiEditOperationSchema>;
+export type AudioProcessingJob = typeof audioProcessingJobs.$inferSelect;
+export type InsertAudioProcessingJob = z.infer<typeof insertAudioProcessingJobSchema>;
+export type VisualEffectsJob = typeof visualEffectsJobs.$inferSelect;
+export type InsertVisualEffectsJob = z.infer<typeof insertVisualEffectsJobSchema>;
