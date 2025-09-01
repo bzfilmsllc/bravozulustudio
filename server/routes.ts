@@ -833,7 +833,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Generate script with Anthropic
       const response = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         system: `You are a professional screenplay writer for military and action films. Generate a compelling script based on the user's requirements. Format it properly with scene headings, action lines, and dialogue. Keep it authentic to military culture and respectful to service members.`,
         messages: [{
@@ -854,7 +854,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }]
       });
 
-      const generatedScript = response.content[0].text;
+      const generatedScript = response.content[0].type === 'text' ? response.content[0].text : 'Error generating script';
 
       // Create notification for AI task completion
       const notification = await storage.createNotification({
@@ -924,7 +924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Enhance script with Anthropic
       const response = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         system: `You are a professional script doctor specializing in military and action films. Enhance the provided script based on the user's requirements while maintaining military authenticity and respect for service members.`,
         messages: [{
@@ -945,7 +945,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }]
       });
 
-      const enhancedScript = response.content[0].text;
+      const enhancedScript = response.content[0].type === 'text' ? response.content[0].text : 'Error enhancing script';
 
       // Create notification for AI task completion
       const notification = await storage.createNotification({
@@ -1013,7 +1013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Analyze script with Anthropic
       const response = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 1500,
         system: `You are a professional script analyst with expertise in military and action films. Provide detailed feedback on the script's strengths, weaknesses, and suggestions for improvement. Focus on military authenticity, character development, pacing, and commercial viability.`,
         messages: [{
@@ -1034,7 +1034,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }]
       });
 
-      const analysis = response.content[0].text;
+      const analysis = response.content[0].type === 'text' ? response.content[0].text : 'Error analyzing script';
 
       // Create notification for AI task completion
       const notification = await storage.createNotification({
@@ -1115,7 +1115,7 @@ ${scriptContent ? `Current script content to reference:\n\n${scriptContent}\n\n`
 Keep responses conversational, helpful, and encouraging. If asked to make specific edits, provide the revised content clearly marked.`;
 
       // Format chat history for Anthropic
-      const messages = [];
+      const messages: Array<{role: 'user' | 'assistant', content: string}> = [];
       
       // Add previous chat history
       if (chatHistory && Array.isArray(chatHistory)) {
@@ -1134,13 +1134,13 @@ Keep responses conversational, helpful, and encouraging. If asked to make specif
       });
 
       const response = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
+        model: 'claude-sonnet-4-20250514',
         max_tokens: 2000,
         system: systemPrompt,
         messages: messages
       });
 
-      const assistantResponse = response.content[0].text;
+      const assistantResponse = response.content[0].type === 'text' ? response.content[0].text : 'Error processing message';
 
       // Deduct credits for non-super users
       if (!isSuperUser(user.email || '')) {
