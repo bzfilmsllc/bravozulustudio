@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCreditManagement } from "@/hooks/useCreditManagement";
 import { QuickCreditTopUp } from "@/components/quick-credit-topup";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Zap, 
   Wand2, 
@@ -23,7 +24,11 @@ import {
   Sparkles,
   FileText,
   Target,
-  Shield
+  Shield,
+  MessageCircle,
+  Send,
+  Bot,
+  User
 } from "lucide-react";
 
 interface UserBillingInfo {
@@ -60,10 +65,23 @@ export function AIScriptGenerator() {
     scriptContent: ''
   });
 
+  // Chat interface states
+  const [chatMessage, setChatMessage] = useState('');
+  const [currentScript, setCurrentScript] = useState('');
+  const [chatHistory, setChatHistory] = useState<Array<{role: 'user' | 'assistant', content: string}>>([]);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+
   // Results states
   const [generatedScript, setGeneratedScript] = useState('');
   const [enhancedScript, setEnhancedScript] = useState('');
   const [scriptAnalysis, setScriptAnalysis] = useState('');
+
+  // Auto-scroll chat to bottom
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatHistory]);
 
   // Check for low balance on component mount
   useState(() => {
@@ -159,6 +177,37 @@ export function AIScriptGenerator() {
     },
   });
 
+  // Chat mutation
+  const chatMutation = useMutation({
+    mutationFn: (data: { message: string; scriptContent: string; chatHistory: Array<{role: 'user' | 'assistant', content: string}> }) => 
+      apiRequest("/api/ai/chat", "POST", data),
+    onSuccess: async (response: any) => {
+      // Add assistant response to chat history
+      setChatHistory(prev => [...prev, { role: 'assistant', content: response.response }]);
+      queryClient.invalidateQueries({ queryKey: ["/api/billing/user-credits"] });
+      toast({
+        title: "AI Response Received",
+        description: `Used ${response.creditsUsed} credits. ${response.remainingCredits} credits remaining.`,
+      });
+      
+      // Check for low balance after usage
+      setTimeout(() => checkLowBalance(25), 500);
+    },
+    onError: async (error: any) => {
+      const errorData = await error.response?.json();
+      if (error.response?.status === 402) {
+        // Credit management hook will handle this
+        return;
+      } else {
+        toast({
+          title: "Chat Failed",
+          description: errorData?.message || "Failed to get AI response",
+          variant: "destructive",
+        });
+      }
+    },
+  });
+
   const handleGenerate = (e: React.FormEvent) => {
     e.preventDefault();
     if (!generateForm.prompt.trim()) {
@@ -216,6 +265,53 @@ export function AIScriptGenerator() {
     analyzeMutation.mutate(analyzeForm);
   };
 
+  const handleSendMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatMessage.trim()) {
+      toast({
+        title: "Empty Message",
+        description: "Please enter a message to send to the AI assistant",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Check credits before sending
+    if (!requireCredits(3, "AI Chat")) {
+      return;
+    }
+
+    // Add user message to chat history immediately
+    const userMessage = { role: 'user' as const, content: chatMessage };
+    setChatHistory(prev => [...prev, userMessage]);
+    
+    // Send to API
+    chatMutation.mutate({
+      message: chatMessage,
+      scriptContent: currentScript,
+      chatHistory: chatHistory
+    });
+    
+    // Clear input
+    setChatMessage('');
+  };
+
+  const clearChat = () => {
+    setChatHistory([]);
+    toast({
+      title: "Chat Cleared",
+      description: "Your conversation history has been cleared",
+    });
+  };
+
+  const loadScriptToChat = (script: string) => {
+    setCurrentScript(script);
+    toast({
+      title: "Script Loaded",
+      description: "Script content loaded into chat context. You can now discuss it with the AI assistant.",
+    });
+  };
+
   return (
     <div className="w-full max-w-6xl mx-auto space-y-6">
       {/* Credits Header */}
@@ -249,7 +345,7 @@ export function AIScriptGenerator() {
       </Card>
 
       <Tabs defaultValue="generate" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 bg-slate-800/50 border-yellow-600/30">
+        <TabsList className="grid w-full grid-cols-4 bg-slate-800/50 border-yellow-600/30">
           <TabsTrigger value="generate" className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400">
             <Wand2 className="w-4 h-4 mr-2" />
             Generate Script
@@ -261,6 +357,10 @@ export function AIScriptGenerator() {
           <TabsTrigger value="analyze" className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400">
             <Search className="w-4 h-4 mr-2" />
             Analyze Script
+          </TabsTrigger>
+          <TabsTrigger value="chat" className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400">
+            <MessageCircle className="w-4 h-4 mr-2" />
+            AI Chat Assistant
           </TabsTrigger>
         </TabsList>
 
@@ -544,6 +644,197 @@ export function AIScriptGenerator() {
                 </CardContent>
               </Card>
             )}
+          </div>
+        </TabsContent>
+
+        {/* AI Chat Assistant Tab */}
+        <TabsContent value="chat" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Script Context Input */}
+            <Card className="bg-slate-900/50 border-purple-600/30">
+              <CardHeader>
+                <CardTitle className="text-purple-400 flex items-center gap-2">
+                  <FileText className="w-5 h-5" />
+                  Script Context
+                </CardTitle>
+                <CardDescription className="text-slate-300">
+                  Load your script for the AI to reference
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="scriptContext" className="text-purple-400">Current Script (Optional)</Label>
+                  <Textarea
+                    id="scriptContext"
+                    placeholder="Paste your script here so the AI can reference it during conversation..."
+                    value={currentScript}
+                    onChange={(e) => setCurrentScript(e.target.value)}
+                    className="bg-slate-950/50 border-slate-600 text-white placeholder-slate-400"
+                    rows={8}
+                    data-testid="input-script-context"
+                  />
+                </div>
+                
+                {/* Load Script Buttons */}
+                <div className="space-y-2">
+                  <Label className="text-purple-400">Quick Load</Label>
+                  <div className="flex gap-2 flex-wrap">
+                    {generatedScript && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => loadScriptToChat(generatedScript)}
+                        className="border-purple-600/50 text-purple-400 hover:bg-purple-600/10"
+                        data-testid="button-load-generated"
+                      >
+                        Load Generated Script
+                      </Button>
+                    )}
+                    {enhancedScript && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => loadScriptToChat(enhancedScript)}
+                        className="border-purple-600/50 text-purple-400 hover:bg-purple-600/10"
+                        data-testid="button-load-enhanced"
+                      >
+                        Load Enhanced Script
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Chat Interface */}
+            <Card className="lg:col-span-2 bg-slate-900/50 border-purple-600/30">
+              <CardHeader>
+                <CardTitle className="text-purple-400 flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5" />
+                  AI Script Assistant
+                </CardTitle>
+                <CardDescription className="text-slate-300">
+                  Chat with AI about your scripts, get feedback, and brainstorm ideas
+                </CardDescription>
+                <Badge className="bg-purple-900/50 text-purple-300 border-purple-600/50 w-fit">
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  3 Credits per Message
+                </Badge>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Chat History */}
+                <div className="border border-slate-600 rounded-lg bg-slate-950/50 h-96 overflow-hidden">
+                  <ScrollArea className="h-full p-4" ref={chatScrollRef}>
+                    {chatHistory.length === 0 ? (
+                      <div className="text-center text-slate-400 py-8">
+                        <Bot className="w-12 h-12 mx-auto mb-4 text-purple-400" />
+                        <p>Start a conversation with your AI script assistant!</p>
+                        <p className="text-sm mt-2">Ask about story structure, character development, dialogue, or any script-related questions.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {chatHistory.map((message, index) => (
+                          <div
+                            key={index}
+                            className={`flex items-start gap-3 ${
+                              message.role === 'user' ? 'justify-end' : 'justify-start'
+                            }`}
+                          >
+                            {message.role === 'assistant' && (
+                              <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+                                <Bot className="w-5 h-5 text-white" />
+                              </div>
+                            )}
+                            <div
+                              className={`rounded-lg p-3 max-w-[70%] ${
+                                message.role === 'user'
+                                  ? 'bg-blue-600 text-white'
+                                  : 'bg-slate-800 text-slate-100 border border-slate-600'
+                              }`}
+                            >
+                              <div className="text-sm whitespace-pre-wrap" data-testid={`message-${message.role}-${index}`}>
+                                {message.content}
+                              </div>
+                            </div>
+                            {message.role === 'user' && (
+                              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center flex-shrink-0">
+                                <User className="w-5 h-5 text-white" />
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        {chatMutation.isPending && (
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0">
+                              <Bot className="w-5 h-5 text-white animate-pulse" />
+                            </div>
+                            <div className="bg-slate-800 text-slate-100 border border-slate-600 rounded-lg p-3">
+                              <div className="flex items-center gap-2">
+                                <div className="animate-spin w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full"></div>
+                                <span className="text-sm">AI is thinking...</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
+
+                {/* Chat Input */}
+                <form onSubmit={handleSendMessage} className="space-y-4">
+                  <div className="flex gap-2">
+                    <Textarea
+                      placeholder="Ask about your script, request edits, brainstorm ideas, or get writing advice..."
+                      value={chatMessage}
+                      onChange={(e) => setChatMessage(e.target.value)}
+                      className="bg-slate-950/50 border-slate-600 text-white placeholder-slate-400 resize-none"
+                      rows={2}
+                      data-testid="input-chat-message"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage(e);
+                        }
+                      }}
+                    />
+                    <div className="flex flex-col gap-2">
+                      <Button 
+                        type="submit" 
+                        disabled={chatMutation.isPending || (!isSuperUser && currentCredits < 3) || !chatMessage.trim()}
+                        className="bg-gradient-to-r from-purple-600 to-purple-500 hover:from-purple-500 hover:to-purple-400 text-white font-bold px-6"
+                        data-testid="button-send-message"
+                      >
+                        <Send className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={clearChat}
+                        disabled={chatHistory.length === 0}
+                        className="border-slate-600 text-slate-400 hover:bg-slate-800 px-6"
+                        data-testid="button-clear-chat"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+
+                {/* Chat Instructions */}
+                <div className="text-xs text-slate-400 space-y-1">
+                  <p><strong>Tips:</strong></p>
+                  <ul className="list-disc list-inside space-y-1 ml-2">
+                    <li>Ask specific questions about character development, plot structure, or dialogue</li>
+                    <li>Request edits or improvements to specific scenes</li>
+                    <li>Get feedback on pacing, tone, or genre conventions</li>
+                    <li>Brainstorm ideas for plot twists or character arcs</li>
+                    <li>Press Enter to send, Shift+Enter for new line</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>

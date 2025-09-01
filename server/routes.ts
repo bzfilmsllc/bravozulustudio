@@ -1090,6 +1090,129 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Chat Assistant for Script Interaction
+  app.post('/api/ai/chat', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const user = await storage.getUser(userId);
+      const { message, scriptContent, chatHistory } = req.body;
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const requiredCredits = 3; // Lower cost for chat interactions
+
+      // Check if user is super user (unlimited credits)
+      if (!isSuperUser(user.email)) {
+        const userCredits = await storage.getUserCredits(userId);
+        if (userCredits < requiredCredits) {
+          return res.status(402).json({ 
+            message: "Insufficient credits",
+            required: requiredCredits,
+            available: userCredits
+          });
+        }
+      }
+
+      // Initialize Anthropic client
+      const Anthropic = require('@anthropic-ai/sdk');
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      });
+
+      // Build conversation context
+      const systemPrompt = `You are a professional script writing assistant for Bravo Zulu Films, a platform for military veterans and filmmakers. You help users with:
+
+1. Script editing and improvements
+2. Creative brainstorming and ideation  
+3. Character development
+4. Plot structure and pacing
+5. Dialogue enhancement
+6. Genre-specific advice
+
+When discussing scripts:
+- Be constructive and specific in feedback
+- Suggest concrete improvements
+- Ask clarifying questions when needed
+- Respect the user's creative vision
+- Consider industry standards and best practices
+
+${scriptContent ? `Current script content to reference:\n\n${scriptContent}\n\n` : ''}
+
+Keep responses conversational, helpful, and encouraging. If asked to make specific edits, provide the revised content clearly marked.`;
+
+      // Format chat history for Anthropic
+      const messages = [];
+      
+      // Add previous chat history
+      if (chatHistory && Array.isArray(chatHistory)) {
+        chatHistory.forEach((msg: any) => {
+          messages.push({
+            role: msg.role === 'assistant' ? 'assistant' : 'user',
+            content: msg.content
+          });
+        });
+      }
+
+      // Add current message
+      messages.push({
+        role: 'user',
+        content: message
+      });
+
+      const response = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 2000,
+        system: systemPrompt,
+        messages: messages
+      });
+
+      const assistantResponse = response.content[0].text;
+
+      // Deduct credits for non-super users
+      if (!isSuperUser(user.email)) {
+        await storage.deductCredits(
+          userId,
+          requiredCredits,
+          'ai_chat',
+          'AI script chat assistance',
+          'ai_tools'
+        );
+      }
+
+      // Create notification for chat response
+      const notification = await storage.createNotification({
+        userId,
+        type: 'ai_generation',
+        title: '🤖 AI Chat Response',
+        message: `Your AI script assistant has responded with helpful feedback and suggestions!`,
+        actionUrl: `/ai-tools`,
+        relatedEntityType: 'ai_generation',
+        relatedEntityId: 'chat_response',
+        metadata: { 
+          taskType: 'ai_chat',
+          creditsUsed: requiredCredits
+        },
+        isRead: false
+      });
+
+      // Send real-time notification
+      if ((global as any).sendRealtimeNotification) {
+        (global as any).sendRealtimeNotification(userId, notification);
+      }
+
+      res.json({
+        response: assistantResponse,
+        creditsUsed: requiredCredits,
+        remainingCredits: isSuperUser(user.email) ? 999999 : await storage.getUserCredits(userId) - requiredCredits
+      });
+    } catch (error: any) {
+      console.error("Error in AI chat:", error);
+      res.status(500).json({ message: "Failed to process chat: " + error.message });
+    }
+  });
+
   // Credit system and billing routes
   app.get('/api/billing/credits', isAuthenticated, async (req: any, res) => {
     try {
