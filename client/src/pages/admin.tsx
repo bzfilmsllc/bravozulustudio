@@ -261,6 +261,35 @@ export default function AdminPanel() {
   return (
     <div className="min-h-screen bg-background pt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Navigation Bar */}
+        <div className="flex justify-between items-center mb-6">
+          <Button
+            variant="outline"
+            className="flex items-center gap-2 text-tactical-gray hover:text-white hover:bg-red-500/20 border-tactical-gray"
+            onClick={() => window.location.href = "/"}
+            data-testid="button-back-to-app"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to App
+          </Button>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="bg-red-500/10 text-red-500 border-red-500/20">
+              Admin Mode
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-tactical-gray hover:text-white hover:bg-red-500/20 border-tactical-gray"
+              onClick={() => window.location.href = "/api/logout"}
+              data-testid="button-logout"
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+        
         {/* Header Section */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
