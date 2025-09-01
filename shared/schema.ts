@@ -77,6 +77,16 @@ export const users = pgTable("users", {
   tutorialCompletedAt: timestamp("tutorial_completed_at"),
   lastTutorialInteraction: timestamp("last_tutorial_interaction"),
   
+  // API key storage for user's personal AI APIs (encrypted)
+  openaiApiKey: varchar("openai_api_key"),
+  anthropicApiKey: varchar("anthropic_api_key"),
+  geminiApiKey: varchar("gemini_api_key"),
+  preferredAiProvider: varchar("preferred_ai_provider", {
+    enum: ['platform', 'openai', 'anthropic', 'gemini']
+  }).default('platform').notNull(),
+  platformApiUsageCount: integer("platform_api_usage_count").default(0).notNull(), // Track daily usage
+  platformApiResetDate: timestamp("platform_api_reset_date").defaultNow(), // Daily reset tracker
+  
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

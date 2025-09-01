@@ -7,11 +7,172 @@ import { z } from "zod";
 import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema, insertDesignAssetSchema, insertGiftCodeSchema, insertErrorReportSchema, insertUserErrorPreferencesSchema, insertModeratorSchema, insertModerationActionSchema, insertContentReportSchema, insertAutoModerationRuleSchema, insertPostModerationStatusSchema } from "@shared/schema";
 import Stripe from "stripe";
 import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from '@google/generative-ai';
 
-// Initialize Anthropic client
+// Initialize AI clients
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
+
+// Initialize Google Gemini client
+const genAI = process.env.GOOGLE_GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY) : null;
+
+// API usage limits and reset logic
+const PLATFORM_DAILY_LIMIT = 950; // Leave buffer from 1000 limit
+const FREE_USER_MONTHLY_LIMIT = 50;
+const VERIFIED_VETERAN_MONTHLY_LIMIT = 150;
+
+async function resetDailyUsageIfNeeded(userId: string) {
+  const user = await storage.getUser(userId);
+  if (!user) return;
+  
+  const now = new Date();
+  const resetDate = user.platformApiResetDate ? new Date(user.platformApiResetDate) : new Date(0);
+  
+  // Reset if it's a new day
+  if (now.getDate() !== resetDate.getDate() || 
+      now.getMonth() !== resetDate.getMonth() || 
+      now.getFullYear() !== resetDate.getFullYear()) {
+    await storage.updateUser(userId, {
+      platformApiUsageCount: 0,
+      platformApiResetDate: now
+    });
+  }
+}
+
+async function canUsePlatformAPI(userId: string, user: any): Promise<boolean> {
+  if (!genAI) return false; // No Gemini API key available
+  
+  await resetDailyUsageIfNeeded(userId);
+  const updatedUser = await storage.getUser(userId);
+  if (!updatedUser) return false;
+  
+  // Check platform daily limit
+  if (updatedUser.platformApiUsageCount >= PLATFORM_DAILY_LIMIT) {
+    return false;
+  }
+  
+  // Check user monthly limits based on role
+  const monthlyLimit = user.role === 'verified' ? VERIFIED_VETERAN_MONTHLY_LIMIT : FREE_USER_MONTHLY_LIMIT;
+  const monthlyUsage = await storage.getUserMonthlyPlatformUsage(userId);
+  
+  return monthlyUsage < monthlyLimit;
+}
+
+async function generateScriptWithAI(prompt: string, genre: string, tone: string, length: string, userId: string): Promise<string> {
+  const user = await storage.getUser(userId);
+  if (!user) throw new Error('User not found');
+  
+  // Enhanced prompt for better script generation
+  const enhancedPrompt = `Generate a ${length || 'short'} ${genre || 'action'} script with a ${tone || 'dramatic'} tone.
+
+User's creative brief: ${prompt}
+
+Please format it as a proper screenplay with:
+- Scene headings (INT./EXT. LOCATION - TIME)
+- Character names in ALL CAPS before dialogue
+- Action lines describing what happens
+- Dialogue properly formatted
+- Keep it authentic to military culture if military-themed
+- Make it compelling and well-structured
+
+Example format:
+FADE IN:
+
+INT. MILITARY BASE - DAY
+
+The sun beats down on the concrete as SERGEANT JOHNSON (30s) approaches the barracks.
+
+SERGEANT JOHNSON
+(shouting)
+Listen up, recruits! Today we train like our lives depend on it.
+
+(Continue the script from here)`;
+
+  // Try platform API first if available
+  if (user.preferredAiProvider === 'platform' || !user.preferredAiProvider) {
+    const canUsePlatform = await canUsePlatformAPI(userId, user);
+    if (canUsePlatform && genAI) {
+      try {
+        console.log('Using Google Gemini (platform API)');
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent(enhancedPrompt);
+        const response = await result.response;
+        const script = response.text();
+        
+        // Track usage
+        await storage.incrementPlatformApiUsage(userId);
+        
+        return script;
+      } catch (error) {
+        console.error('Platform API failed, falling back to user API:', error);
+      }
+    }
+  }
+  
+  // Fallback to user's personal API keys
+  if (user.preferredAiProvider === 'openai' && user.openaiApiKey) {
+    // TODO: Implement OpenAI fallback
+    throw new Error('OpenAI API not implemented yet');
+  }
+  
+  if (user.preferredAiProvider === 'anthropic' && user.anthropicApiKey) {
+    try {
+      console.log('Using user\'s Anthropic API key');
+      const userAnthropic = new Anthropic({
+        apiKey: user.anthropicApiKey,
+      });
+      
+      const response = await userAnthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 2000,
+        system: `You are a professional screenplay writer for military and action films. Generate a compelling script based on the user's requirements. Format it properly with scene headings, action lines, and dialogue. Keep it authentic to military culture and respectful to service members.`,
+        messages: [{
+          role: 'user',
+          content: enhancedPrompt
+        }]
+      });
+
+      return response.content[0].type === 'text' ? response.content[0].text : 'Error generating script';
+    } catch (error) {
+      console.error('User Anthropic API failed:', error);
+      throw new Error('Failed to generate script with your API key. Please check your API key is valid.');
+    }
+  }
+  
+  if (user.preferredAiProvider === 'gemini' && user.geminiApiKey) {
+    try {
+      console.log('Using user\'s Gemini API key');
+      const userGenAI = new GoogleGenerativeAI(user.geminiApiKey);
+      const model = userGenAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(enhancedPrompt);
+      const response = await result.response;
+      return response.text();
+    } catch (error) {
+      console.error('User Gemini API failed:', error);
+      throw new Error('Failed to generate script with your API key. Please check your API key is valid.');
+    }
+  }
+  
+  // Final fallback: Try platform API again if user has no API keys
+  if (genAI) {
+    try {
+      console.log('Final fallback to platform API');
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(enhancedPrompt);
+      const response = await result.response;
+      
+      // Track usage even for fallback
+      await storage.incrementPlatformApiUsage(userId);
+      
+      return response.text();
+    } catch (error) {
+      console.error('Platform API fallback failed:', error);
+    }
+  }
+  
+  throw new Error('No available AI API. Please add your own API key in settings or try again later.');
+}
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -804,66 +965,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/ai/generate-script', isAuthenticated, async (req: any, res) => {
     try {
       const userId = (req.user as any).claims.sub;
-      const user = await storage.getUser(userId);
       const { prompt, genre, tone, length } = req.body;
-      
-      let userCredits = 0;
-      const requiredCredits = 10;
-      
-      // Super users bypass credit checks
-      if (user?.email && isSuperUser(user.email)) {
-        userCredits = 999999; // Unlimited for super users
-      } else {
-        // Check if user has enough credits (10 credits for script generation)
-        userCredits = await storage.getUserCredits(userId);
-        
-        if (userCredits < requiredCredits) {
-          return res.status(402).json({ 
-            message: "Insufficient credits", 
-            required: requiredCredits, 
-            available: userCredits 
-          });
-        }
 
-        // Use credits (only for non-super users)
-        const success = await storage.useCredits(userId, requiredCredits, 'AI Script Generation', 'ai_generation', 'script');
-        if (!success) {
-          return res.status(402).json({ message: "Unable to deduct credits" });
-        }
+      // Basic validation
+      if (!prompt || prompt.trim().length === 0) {
+        return res.status(400).json({ message: "Prompt is required" });
       }
 
-      // Generate script with Anthropic
-      const response = await anthropic.messages.create({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 2000,
-        system: `You are a professional screenplay writer for military and action films. Generate a compelling script based on the user's requirements. Format it properly with scene headings, action lines, and dialogue. Keep it authentic to military culture and respectful to service members.`,
-        messages: [{
-          role: 'user',
-          content: `Generate a ${length || 'short'} script with the following requirements:
-          Genre: ${genre || 'action'}
-          Tone: ${tone || 'dramatic'}
-          Prompt: ${prompt}
-          
-          Please format it as a proper screenplay with:
-          - Scene headings (INT./EXT. LOCATION - TIME)
-          - Character names in caps
-          - Action lines
-          - Dialogue
-          - Proper formatting
-          
-          Keep it military-themed and authentic.`
-        }]
+      // Generate script using smart API selection
+      const generatedScript = await generateScriptWithAI(prompt, genre, tone, length, userId);
+
+      // Create notification for AI task completion
+      const notification = await storage.createNotification({
+        userId,
+        type: 'ai_task_complete',
+        title: '🎬 Script Generation Complete',
+        message: `Your AI-generated script is ready! Generated with ${genre || 'action'} genre and ${tone || 'dramatic'} tone.`,
+        actionUrl: `/ai-tools`,
+        relatedEntityType: 'ai_generation',
+        relatedEntityId: 'script_generation',
+        metadata: { 
+          taskType: 'script_generation',
+          genre: genre || 'action',
+          tone: tone || 'dramatic',
+          length: length || 'short'
+        },
+        isRead: false
       });
 
-      const generatedScript = response.content[0].type === 'text' ? response.content[0].text : 'Error generating script';
-
-      // TEMPORARY: Skip notifications for testing
-      console.log('Script generated successfully!');
+      // Send real-time notification
+      if ((global as any).sendRealtimeNotification) {
+        (global as any).sendRealtimeNotification(userId, notification);
+      }
 
       res.json({
         script: generatedScript,
-        creditsUsed: 0,
-        remainingCredits: 999999
+        message: 'Script generated successfully using smart API selection!'
       });
     } catch (error: any) {
       console.error("Error generating script:", error);

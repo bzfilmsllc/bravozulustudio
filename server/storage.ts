@@ -334,6 +334,11 @@ export interface IStorage {
   
   isUserModerator(userId: string): Promise<boolean>;
   getUserModeratorPermissions(userId: string): Promise<string[]>;
+  
+  // API usage tracking for platform APIs
+  updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
+  getUserMonthlyPlatformUsage(userId: string): Promise<number>;
+  incrementPlatformApiUsage(userId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2991,6 +2996,55 @@ export class DatabaseStorage implements IStorage {
         eq(moderators.isActive, true)
       ));
     return moderator?.permissions as string[] || [];
+  }
+
+  // API usage tracking methods
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const [user] = await db
+      .update(users)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async getUserMonthlyPlatformUsage(userId: string): Promise<number> {
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    
+    const result = await db
+      .select({ count: count() })
+      .from(creditTransactions)
+      .where(and(
+        eq(creditTransactions.userId, userId),
+        eq(creditTransactions.type, 'usage'),
+        sql`${creditTransactions.description} LIKE '%platform API%'`,
+        sql`${creditTransactions.createdAt} >= ${startOfMonth}`
+      ));
+    
+    return result[0]?.count || 0;
+  }
+
+  async incrementPlatformApiUsage(userId: string): Promise<void> {
+    // Update the user's daily platform API usage count
+    await db
+      .update(users)
+      .set({ 
+        platformApiUsageCount: sql`${users.platformApiUsageCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(users.id, userId));
+    
+    // Also track in credit transactions for monthly reporting
+    await db.insert(creditTransactions).values({
+      userId,
+      amount: -1,
+      type: 'usage',
+      description: 'Platform API usage - Free tier',
+      relatedEntityType: 'ai_generation',
+      relatedEntityId: 'platform_script_generation'
+    });
   }
 }
 
