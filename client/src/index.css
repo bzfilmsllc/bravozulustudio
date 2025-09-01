@@ -1,56 +1,91 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Oswald:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --background: hsl(222, 84%, 4.9%);
-  --foreground: hsl(210, 40%, 98%);
-  --card: hsl(222, 84%, 4.9%);
-  --card-foreground: hsl(210, 40%, 98%);
-  --popover: hsl(222, 84%, 4.9%);
-  --popover-foreground: hsl(210, 40%, 98%);
-  --primary: hsl(47, 96%, 53%);
-  --primary-foreground: hsl(222, 84%, 4.9%);
-  --secondary: hsl(217, 32%, 17%);
-  --secondary-foreground: hsl(210, 40%, 98%);
-  --muted: hsl(217, 32%, 17%);
-  --muted-foreground: hsl(215, 20%, 65%);
-  --accent: hsl(210, 40%, 98%);
-  --accent-foreground: hsl(222, 84%, 4.9%);
-  --destructive: hsl(0, 62%, 30%);
-  --destructive-foreground: hsl(210, 40%, 98%);
-  --border: hsl(217, 32%, 17%);
-  --input: hsl(217, 32%, 17%);
-  --ring: hsl(212, 72%, 59%);
-  --chart-1: hsl(47, 96%, 53%);
-  --chart-2: hsl(159, 100%, 36%);
-  --chart-3: hsl(42, 93%, 56%);
-  --chart-4: hsl(147, 78%, 42%);
-  --chart-5: hsl(341, 75%, 51%);
-  --sidebar: hsl(222, 84%, 4.9%);
-  --sidebar-foreground: hsl(210, 40%, 98%);
-  --sidebar-primary: hsl(47, 96%, 53%);
-  --sidebar-primary-foreground: hsl(222, 84%, 4.9%);
-  --sidebar-accent: hsl(217, 32%, 17%);
-  --sidebar-accent-foreground: hsl(210, 40%, 98%);
-  --sidebar-border: hsl(217, 32%, 17%);
-  --sidebar-ring: hsl(212, 72%, 59%);
+  /* Military-inspired background - Deep Navy */
+  --background: hsl(220, 30%, 6%);
+  --foreground: hsl(0, 0%, 95%);
+  
+  /* Card styling - Darker with subtle elevation */
+  --card: hsl(220, 25%, 8%);
+  --card-foreground: hsl(0, 0%, 95%);
+  --popover: hsl(220, 25%, 8%);
+  --popover-foreground: hsl(0, 0%, 95%);
+  
+  /* Primary - Honor Gold with deep contrast */
+  --primary: hsl(45, 85%, 55%);
+  --primary-foreground: hsl(220, 30%, 6%);
+  
+  /* Secondary - Military Steel Blue */
+  --secondary: hsl(210, 40%, 25%);
+  --secondary-foreground: hsl(0, 0%, 95%);
+  
+  /* Muted - Military Green undertones */
+  --muted: hsl(120, 15%, 12%);
+  --muted-foreground: hsl(120, 10%, 70%);
+  
+  /* Accent - Steel Gray */
+  --accent: hsl(200, 15%, 20%);
+  --accent-foreground: hsl(0, 0%, 95%);
+  
+  /* Destructive - Alert Red */
+  --destructive: hsl(0, 70%, 50%);
+  --destructive-foreground: hsl(0, 0%, 95%);
+  
+  /* Borders and inputs */
+  --border: hsl(200, 15%, 25%);
+  --input: hsl(200, 15%, 15%);
+  --ring: hsl(45, 85%, 55%);
+  
+  /* Military branch colors */
+  --army-green: hsl(120, 40%, 25%);
+  --navy-blue: hsl(220, 70%, 30%);
+  --air-force-blue: hsl(200, 80%, 40%);
+  --marine-red: hsl(0, 70%, 45%);
+  --coast-guard-blue: hsl(200, 90%, 35%);
+  --space-force-blue: hsl(240, 80%, 25%);
+  
+  /* Honor badges */
+  --gold: hsl(45, 85%, 55%);
+  --silver: hsl(0, 0%, 75%);
+  --bronze: hsl(30, 70%, 45%);
+  
+  /* Sidebar */
+  --sidebar: hsl(220, 30%, 6%);
+  --sidebar-foreground: hsl(0, 0%, 95%);
+  --sidebar-primary: hsl(45, 85%, 55%);
+  --sidebar-primary-foreground: hsl(220, 30%, 6%);
+  --sidebar-accent: hsl(200, 15%, 20%);
+  --sidebar-accent-foreground: hsl(0, 0%, 95%);
+  --sidebar-border: hsl(200, 15%, 25%);
+  --sidebar-ring: hsl(45, 85%, 55%);
+  
+  /* Typography */
   --font-sans: "Inter", system-ui, sans-serif;
   --font-serif: "Playfair Display", serif;
+  --font-military: "Oswald", sans-serif;
   --font-mono: "Fira Code", monospace;
   --radius: 0.5rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00), 0px 1px 2px -1px hsl(212, 72%, 59% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00), 0px 1px 2px -1px hsl(212, 72%, 59% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00), 0px 2px 4px -1px hsl(212, 72%, 59% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00), 0px 4px 6px -1px hsl(212, 72%, 59% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00), 0px 8px 10px -1px hsl(212, 72%, 59% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
+  
+  /* Chart colors - Military themed */
+  --chart-1: hsl(45, 85%, 55%);
+  --chart-2: hsl(120, 40%, 45%);
+  --chart-3: hsl(220, 70%, 45%);
+  --chart-4: hsl(0, 70%, 55%);
+  --chart-5: hsl(200, 80%, 45%);
+  
+  /* Enhanced shadows for depth */
+  --shadow-2xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.3);
+  --shadow-xs: 0px 1px 3px 0px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0px 2px 4px -1px rgba(0, 0, 0, 0.4), 0px 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow: 0px 2px 6px -1px rgba(0, 0, 0, 0.4), 0px 1px 3px -1px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0px 4px 8px -2px rgba(0, 0, 0, 0.4), 0px 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0px 8px 16px -4px rgba(0, 0, 0, 0.4), 0px 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0px 16px 32px -8px rgba(0, 0, 0, 0.5), 0px 8px 10px -1px rgba(0, 0, 0, 0.3);
+  --shadow-2xl: 0px 24px 48px -12px rgba(0, 0, 0, 0.6);
 }
 
 .dark {
@@ -99,6 +134,9 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
+    background-image: 
+      radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0);
+    background-size: 20px 20px;
   }
 
   html {
@@ -186,4 +224,88 @@
 /* Transition styling */
 .script-editor .transition {
   @apply text-right font-bold mb-4 text-primary;
+}
+
+/* Military-inspired utility classes */
+.font-military {
+  font-family: var(--font-military);
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.font-heading {
+  font-family: var(--font-serif);
+  font-weight: 600;
+}
+
+/* Honor gradients */
+.gradient-gold {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-military {
+  background: linear-gradient(135deg, #1e3a8a 0%, #065f46 50%, #92400e 100%);
+}
+
+/* Military card styling */
+.military-card {
+  background: linear-gradient(135deg, 
+    hsl(var(--card)) 0%, 
+    hsl(var(--accent)) 100%);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 
+    0 4px 8px -2px rgba(0, 0, 0, 0.4),
+    0 2px 4px -1px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.military-card:hover {
+  box-shadow: 
+    0 8px 16px -4px rgba(0, 0, 0, 0.5),
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+/* Honor badges */
+.badge-verified {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #1a1a1a;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.badge-army {
+  background: linear-gradient(135deg, #355E3B 0%, #4F7942 100%);
+  color: white;
+}
+
+.badge-navy {
+  background: linear-gradient(135deg, #000080 0%, #191970 100%);
+  color: white;
+}
+
+.badge-air-force {
+  background: linear-gradient(135deg, #00308F 0%, #004CFF 100%);
+  color: white;
+}
+
+.badge-marines {
+  background: linear-gradient(135deg, #DC143C 0%, #8B0000 100%);
+  color: white;
+}
+
+.badge-coast-guard {
+  background: linear-gradient(135deg, #1C7293 0%, #2E86AB 100%);
+  color: white;
+}
+
+.badge-space-force {
+  background: linear-gradient(135deg, #1C2951 0%, #4B0082 100%);
+  color: white;
 }

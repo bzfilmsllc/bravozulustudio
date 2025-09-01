@@ -62,50 +62,55 @@ export default function Landing() {
 
   return (
     <div className="bg-background text-foreground min-h-screen">
-      {/* Navigation Header */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      {/* Military-Style Navigation Header */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-primary/30 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-3" data-testid="logo">
-              <img 
-                src={bravoZuluLogo} 
-                alt="Bravo Zulu Films" 
-                className="w-10 h-10 object-contain"
-              />
+          <div className="flex justify-between items-center h-18">
+            {/* Enhanced Logo with Military Styling */}
+            <div className="flex items-center space-x-4" data-testid="logo">
+              <div className="relative">
+                <img 
+                  src={bravoZuluLogo} 
+                  alt="Bravo Zulu Films" 
+                  className="w-12 h-12 object-contain drop-shadow-lg"
+                />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse"></div>
+              </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">Bravo Zulu Films</h1>
-                <p className="text-xs text-muted-foreground">Professional Studio</p>
+                <h1 className="text-xl font-bold text-foreground font-military gradient-gold">Bravo Zulu Films</h1>
+                <p className="text-xs text-primary font-military tracking-wider">Honor • Excellence • Service</p>
               </div>
             </div>
 
-            {/* Main Navigation */}
+            {/* Military-Style Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#home" className="text-foreground hover:text-primary transition-colors" data-testid="nav-home">
-                Home
+              <a href="#home" className="text-foreground hover:text-primary transition-all duration-300 font-military text-sm tracking-wide border-b-2 border-transparent hover:border-primary pb-1" data-testid="nav-home">
+                <Flag className="w-4 h-4 inline mr-1" />HOME
               </a>
-              <a href="#tools" className="text-muted-foreground hover:text-primary transition-colors" data-testid="nav-tools">
-                Studio Tools
+              <a href="#tools" className="text-muted-foreground hover:text-primary transition-all duration-300 font-military text-sm tracking-wide border-b-2 border-transparent hover:border-primary pb-1" data-testid="nav-tools">
+                <Shield className="w-4 h-4 inline mr-1" />ARSENAL
               </a>
-              <a href="#community" className="text-muted-foreground hover:text-primary transition-colors" data-testid="nav-community">
-                Community
+              <a href="#community" className="text-muted-foreground hover:text-primary transition-all duration-300 font-military text-sm tracking-wide border-b-2 border-transparent hover:border-primary pb-1" data-testid="nav-community">
+                <Users className="w-4 h-4 inline mr-1" />BATTALION
               </a>
-              <a href="#media" className="text-muted-foreground hover:text-primary transition-colors" data-testid="nav-media">
-                Media
+              <a href="#media" className="text-muted-foreground hover:text-primary transition-all duration-300 font-military text-sm tracking-wide border-b-2 border-transparent hover:border-primary pb-1" data-testid="nav-media">
+                <Star className="w-4 h-4 inline mr-1" />GALLERY
               </a>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 ml-6">
                 <Button
                   variant="outline"
                   onClick={handleLogin}
+                  className="font-military tracking-wide border-primary/50 hover:border-primary hover:bg-primary/10 transition-all duration-300"
                   data-testid="button-signin"
                 >
-                  Sign In
+                  <Lock className="w-4 h-4 mr-2" />SIGN IN
                 </Button>
                 <Button
                   onClick={handleJoinStudio}
+                  className="bg-gradient-to-r from-primary to-yellow-400 hover:from-yellow-400 hover:to-primary text-background font-military tracking-wide shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                   data-testid="button-join-studio"
                 >
-                  Join Studio
+                  <UserPlus className="w-4 h-4 mr-2" />ENLIST NOW
                 </Button>
               </div>
             </div>
@@ -144,181 +149,294 @@ export default function Landing() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section id="home" className="pt-16 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-secondary to-background">
-          <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/70 to-background/90"></div>
+      {/* Military Honor Hero Section */}
+      <section id="home" className="pt-18 relative overflow-hidden min-h-screen flex items-center">
+        {/* Patriotic Background with Military Textures */}
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-slate-900 to-background">
+          <div className="absolute inset-0 bg-gradient-to-r from-red-900/10 via-background/90 to-blue-900/10"></div>
+          <div className="absolute inset-0 opacity-10">
+            <div className="w-full h-full bg-repeat opacity-30" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23ffffff" fill-opacity="0.1"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")'}}></div>
+          </div>
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-red-600 via-white to-blue-600 opacity-20"></div>
         </div>
         
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
           <div className="text-center">
-            {/* Featured Logo */}
-            <div className="mb-8">
-              <img 
-                src={bravoZuluLogo} 
-                alt="Bravo Zulu Films" 
-                className="w-32 h-32 md:w-48 md:h-48 object-contain mx-auto"
-              />
+            {/* Honor Badge Logo */}
+            <div className="mb-12 relative">
+              <div className="absolute inset-0 animate-pulse">
+                <div className="w-40 h-40 md:w-56 md:h-56 mx-auto bg-gradient-to-r from-primary/20 to-yellow-400/20 rounded-full blur-3xl"></div>
+              </div>
+              <div className="relative">
+                <img 
+                  src={bravoZuluLogo} 
+                  alt="Bravo Zulu Films" 
+                  className="w-36 h-36 md:w-52 md:h-52 object-contain mx-auto drop-shadow-2xl animate-fade-in-up"
+                />
+                <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-primary to-yellow-400 rounded-full flex items-center justify-center shadow-lg">
+                  <Star className="w-4 h-4 text-background" />
+                </div>
+              </div>
             </div>
             
-            <Badge variant="secondary" className="mb-6" data-testid="badge-studio-type">
-              <Star className="w-4 h-4 text-primary mr-2" />
-              Professional Film Studio for Military Veterans
-            </Badge>
+            <div className="mb-8">
+              <Badge className="badge-verified px-4 py-2 text-base font-military mb-4" data-testid="badge-studio-type">
+                <Shield className="w-5 h-5 mr-2" />
+                ELITE MILITARY FILM STUDIO
+              </Badge>
+            </div>
             
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold mb-6">
-              <span className="bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                Cinematic Excellence
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-heading font-bold mb-8 leading-tight">
+              <span className="block gradient-gold text-shadow-lg">
+                HONOR
               </span>
-              <br />
-              <span className="text-primary">Built by Veterans</span>
+              <span className="block text-3xl md:text-5xl lg:text-6xl text-foreground font-military tracking-widest">
+                THROUGH CINEMA
+              </span>
+              <span className="block text-2xl md:text-4xl lg:text-5xl text-primary/90 font-military mt-2">
+                BY VETERANS, FOR VETERANS
+              </span>
             </h1>
             
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed">
-              Professional film production tools, AI-powered script writing, and a supportive community designed specifically for military veterans and their families in the creative industry.
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto mb-16 leading-relaxed font-medium">
+              Elite film production arsenal designed for military veterans. Professional tools, AI-powered assistance, and a brotherhood of creators honoring service through storytelling.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-20">
               <Button 
                 size="lg" 
-                className="px-8 py-4" 
+                className="px-12 py-6 text-lg bg-gradient-to-r from-primary to-yellow-400 hover:from-yellow-400 hover:to-primary text-background font-military tracking-wide shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 border-2 border-primary/50" 
                 onClick={handleJoinStudio}
                 data-testid="button-start-creating"
               >
-                <Rocket className="w-5 h-5 mr-2" />
-                Start Creating
+                <Rocket className="w-6 h-6 mr-3" />
+                DEPLOY TO STUDIO
               </Button>
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="px-8 py-4"
+                className="px-12 py-6 text-lg border-2 border-primary/50 hover:border-primary hover:bg-primary/10 text-primary font-military tracking-wide shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
                 data-testid="button-watch-demo"
               >
-                <Play className="w-5 h-5 mr-2" />
-                Watch Demo
+                <Play className="w-6 h-6 mr-3" />
+                MISSION BRIEFING
               </Button>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
-              <div className="text-center" data-testid="stat-veterans">
-                <div className="text-3xl font-bold text-primary mb-2">500+</div>
-                <div className="text-sm text-muted-foreground">Veteran Creators</div>
+            {/* Military Achievement Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-5xl mx-auto">
+              <div className="military-card p-6 text-center hover:scale-105 transition-all duration-300" data-testid="stat-veterans">
+                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">500+</div>
+                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Veteran Creators</div>
+                <div className="mt-2 flex justify-center">
+                  <Shield className="w-5 h-5 text-primary" />
+                </div>
               </div>
-              <div className="text-center" data-testid="stat-scripts">
-                <div className="text-3xl font-bold text-primary mb-2">1,200+</div>
-                <div className="text-sm text-muted-foreground">Scripts Written</div>
+              <div className="military-card p-6 text-center hover:scale-105 transition-all duration-300" data-testid="stat-scripts">
+                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">1,200+</div>
+                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Scripts Written</div>
+                <div className="mt-2 flex justify-center">
+                  <Edit className="w-5 h-5 text-primary" />
+                </div>
               </div>
-              <div className="text-center" data-testid="stat-films">
-                <div className="text-3xl font-bold text-primary mb-2">150+</div>
-                <div className="text-sm text-muted-foreground">Films Produced</div>
+              <div className="military-card p-6 text-center hover:scale-105 transition-all duration-300" data-testid="stat-films">
+                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">150+</div>
+                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Films Produced</div>
+                <div className="mt-2 flex justify-center">
+                  <Film className="w-5 h-5 text-primary" />
+                </div>
               </div>
-              <div className="text-center" data-testid="stat-awards">
-                <div className="text-3xl font-bold text-primary mb-2">50+</div>
-                <div className="text-sm text-muted-foreground">Festival Awards</div>
+              <div className="military-card p-6 text-center hover:scale-105 transition-all duration-300" data-testid="stat-awards">
+                <div className="text-4xl md:text-5xl font-bold gradient-gold mb-3 font-military">50+</div>
+                <div className="text-sm text-muted-foreground font-military tracking-wide uppercase">Festival Awards</div>
+                <div className="mt-2 flex justify-center">
+                  <Trophy className="w-5 h-5 text-primary" />
+                </div>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Studio Tools Section */}
-      <section id="tools" className="py-24 bg-secondary/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-serif font-bold mb-4">Professional Studio Tools</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Industry-grade creative tools designed for professional filmmakers, with AI assistance and military veteran community support.
+      {/* Military Arsenal Section */}
+      <section id="tools" className="py-24 bg-gradient-to-b from-slate-900/30 to-background relative">
+        {/* Military Grid Background */}
+        <div className="absolute inset-0 opacity-5">
+          <div className="w-full h-full" style={{backgroundImage: 'url("data:image/svg+xml,%3Csvg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%23ffffff" fill-opacity="0.1" fill-rule="evenodd"%3E%3Cpath d="M20 20c0 11.046-8.954 20-20 20v-40c11.046 0 20 8.954 20 20zM0 20c0-11.046 8.954-20 20-20v40c-11.046 0-20-8.954-20-20z"/%3E%3C/g%3E%3C/svg%3E")'}}></div>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary to-yellow-400 rounded-full mb-6">
+              <Shield className="w-8 h-8 text-background" />
+            </div>
+            <h2 className="text-5xl md:text-6xl font-heading font-bold mb-6 gradient-gold">TACTICAL ARSENAL</h2>
+            <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto font-medium">
+              Elite-grade creative weapons designed for professional filmmakers. Military precision meets artistic excellence.
             </p>
+            <div className="mt-8 flex justify-center">
+              <div className="w-24 h-1 bg-gradient-to-r from-primary to-yellow-400 rounded-full"></div>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            {/* Script Editor */}
-            <Card className="group hover:border-primary/50 transition-all duration-300" data-testid="card-script-editor">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <Edit className="text-primary text-xl" />
+            {/* AI Script Editor */}
+            <Card className="military-card group hover:scale-105 transition-all duration-500 border-2 border-primary/20 hover:border-primary/60" data-testid="card-script-editor">
+              <CardContent className="p-8 relative">
+                <div className="absolute top-4 right-4">
+                  <div className="w-6 h-6 bg-gradient-to-r from-primary to-yellow-400 rounded-full flex items-center justify-center">
+                    <Star className="w-3 h-3 text-background" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">AI Script Editor</h3>
-                <p className="text-muted-foreground mb-4">Advanced text formatting, AI writing assistance, and collaborative editing tools for professional screenwriting.</p>
-                <div className="flex items-center text-primary text-sm font-medium">
-                  <span>Members Only</span>
-                  <Lock className="w-4 h-4 ml-2" />
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-yellow-400/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gradient-to-r group-hover:from-primary/30 group-hover:to-yellow-400/30 transition-all duration-300">
+                  <Edit className="text-primary text-2xl" />
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Logo Designer */}
-            <Card className="group hover:border-primary/50 transition-all duration-300" data-testid="card-logo-designer">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <Palette className="text-primary text-xl" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Logo & Graphics Designer</h3>
-                <p className="text-muted-foreground mb-4">AI-powered design tools for creating professional logos, posters, and marketing materials.</p>
-                <div className="flex items-center text-primary text-sm font-medium">
-                  <span>Members Only</span>
-                  <Lock className="w-4 h-4 ml-2" />
+                <h3 className="text-2xl font-military font-bold mb-4 gradient-gold tracking-wide">AI SCRIPT COMMAND</h3>
+                <p className="text-muted-foreground mb-6 leading-relaxed">Advanced battlefield text editor with AI-powered writing assistance and collaborative editing for elite screenwriting operations.</p>
+                <div className="flex items-center justify-between">
+                  <Badge className="badge-verified px-3 py-1 font-military text-xs">
+                    <Lock className="w-3 h-3 mr-1" />
+                    CLASSIFIED ACCESS
+                  </Badge>
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Festival Screener */}
-            <Card className="group hover:border-primary/50 transition-all duration-300" data-testid="card-festival-screener">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <Trophy className="text-primary text-xl" />
+            {/* Graphics Designer */}
+            <Card className="military-card group hover:scale-105 transition-all duration-500 border-2 border-primary/20 hover:border-primary/60" data-testid="card-logo-designer">
+              <CardContent className="p-8 relative">
+                <div className="absolute top-4 right-4">
+                  <div className="w-6 h-6 bg-gradient-to-r from-primary to-yellow-400 rounded-full flex items-center justify-center">
+                    <Star className="w-3 h-3 text-background" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Festival Screener</h3>
-                <p className="text-muted-foreground mb-4">AI analysis to grade scripts and evaluate readiness for film festival submissions.</p>
-                <div className="flex items-center text-primary text-sm font-medium">
-                  <span>Members Only</span>
-                  <Lock className="w-4 h-4 ml-2" />
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-yellow-400/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gradient-to-r group-hover:from-primary/30 group-hover:to-yellow-400/30 transition-all duration-300">
+                  <Palette className="text-primary text-2xl" />
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Project Management */}
-            <Card className="group hover:border-primary/50 transition-all duration-300" data-testid="card-project-dashboard">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <ListTodo className="text-primary text-xl" />
-                </div>
-                <h3 className="text-xl font-semibold mb-3">Project Dashboard</h3>
-                <p className="text-muted-foreground mb-4">Comprehensive project management with collaboration tools, timelines, and resource tracking.</p>
-                <div className="flex items-center text-primary text-sm font-medium">
-                  <span>Members Only</span>
-                  <Lock className="w-4 h-4 ml-2" />
+                <h3 className="text-2xl font-military font-bold mb-4 gradient-gold tracking-wide">VISUAL WARFARE</h3>
+                <p className="text-muted-foreground mb-6 leading-relaxed">AI-powered design arsenal for creating professional insignia, battle-tested posters, and strategic marketing materials.</p>
+                <div className="flex items-center justify-between">
+                  <Badge className="badge-verified px-3 py-1 font-military text-xs">
+                    <Lock className="w-3 h-3 mr-1" />
+                    CLASSIFIED ACCESS
+                  </Badge>
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Creative Suite */}
-            <Card className="group hover:border-primary/50 transition-all duration-300" data-testid="card-creative-suite">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <WandSparkles className="text-primary text-xl" />
+            {/* Festival Intelligence */}
+            <Card className="military-card group hover:scale-105 transition-all duration-500 border-2 border-primary/20 hover:border-primary/60" data-testid="card-festival-screener">
+              <CardContent className="p-8 relative">
+                <div className="absolute top-4 right-4">
+                  <div className="w-6 h-6 bg-gradient-to-r from-primary to-yellow-400 rounded-full flex items-center justify-center">
+                    <Star className="w-3 h-3 text-background" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Creative Suite</h3>
-                <p className="text-muted-foreground mb-4">Integrated tools for video editing, sound design, and post-production workflows.</p>
-                <div className="flex items-center text-primary text-sm font-medium">
-                  <span>Members Only</span>
-                  <Lock className="w-4 h-4 ml-2" />
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-yellow-400/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gradient-to-r group-hover:from-primary/30 group-hover:to-yellow-400/30 transition-all duration-300">
+                  <Trophy className="text-primary text-2xl" />
+                </div>
+                <h3 className="text-2xl font-military font-bold mb-4 gradient-gold tracking-wide">RECON INTEL</h3>
+                <p className="text-muted-foreground mb-6 leading-relaxed">Advanced AI reconnaissance to analyze scripts and evaluate mission readiness for festival deployment.</p>
+                <div className="flex items-center justify-between">
+                  <Badge className="badge-verified px-3 py-1 font-military text-xs">
+                    <Lock className="w-3 h-3 mr-1" />
+                    CLASSIFIED ACCESS
+                  </Badge>
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Support App */}
-            <Card className="group hover:border-primary/50 transition-all duration-300" data-testid="card-support-app">
-              <CardContent className="p-6">
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                  <HandHelping className="text-primary text-xl" />
+            {/* Mission Command */}
+            <Card className="military-card group hover:scale-105 transition-all duration-500 border-2 border-primary/20 hover:border-primary/60" data-testid="card-project-dashboard">
+              <CardContent className="p-8 relative">
+                <div className="absolute top-4 right-4">
+                  <div className="w-6 h-6 bg-gradient-to-r from-primary to-yellow-400 rounded-full flex items-center justify-center">
+                    <Star className="w-3 h-3 text-background" />
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Bravo Zulu Support</h3>
-                <p className="text-muted-foreground mb-4">Dedicated support system connecting veterans with mentors and industry professionals.</p>
-                <div className="flex items-center text-primary text-sm font-medium">
-                  <span>Community Access</span>
-                  <Users className="w-4 h-4 ml-2" />
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-yellow-400/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gradient-to-r group-hover:from-primary/30 group-hover:to-yellow-400/30 transition-all duration-300">
+                  <ListTodo className="text-primary text-2xl" />
+                </div>
+                <h3 className="text-2xl font-military font-bold mb-4 gradient-gold tracking-wide">MISSION COMMAND</h3>
+                <p className="text-muted-foreground mb-6 leading-relaxed">Comprehensive strategic planning with collaboration protocols, tactical timelines, and resource deployment tracking.</p>
+                <div className="flex items-center justify-between">
+                  <Badge className="badge-verified px-3 py-1 font-military text-xs">
+                    <Lock className="w-3 h-3 mr-1" />
+                    CLASSIFIED ACCESS
+                  </Badge>
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Combat Suite */}
+            <Card className="military-card group hover:scale-105 transition-all duration-500 border-2 border-primary/20 hover:border-primary/60" data-testid="card-creative-suite">
+              <CardContent className="p-8 relative">
+                <div className="absolute top-4 right-4">
+                  <div className="w-6 h-6 bg-gradient-to-r from-primary to-yellow-400 rounded-full flex items-center justify-center">
+                    <Star className="w-3 h-3 text-background" />
+                  </div>
+                </div>
+                <div className="w-16 h-16 bg-gradient-to-r from-primary/20 to-yellow-400/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gradient-to-r group-hover:from-primary/30 group-hover:to-yellow-400/30 transition-all duration-300">
+                  <WandSparkles className="text-primary text-2xl" />
+                </div>
+                <h3 className="text-2xl font-military font-bold mb-4 gradient-gold tracking-wide">COMBAT SUITE</h3>
+                <p className="text-muted-foreground mb-6 leading-relaxed">Integrated tactical systems for video combat editing, audio warfare design, and post-production battlefield operations.</p>
+                <div className="flex items-center justify-between">
+                  <Badge className="badge-verified px-3 py-1 font-military text-xs">
+                    <Lock className="w-3 h-3 mr-1" />
+                    CLASSIFIED ACCESS
+                  </Badge>
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Brotherhood Support */}
+            <Card className="military-card group hover:scale-105 transition-all duration-500 border-2 border-green-500/20 hover:border-green-500/60" data-testid="card-support-app">
+              <CardContent className="p-8 relative">
+                <div className="absolute top-4 right-4">
+                  <div className="w-6 h-6 bg-gradient-to-r from-green-500 to-green-400 rounded-full flex items-center justify-center">
+                    <Star className="w-3 h-3 text-background" />
+                  </div>
+                </div>
+                <div className="w-16 h-16 bg-gradient-to-r from-green-500/20 to-green-400/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-gradient-to-r group-hover:from-green-500/30 group-hover:to-green-400/30 transition-all duration-300">
+                  <HandHelping className="text-green-500 text-2xl" />
+                </div>
+                <h3 className="text-2xl font-military font-bold mb-4 text-green-400 tracking-wide">BROTHERHOOD SUPPORT</h3>
+                <p className="text-muted-foreground mb-6 leading-relaxed">Dedicated brotherhood network connecting veterans with seasoned mentors and elite industry professionals.</p>
+                <div className="flex items-center justify-between">
+                  <Badge className="bg-gradient-to-r from-green-500 to-green-400 text-background px-3 py-1 font-military text-xs">
+                    <Users className="w-3 h-3 mr-1" />
+                    OPEN ACCESS
+                  </Badge>
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -383,15 +501,27 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Membership & Verification Section */}
-      <section className="py-24">
+      {/* Military Brotherhood Section */}
+      <section className="py-24 bg-gradient-to-r from-slate-900/20 via-background to-slate-900/20 relative">
+        {/* Honor stripe */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-600 via-white to-blue-600"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl font-serif font-bold mb-6">Exclusive Veterans Community</h2>
-              <p className="text-xl text-muted-foreground mb-8">
-                Join a verified community of military veterans and their families creating exceptional films. Our secure verification system ensures authentic connections and meaningful collaborations.
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-primary to-yellow-400 rounded-full mb-8">
+                <Users className="w-8 h-8 text-background" />
+              </div>
+              <h2 className="text-5xl md:text-6xl font-heading font-bold mb-8 gradient-gold">ELITE BROTHERHOOD</h2>
+              <p className="text-xl md:text-2xl text-muted-foreground mb-8 leading-relaxed font-medium">
+                Join an elite network of decorated veterans, battle-tested filmmakers, and creative warriors who understand the unique mission of transitioning from military service to cinematic excellence.
               </p>
+              
+              <div className="mb-8">
+                <div className="w-24 h-1 bg-gradient-to-r from-primary to-yellow-400 rounded-full mb-4"></div>
+                <p className="text-lg text-muted-foreground italic">
+                  "From the battlefield to the silver screen, we honor our oath to excellence."
+                </p>
+              </div>
               
               <div className="space-y-6 mb-8">
                 <div className="flex items-start space-x-4">
