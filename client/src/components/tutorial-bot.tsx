@@ -233,11 +233,14 @@ export function TutorialBot({ onComplete }: TutorialBotProps) {
 
   // Check if tutorial should be shown
   useEffect(() => {
-    if (user && !(user as any).hasCompletedOnboarding && !(user as any).tutorialCompletedAt) {
-      setIsOpen(true);
-      setCurrentStep((user as any).tutorialStep || 0);
-    } else {
-      setIsOpen(false); // Ensure it's closed if tutorial is completed
+    if (user) {
+      const hasCompleted = (user as any).hasCompletedOnboarding || (user as any).tutorialCompletedAt;
+      if (!hasCompleted) {
+        setIsOpen(true);
+        setCurrentStep((user as any).tutorialStep || 0);
+      } else {
+        setIsOpen(false); // Ensure it's closed if tutorial is completed
+      }
     }
   }, [user]);
 
