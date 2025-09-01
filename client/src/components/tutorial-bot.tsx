@@ -278,10 +278,17 @@ export function TutorialBot({ onComplete }: TutorialBotProps) {
 
   const handleStepComplete = (stepId: number) => {
     const nextStep = stepId + 1;
+    
+    if (nextStep > tutorialSteps.length) {
+      // Tutorial complete, show payment option
+      setShowPayment(true);
+      return;
+    }
+    
     setCurrentStep(nextStep);
     updateTutorialMutation.mutate({ step: nextStep });
 
-    if (nextStep >= tutorialSteps.length) {
+    if (nextStep === tutorialSteps.length) {
       // Tutorial complete, show payment option
       setShowPayment(true);
     }
@@ -329,7 +336,7 @@ export function TutorialBot({ onComplete }: TutorialBotProps) {
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="text-slate-300">Mission Progress</span>
-                <span className="text-honor-gold font-bold">{currentStep}/{tutorialSteps.length} Complete</span>
+                <span className="text-honor-gold font-bold">{Math.min(currentStep, tutorialSteps.length)}/{tutorialSteps.length} Complete</span>
               </div>
               <Progress value={progress} className="h-2 bg-tactical-gray" />
             </div>

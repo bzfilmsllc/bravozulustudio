@@ -392,17 +392,17 @@ export default function AdminPanel() {
                     </p>
                   ) : (
                     filteredUsers.map((user: any) => (
-                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div className="flex items-center gap-4">
+                      <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2">
                             {user.militaryVerification?.verified && (
-                              <ServiceBadge serviceType={user.militaryVerification.serviceType} size="md" />
+                              <ServiceBadge serviceType={user.militaryVerification.serviceType} size="sm" />
                             )}
                             <div>
-                              <p className="font-medium">
+                              <p className="font-medium text-sm">
                                 {user.firstName} {user.lastName}
                               </p>
-                              <p className="text-sm text-muted-foreground">{user.email}</p>
+                              <p className="text-xs text-muted-foreground">{user.email}</p>
                               {user.militaryVerification?.branch && (
                                 <p className="text-xs text-blue-500">
                                   {user.militaryVerification.branch} • {user.militaryVerification.serviceType}
@@ -412,8 +412,8 @@ export default function AdminPanel() {
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-2">
-                          <Badge variant={user.militaryVerification?.verified ? "default" : "secondary"}>
+                        <div className="flex items-center gap-1 flex-wrap">
+                          <Badge variant={user.militaryVerification?.verified ? "default" : "secondary"} className="text-xs px-2 py-1">
                             {user.militaryVerification?.verified ? "Verified" : 
                              user.militaryVerification ? "Pending" : "Civilian"}
                           </Badge>
@@ -421,40 +421,40 @@ export default function AdminPanel() {
                           <Button
                             size="sm"
                             variant="outline"
+                            className="h-7 px-2 text-xs"
                             onClick={() => {
                               setSelectedUser(user);
                               setShowAwardCredits(true);
                             }}
                             data-testid={`button-award-credits-${user.id}`}
                           >
-                            <CreditCard className="w-3 h-3 mr-1" />
-                            Credits
+                            <CreditCard className="w-3 h-3" />
                           </Button>
                           
                           <Button
                             size="sm"
                             variant="outline"
+                            className="h-7 px-2 text-xs"
                             onClick={() => {
                               setSelectedUser(user);
                               setShowVerifyUser(true);
                             }}
                             data-testid={`button-verify-user-${user.id}`}
                           >
-                            <UserCheck className="w-3 h-3 mr-1" />
-                            Verify
+                            <UserCheck className="w-3 h-3" />
                           </Button>
                           
                           <Button
                             size="sm"
                             variant="outline"
+                            className="h-7 px-2 text-xs"
                             onClick={() => {
                               setSelectedUser(user);
                               setShowEditService(true);
                             }}
                             data-testid={`button-edit-service-${user.id}`}
                           >
-                            <Edit className="w-3 h-3 mr-1" />
-                            Service
+                            <Edit className="w-3 h-3" />
                           </Button>
                         </div>
                       </div>
