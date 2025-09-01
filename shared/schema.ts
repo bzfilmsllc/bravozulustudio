@@ -586,3 +586,194 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 // Export notification types
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+// DIRECTOR'S TOOLKIT TABLES
+
+// Shot Lists
+export const shotLists = pgTable("shot_lists", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Individual Shots
+export const shots = pgTable("shots", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  shotListId: varchar("shot_list_id").notNull().references(() => shotLists.id, { onDelete: 'cascade' }),
+  shotNumber: varchar("shot_number").notNull(),
+  sceneNumber: varchar("scene_number"),
+  shotType: varchar("shot_type", { enum: ['wide', 'medium', 'close_up', 'extreme_close_up', 'over_shoulder', 'two_shot', 'insert', 'cutaway', 'establishing'] }),
+  cameraMovement: varchar("camera_movement", { enum: ['static', 'pan', 'tilt', 'zoom', 'dolly', 'crane', 'handheld', 'steadicam'] }),
+  description: text("description"),
+  duration: integer("duration"), // in seconds
+  location: varchar("location"),
+  talent: text("talent"), // JSON array of cast members
+  equipment: text("equipment"), // JSON array of required equipment
+  notes: text("notes"),
+  status: varchar("status", { enum: ['not_shot', 'in_progress', 'completed', 'needs_reshoot'] }).default('not_shot').notNull(),
+  orderIndex: integer("order_index").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Production Schedule
+export const scheduleItems = pgTable("schedule_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  title: varchar("title").notNull(),
+  type: varchar("type", { enum: ['shoot', 'rehearsal', 'meeting', 'prep', 'post', 'other'] }).notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
+  location: varchar("location"),
+  description: text("description"),
+  crewRequired: text("crew_required"), // JSON array
+  equipmentRequired: text("equipment_required"), // JSON array
+  notes: text("notes"),
+  status: varchar("status", { enum: ['scheduled', 'confirmed', 'in_progress', 'completed', 'cancelled'] }).default('scheduled').notNull(),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Crew Management
+export const crewMembers = pgTable("crew_members", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  name: varchar("name").notNull(),
+  role: varchar("role").notNull(),
+  department: varchar("department", { enum: ['direction', 'camera', 'sound', 'lighting', 'art', 'wardrobe', 'makeup', 'production', 'post', 'other'] }),
+  email: varchar("email"),
+  phone: varchar("phone"),
+  emergencyContact: varchar("emergency_contact"),
+  rate: varchar("rate"),
+  availability: text("availability"), // JSON
+  notes: text("notes"),
+  status: varchar("status", { enum: ['confirmed', 'pending', 'declined', 'standby'] }).default('pending').notNull(),
+  addedBy: varchar("added_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Budget Items
+export const budgetItems = pgTable("budget_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").notNull().references(() => projects.id, { onDelete: 'cascade' }),
+  category: varchar("category", { enum: ['pre_production', 'production', 'post_production', 'distribution', 'marketing', 'other'] }).notNull(),
+  subcategory: varchar("subcategory"),
+  description: varchar("description").notNull(),
+  estimatedCost: integer("estimated_cost").default(0).notNull(), // in cents
+  actualCost: integer("actual_cost").default(0).notNull(), // in cents
+  status: varchar("status", { enum: ['planned', 'approved', 'purchased', 'paid'] }).default('planned').notNull(),
+  vendor: varchar("vendor"),
+  notes: text("notes"),
+  receiptUrl: varchar("receipt_url"),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Equipment Inventory
+export const equipment = pgTable("equipment", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }),
+  name: varchar("name").notNull(),
+  category: varchar("category", { enum: ['camera', 'lens', 'audio', 'lighting', 'grip', 'electrical', 'other'] }).notNull(),
+  brand: varchar("brand"),
+  model: varchar("model"),
+  serialNumber: varchar("serial_number"),
+  status: varchar("status", { enum: ['available', 'checked_out', 'maintenance', 'lost', 'damaged'] }).default('available').notNull(),
+  location: varchar("location"),
+  condition: varchar("condition", { enum: ['excellent', 'good', 'fair', 'poor'] }).default('good').notNull(),
+  rentalCost: integer("rental_cost").default(0).notNull(), // per day in cents
+  notes: text("notes"),
+  ownedBy: varchar("owned_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Locations
+export const locations = pgTable("locations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }),
+  name: varchar("name").notNull(),
+  address: text("address"),
+  description: text("description"),
+  type: varchar("type", { enum: ['interior', 'exterior', 'studio', 'practical', 'green_screen', 'other'] }),
+  contactName: varchar("contact_name"),
+  contactPhone: varchar("contact_phone"),
+  contactEmail: varchar("contact_email"),
+  permitRequired: boolean("permit_required").default(false).notNull(),
+  permitCost: integer("permit_cost").default(0).notNull(),
+  accessibility: text("accessibility"),
+  powerAvailable: boolean("power_available").default(true).notNull(),
+  parkingInfo: text("parking_info"),
+  restrictions: text("restrictions"),
+  photos: text("photos"), // JSON array of photo URLs
+  status: varchar("status", { enum: ['scouted', 'approved', 'confirmed', 'used', 'unavailable'] }).default('scouted').notNull(),
+  scoutedBy: varchar("scouted_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schemas for Director's Toolkit
+export const insertShotListSchema = createInsertSchema(shotLists).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertShotSchema = createInsertSchema(shots).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertScheduleItemSchema = createInsertSchema(scheduleItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertCrewMemberSchema = createInsertSchema(crewMembers).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertBudgetItemSchema = createInsertSchema(budgetItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertEquipmentSchema = createInsertSchema(equipment).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertLocationSchema = createInsertSchema(locations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Export Director's Toolkit types
+export type ShotList = typeof shotLists.$inferSelect;
+export type InsertShotList = z.infer<typeof insertShotListSchema>;
+export type Shot = typeof shots.$inferSelect;
+export type InsertShot = z.infer<typeof insertShotSchema>;
+export type ScheduleItem = typeof scheduleItems.$inferSelect;
+export type InsertScheduleItem = z.infer<typeof insertScheduleItemSchema>;
+export type CrewMember = typeof crewMembers.$inferSelect;
+export type InsertCrewMember = z.infer<typeof insertCrewMemberSchema>;
+export type BudgetItem = typeof budgetItems.$inferSelect;
+export type InsertBudgetItem = z.infer<typeof insertBudgetItemSchema>;
+export type Equipment = typeof equipment.$inferSelect;
+export type InsertEquipment = z.infer<typeof insertEquipmentSchema>;
+export type Location = typeof locations.$inferSelect;
+export type InsertLocation = z.infer<typeof insertLocationSchema>;

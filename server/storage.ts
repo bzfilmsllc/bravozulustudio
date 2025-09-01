@@ -16,6 +16,14 @@ import {
   creditTransactions,
   subscriptionPlans,
   notifications,
+  // Director's Toolkit tables
+  shotLists,
+  shots,
+  scheduleItems,
+  crewMembers,
+  budgetItems,
+  equipment,
+  locations,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -48,6 +56,21 @@ import {
   type InsertSubscriptionPlan,
   type Notification,
   type InsertNotification,
+  // Director's Toolkit types
+  type ShotList,
+  type InsertShotList,
+  type Shot,
+  type InsertShot,
+  type ScheduleItem,
+  type InsertScheduleItem,
+  type CrewMember,
+  type InsertCrewMember,
+  type BudgetItem,
+  type InsertBudgetItem,
+  type Equipment,
+  type InsertEquipment,
+  type Location,
+  type InsertLocation,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, sql } from "drizzle-orm";
@@ -1140,6 +1163,168 @@ export class DatabaseStorage implements IStorage {
       .returning();
 
     return user;
+  }
+
+  // DIRECTOR'S TOOLKIT METHODS
+
+  // Shot List Management
+  async createShotList(shotList: InsertShotList): Promise<ShotList> {
+    const [newShotList] = await db.insert(shotLists).values(shotList).returning();
+    return newShotList;
+  }
+
+  async getProjectShotLists(projectId: string): Promise<ShotList[]> {
+    return await db.select().from(shotLists).where(eq(shotLists.projectId, projectId)).orderBy(desc(shotLists.createdAt));
+  }
+
+  async getShotList(id: string): Promise<ShotList | undefined> {
+    const [shotList] = await db.select().from(shotLists).where(eq(shotLists.id, id));
+    return shotList;
+  }
+
+  async updateShotList(id: string, data: Partial<InsertShotList>): Promise<void> {
+    await db
+      .update(shotLists)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(shotLists.id, id));
+  }
+
+  async deleteShotList(id: string): Promise<void> {
+    await db.delete(shotLists).where(eq(shotLists.id, id));
+  }
+
+  // Shot Management
+  async createShot(shot: InsertShot): Promise<Shot> {
+    const [newShot] = await db.insert(shots).values(shot).returning();
+    return newShot;
+  }
+
+  async getShotListShots(shotListId: string): Promise<Shot[]> {
+    return await db.select().from(shots).where(eq(shots.shotListId, shotListId)).orderBy(asc(shots.orderIndex));
+  }
+
+  async updateShot(id: string, data: Partial<InsertShot>): Promise<void> {
+    await db
+      .update(shots)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(shots.id, id));
+  }
+
+  async deleteShot(id: string): Promise<void> {
+    await db.delete(shots).where(eq(shots.id, id));
+  }
+
+  // Schedule Management
+  async createScheduleItem(item: InsertScheduleItem): Promise<ScheduleItem> {
+    const [newItem] = await db.insert(scheduleItems).values(item).returning();
+    return newItem;
+  }
+
+  async getProjectSchedule(projectId: string): Promise<ScheduleItem[]> {
+    return await db.select().from(scheduleItems).where(eq(scheduleItems.projectId, projectId)).orderBy(asc(scheduleItems.startDate));
+  }
+
+  async updateScheduleItem(id: string, data: Partial<InsertScheduleItem>): Promise<void> {
+    await db
+      .update(scheduleItems)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(scheduleItems.id, id));
+  }
+
+  async deleteScheduleItem(id: string): Promise<void> {
+    await db.delete(scheduleItems).where(eq(scheduleItems.id, id));
+  }
+
+  // Crew Management
+  async addCrewMember(member: InsertCrewMember): Promise<CrewMember> {
+    const [newMember] = await db.insert(crewMembers).values(member).returning();
+    return newMember;
+  }
+
+  async getProjectCrew(projectId: string): Promise<CrewMember[]> {
+    return await db.select().from(crewMembers).where(eq(crewMembers.projectId, projectId)).orderBy(asc(crewMembers.department));
+  }
+
+  async updateCrewMember(id: string, data: Partial<InsertCrewMember>): Promise<void> {
+    await db
+      .update(crewMembers)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(crewMembers.id, id));
+  }
+
+  async removeCrewMember(id: string): Promise<void> {
+    await db.delete(crewMembers).where(eq(crewMembers.id, id));
+  }
+
+  // Budget Management
+  async createBudgetItem(item: InsertBudgetItem): Promise<BudgetItem> {
+    const [newItem] = await db.insert(budgetItems).values(item).returning();
+    return newItem;
+  }
+
+  async getProjectBudget(projectId: string): Promise<BudgetItem[]> {
+    return await db.select().from(budgetItems).where(eq(budgetItems.projectId, projectId)).orderBy(asc(budgetItems.category));
+  }
+
+  async updateBudgetItem(id: string, data: Partial<InsertBudgetItem>): Promise<void> {
+    await db
+      .update(budgetItems)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(budgetItems.id, id));
+  }
+
+  async deleteBudgetItem(id: string): Promise<void> {
+    await db.delete(budgetItems).where(eq(budgetItems.id, id));
+  }
+
+  // Equipment Management
+  async addEquipment(equipment: InsertEquipment): Promise<Equipment> {
+    const [newEquipment] = await db.insert(equipment).values(equipment).returning();
+    return newEquipment;
+  }
+
+  async getProjectEquipment(projectId: string): Promise<Equipment[]> {
+    return await db.select().from(equipment).where(eq(equipment.projectId, projectId)).orderBy(asc(equipment.category));
+  }
+
+  async getUserEquipment(userId: string): Promise<Equipment[]> {
+    return await db.select().from(equipment).where(eq(equipment.ownedBy, userId)).orderBy(asc(equipment.category));
+  }
+
+  async updateEquipment(id: string, data: Partial<InsertEquipment>): Promise<void> {
+    await db
+      .update(equipment)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(equipment.id, id));
+  }
+
+  async deleteEquipment(id: string): Promise<void> {
+    await db.delete(equipment).where(eq(equipment.id, id));
+  }
+
+  // Location Management
+  async addLocation(location: InsertLocation): Promise<Location> {
+    const [newLocation] = await db.insert(locations).values(location).returning();
+    return newLocation;
+  }
+
+  async getProjectLocations(projectId: string): Promise<Location[]> {
+    return await db.select().from(locations).where(eq(locations.projectId, projectId)).orderBy(asc(locations.name));
+  }
+
+  async getUserLocations(userId: string): Promise<Location[]> {
+    return await db.select().from(locations).where(eq(locations.scoutedBy, userId)).orderBy(asc(locations.name));
+  }
+
+  async updateLocation(id: string, data: Partial<InsertLocation>): Promise<void> {
+    await db
+      .update(locations)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(locations.id, id));
+  }
+
+  async deleteLocation(id: string): Promise<void> {
+    await db.delete(locations).where(eq(locations.id, id));
   }
 }
 

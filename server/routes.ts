@@ -1514,6 +1514,219 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // DIRECTOR'S TOOLKIT API ROUTES
+
+  // Shot List routes
+  app.get("/api/projects/:projectId/shot-lists", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId } = req.params;
+      const shotLists = await storage.getProjectShotLists(projectId);
+      res.json(shotLists);
+    } catch (error) {
+      console.error("Error fetching shot lists:", error);
+      res.status(500).json({ message: "Failed to fetch shot lists" });
+    }
+  });
+
+  app.post("/api/projects/:projectId/shot-lists", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId } = req.params;
+      const userId = req.user.claims.sub;
+      const shotList = await storage.createShotList({
+        ...req.body,
+        projectId,
+        createdBy: userId,
+      });
+      res.json(shotList);
+    } catch (error) {
+      console.error("Error creating shot list:", error);
+      res.status(500).json({ message: "Failed to create shot list" });
+    }
+  });
+
+  app.get("/api/shot-lists/:id/shots", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const shots = await storage.getShotListShots(id);
+      res.json(shots);
+    } catch (error) {
+      console.error("Error fetching shots:", error);
+      res.status(500).json({ message: "Failed to fetch shots" });
+    }
+  });
+
+  app.post("/api/shot-lists/:id/shots", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const shot = await storage.createShot({
+        ...req.body,
+        shotListId: id,
+      });
+      res.json(shot);
+    } catch (error) {
+      console.error("Error creating shot:", error);
+      res.status(500).json({ message: "Failed to create shot" });
+    }
+  });
+
+  // Schedule routes
+  app.get("/api/projects/:projectId/schedule", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId } = req.params;
+      const schedule = await storage.getProjectSchedule(projectId);
+      res.json(schedule);
+    } catch (error) {
+      console.error("Error fetching schedule:", error);
+      res.status(500).json({ message: "Failed to fetch schedule" });
+    }
+  });
+
+  app.post("/api/projects/:projectId/schedule", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId } = req.params;
+      const userId = req.user.claims.sub;
+      const scheduleItem = await storage.createScheduleItem({
+        ...req.body,
+        projectId,
+        createdBy: userId,
+      });
+      res.json(scheduleItem);
+    } catch (error) {
+      console.error("Error creating schedule item:", error);
+      res.status(500).json({ message: "Failed to create schedule item" });
+    }
+  });
+
+  // Crew routes
+  app.get("/api/projects/:projectId/crew", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId } = req.params;
+      const crew = await storage.getProjectCrew(projectId);
+      res.json(crew);
+    } catch (error) {
+      console.error("Error fetching crew:", error);
+      res.status(500).json({ message: "Failed to fetch crew" });
+    }
+  });
+
+  app.post("/api/projects/:projectId/crew", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId } = req.params;
+      const userId = req.user.claims.sub;
+      const crewMember = await storage.addCrewMember({
+        ...req.body,
+        projectId,
+        addedBy: userId,
+      });
+      res.json(crewMember);
+    } catch (error) {
+      console.error("Error adding crew member:", error);
+      res.status(500).json({ message: "Failed to add crew member" });
+    }
+  });
+
+  // Budget routes
+  app.get("/api/projects/:projectId/budget", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId } = req.params;
+      const budget = await storage.getProjectBudget(projectId);
+      res.json(budget);
+    } catch (error) {
+      console.error("Error fetching budget:", error);
+      res.status(500).json({ message: "Failed to fetch budget" });
+    }
+  });
+
+  app.post("/api/projects/:projectId/budget", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId } = req.params;
+      const userId = req.user.claims.sub;
+      const budgetItem = await storage.createBudgetItem({
+        ...req.body,
+        projectId,
+        createdBy: userId,
+      });
+      res.json(budgetItem);
+    } catch (error) {
+      console.error("Error creating budget item:", error);
+      res.status(500).json({ message: "Failed to create budget item" });
+    }
+  });
+
+  // Equipment routes
+  app.get("/api/projects/:projectId/equipment", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId } = req.params;
+      const equipment = await storage.getProjectEquipment(projectId);
+      res.json(equipment);
+    } catch (error) {
+      console.error("Error fetching equipment:", error);
+      res.status(500).json({ message: "Failed to fetch equipment" });
+    }
+  });
+
+  app.get("/api/equipment/my", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const equipment = await storage.getUserEquipment(userId);
+      res.json(equipment);
+    } catch (error) {
+      console.error("Error fetching user equipment:", error);
+      res.status(500).json({ message: "Failed to fetch equipment" });
+    }
+  });
+
+  app.post("/api/equipment", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const equipment = await storage.addEquipment({
+        ...req.body,
+        ownedBy: userId,
+      });
+      res.json(equipment);
+    } catch (error) {
+      console.error("Error adding equipment:", error);
+      res.status(500).json({ message: "Failed to add equipment" });
+    }
+  });
+
+  // Location routes
+  app.get("/api/projects/:projectId/locations", isAuthenticated, async (req: any, res) => {
+    try {
+      const { projectId } = req.params;
+      const locations = await storage.getProjectLocations(projectId);
+      res.json(locations);
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+      res.status(500).json({ message: "Failed to fetch locations" });
+    }
+  });
+
+  app.get("/api/locations/my", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const locations = await storage.getUserLocations(userId);
+      res.json(locations);
+    } catch (error) {
+      console.error("Error fetching user locations:", error);
+      res.status(500).json({ message: "Failed to fetch locations" });
+    }
+  });
+
+  app.post("/api/locations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const location = await storage.addLocation({
+        ...req.body,
+        scoutedBy: userId,
+      });
+      res.json(location);
+    } catch (error) {
+      console.error("Error adding location:", error);
+      res.status(500).json({ message: "Failed to add location" });
+    }
+  });
+
   const httpServer = createServer(app);
   
   // WebSocket for real-time notifications

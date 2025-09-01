@@ -41,6 +41,7 @@ export function Navigation() {
   const navigation = [
     { name: "HOME", href: "/", icon: Home, description: "Mission Control" },
     { name: "TOOLS", href: "/tools", icon: Wrench, description: "AI Script Studio" },
+    { name: "DIRECTOR", href: "/directors-toolkit", icon: Film, description: "Production Tools" },
     { name: "PORTFOLIO", href: "/portfolio", icon: Briefcase, description: "Your Projects" },
     { name: "COMMUNITY", href: "/community", icon: Users, description: "Connect & Share" },
     { name: "MEDIA", href: "/media", icon: Radio, description: "Gallery & Files" },
