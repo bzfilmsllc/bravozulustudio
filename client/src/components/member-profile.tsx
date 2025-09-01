@@ -122,6 +122,9 @@ export function MemberProfile({ memberId, isOpen, onClose }: MemberProfileProps)
     return (
       <Dialog open={isOpen} onOpenChange={() => onClose()}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Loading Member Profile</DialogTitle>
+          </DialogHeader>
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
