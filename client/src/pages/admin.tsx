@@ -396,17 +396,17 @@ export default function AdminPanel() {
                       <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-2">
-                            {user.militaryVerification?.verified && (
-                              <ServiceBadge serviceType={user.militaryVerification.serviceType} size="sm" />
+                            {user.isVerified && user.relationshipType && (
+                              <ServiceBadge serviceType={user.relationshipType} size="sm" />
                             )}
                             <div>
                               <p className="font-medium text-sm">
                                 {user.firstName} {user.lastName}
                               </p>
                               <p className="text-xs text-muted-foreground">{user.email}</p>
-                              {user.militaryVerification?.branch && (
+                              {user.militaryBranch && (
                                 <p className="text-xs text-blue-500">
-                                  {user.militaryVerification.branch} • {user.militaryVerification.serviceType}
+                                  {user.militaryBranch.replace('_', ' ').toUpperCase()} • {user.relationshipType?.toUpperCase()}
                                 </p>
                               )}
                             </div>
@@ -414,9 +414,9 @@ export default function AdminPanel() {
                         </div>
                         
                         <div className="flex items-center gap-1 flex-wrap">
-                          <Badge variant={user.militaryVerification?.verified ? "default" : "secondary"} className="text-xs px-2 py-1">
-                            {user.militaryVerification?.verified ? "Verified" : 
-                             user.militaryVerification ? "Pending" : "Civilian"}
+                          <Badge variant={user.isVerified ? "default" : "secondary"} className="text-xs px-2 py-1">
+                            {user.isVerified ? "Verified" : 
+                             user.militaryBranch || user.relationshipType ? "Pending" : "Civilian"}
                           </Badge>
                           
                           <Button
