@@ -104,21 +104,25 @@ export function AIScriptGenerator() {
       // Check for low balance after usage
       setTimeout(() => checkLowBalance(25), 500);
     },
-    onError: async (error: any) => {
-      const errorData = await error.response?.json();
-      if (error.response?.status === 402) {
-        // Credit management hook will handle this
-        return;
-      } else if (error.response?.status === 401) {
+    onError: (error: any) => {
+      console.log('Script generation error:', error);
+      if (error.message?.includes('401')) {
         toast({
           title: "Authentication Required",
           description: "Please log in again to continue using AI features",
           variant: "destructive",
         });
+        // Redirect to login after a delay
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 2000);
+      } else if (error.message?.includes('402')) {
+        // Credit management hook will handle this
+        return;
       } else {
         toast({
           title: "Generation Failed",
-          description: errorData?.message || "Failed to generate script. Please check your connection and try again.",
+          description: error.message || "Failed to generate script. Please check your connection and try again.",
           variant: "destructive",
         });
       }
