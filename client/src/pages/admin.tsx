@@ -41,6 +41,219 @@ import {
   Edit,
 } from "lucide-react";
 
+// Error Reports Tab Component
+const ErrorReportsTab = () => {
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedReport, setSelectedReport] = useState<any>(null);
+  const [showReportDialog, setShowReportDialog] = useState(false);
+
+  const { data: errorReports, isLoading: reportsLoading } = useQuery({
+    queryKey: ["/api/admin/error-reports", statusFilter],
+    queryFn: () => apiRequest("GET", `/api/admin/error-reports?status=${statusFilter !== 'all' ? statusFilter : ''}`),
+  });
+
+  const updateReportStatus = useMutation({
+    mutationFn: async ({ id, status, adminNotes }: { id: string; status: string; adminNotes?: string }) => {
+      await apiRequest("PUT", `/api/admin/error-reports/${id}`, { status, adminNotes });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/error-reports"] });
+      setShowReportDialog(false);
+    },
+  });
+
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical': return 'bg-red-500';
+      case 'high': return 'bg-orange-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'low': return 'bg-blue-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'new': return 'bg-red-500';
+      case 'investigating': return 'bg-yellow-500';
+      case 'resolved': return 'bg-green-500';
+      case 'ignored': return 'bg-gray-500';
+      default: return 'bg-gray-500';
+    }
+  };
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5" />
+            Error Reports Management
+          </CardTitle>
+          <CardDescription>
+            View and manage error reports submitted by users
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 mb-6">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Reports</SelectItem>
+                <SelectItem value="new">New</SelectItem>
+                <SelectItem value="investigating">Investigating</SelectItem>
+                <SelectItem value="resolved">Resolved</SelectItem>
+                <SelectItem value="ignored">Ignored</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {reportsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <RefreshCw className="w-6 h-6 animate-spin" />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {(errorReports as any[])?.map((report: any) => (
+                <Card key={report.id} className="cursor-pointer hover:bg-slate-800/50 transition-colors"
+                      onClick={() => { setSelectedReport(report); setShowReportDialog(true); }}>
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2 flex-1">
+                        <div className="flex items-center gap-2">
+                          <Badge className={`text-xs ${getSeverityColor(report.severity)}`}>
+                            {report.severity?.toUpperCase()}
+                          </Badge>
+                          <Badge className={`text-xs ${getStatusColor(report.status)}`}>
+                            {report.status?.toUpperCase()}
+                          </Badge>
+                          <span className="text-xs text-slate-400">
+                            {report.errorType?.toUpperCase()}
+                          </span>
+                        </div>
+                        <h4 className="font-medium text-slate-200 line-clamp-1">
+                          {report.message}
+                        </h4>
+                        <div className="flex items-center gap-4 text-xs text-slate-400">
+                          <span>{new Date(report.createdAt).toLocaleDateString()}</span>
+                          {report.url && <span className="truncate max-w-xs">{report.url}</span>}
+                          {report.userReported && <Badge variant="outline" className="text-xs">User Reported</Badge>}
+                        </div>
+                      </div>
+                      <Eye className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              
+              {(!errorReports || (errorReports as any[]).length === 0) && (
+                <div className="text-center py-8 text-slate-400">
+                  No error reports found
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Error Report Detail Dialog */}
+      <Dialog open={showReportDialog} onOpenChange={setShowReportDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Error Report Details
+            </DialogTitle>
+            <DialogDescription>
+              Review and manage this error report
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedReport && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs text-slate-400">SEVERITY</Label>
+                  <Badge className={`${getSeverityColor(selectedReport.severity)} mt-1`}>
+                    {selectedReport.severity?.toUpperCase()}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400">STATUS</Label>
+                  <Badge className={`${getStatusColor(selectedReport.status)} mt-1`}>
+                    {selectedReport.status?.toUpperCase()}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400">TYPE</Label>
+                  <p className="text-sm">{selectedReport.errorType}</p>
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-400">REPORTED</Label>
+                  <p className="text-sm">{new Date(selectedReport.createdAt).toLocaleString()}</p>
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs text-slate-400">ERROR MESSAGE</Label>
+                <p className="text-sm bg-slate-800 p-3 rounded font-mono">{selectedReport.message}</p>
+              </div>
+
+              {selectedReport.url && (
+                <div>
+                  <Label className="text-xs text-slate-400">PAGE URL</Label>
+                  <p className="text-sm bg-slate-800 p-3 rounded break-all">{selectedReport.url}</p>
+                </div>
+              )}
+
+              {selectedReport.stack && (
+                <div>
+                  <Label className="text-xs text-slate-400">STACK TRACE</Label>
+                  <pre className="text-xs bg-slate-800 p-3 rounded overflow-x-auto whitespace-pre-wrap max-h-32 overflow-y-auto">
+                    {selectedReport.stack}
+                  </pre>
+                </div>
+              )}
+
+              {selectedReport.additionalData && (
+                <div>
+                  <Label className="text-xs text-slate-400">ADDITIONAL DATA</Label>
+                  <pre className="text-xs bg-slate-800 p-3 rounded overflow-x-auto max-h-32 overflow-y-auto">
+                    {JSON.stringify(selectedReport.additionalData, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-4">
+                <Select 
+                  value={selectedReport.status} 
+                  onValueChange={(status) => updateReportStatus.mutate({ id: selectedReport.id, status })}
+                >
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="investigating">Investigating</SelectItem>
+                    <SelectItem value="resolved">Resolved</SelectItem>
+                    <SelectItem value="ignored">Ignored</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Button variant="outline" onClick={() => setShowReportDialog(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 // Gift Code Generator Component
 const GiftCodeGenerator = () => {
   const { toast } = useToast();
@@ -636,7 +849,7 @@ export default function AdminPanel() {
 
         {/* Main Admin Interface */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 bg-tactical-black/20 h-auto">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 bg-tactical-black/20 h-auto">
             <TabsTrigger value="users" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
               <span className="hidden sm:inline">User Management</span>
               <span className="sm:hidden">Users</span>
@@ -656,6 +869,10 @@ export default function AdminPanel() {
             <TabsTrigger value="settings" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
               <span className="hidden sm:inline">System Settings</span>
               <span className="sm:hidden">Settings</span>
+            </TabsTrigger>
+            <TabsTrigger value="errors" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
+              <span className="hidden sm:inline">Bug Reports</span>
+              <span className="sm:hidden">Bugs</span>
             </TabsTrigger>
           </TabsList>
 
@@ -1049,6 +1266,11 @@ export default function AdminPanel() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Error Reports Tab */}
+          <TabsContent value="errors" className="space-y-6">
+            <ErrorReportsTab />
           </TabsContent>
         </Tabs>
 

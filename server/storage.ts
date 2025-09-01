@@ -33,6 +33,9 @@ import {
   budgetItems,
   equipment,
   locations,
+  // Error reporting tables
+  errorReports,
+  userErrorPreferences,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -128,6 +131,11 @@ import {
   type InsertExportTemplate,
   type MonthlyVeteranCredits,
   type InsertMonthlyVeteranCredits,
+  // Error reporting types
+  type ErrorReport,
+  type InsertErrorReport,
+  type UserErrorPreferences,
+  type InsertUserErrorPreferences,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, sql, isNotNull } from "drizzle-orm";
@@ -275,6 +283,15 @@ export interface IStorage {
   redeemGiftCode(code: string, userId: string): Promise<{ success: boolean; message: string; creditsReceived?: number }>;
   updateGiftCode(id: string, updates: Partial<InsertGiftCode>): Promise<GiftCode | undefined>;
   deactivateGiftCode(id: string): Promise<GiftCode | undefined>;
+
+  // Error reporting operations
+  createErrorReport(errorReport: InsertErrorReport): Promise<ErrorReport>;
+  getErrorReports(userId?: string, status?: string): Promise<ErrorReport[]>;
+  getErrorReport(id: string): Promise<ErrorReport | undefined>;
+  updateErrorReportStatus(id: string, status: string, adminNotes?: string): Promise<ErrorReport | undefined>;
+  getUserErrorPreferences(userId: string): Promise<UserErrorPreferences | undefined>;
+  createUserErrorPreferences(preferences: InsertUserErrorPreferences): Promise<UserErrorPreferences>;
+  updateUserErrorPreferences(userId: string, preferences: Partial<InsertUserErrorPreferences>): Promise<UserErrorPreferences | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2564,6 +2581,80 @@ export class DatabaseStorage implements IStorage {
       totalSpent: userSpendingRecord.totalCreditsSpent,
       recentAchievements,
     };
+  }
+
+  // Error reporting operations
+  async createErrorReport(errorData: InsertErrorReport): Promise<ErrorReport> {
+    const [report] = await db
+      .insert(errorReports)
+      .values(errorData)
+      .returning();
+    return report;
+  }
+
+  async getErrorReports(userId?: string, status?: string): Promise<ErrorReport[]> {
+    let query = db.select().from(errorReports);
+
+    if (userId) {
+      query = query.where(eq(errorReports.userId, userId));
+    }
+
+    if (status) {
+      query = query.where(eq(errorReports.status, status as any));
+    }
+
+    return query.orderBy(desc(errorReports.createdAt));
+  }
+
+  async getErrorReport(id: string): Promise<ErrorReport | undefined> {
+    const [report] = await db
+      .select()
+      .from(errorReports)
+      .where(eq(errorReports.id, id));
+    return report;
+  }
+
+  async updateErrorReportStatus(id: string, status: string, adminNotes?: string): Promise<ErrorReport | undefined> {
+    const updateData: any = { 
+      status, 
+      updatedAt: new Date() 
+    };
+    
+    if (adminNotes) {
+      updateData.adminNotes = adminNotes;
+    }
+
+    const [report] = await db
+      .update(errorReports)
+      .set(updateData)
+      .where(eq(errorReports.id, id))
+      .returning();
+    return report;
+  }
+
+  async getUserErrorPreferences(userId: string): Promise<UserErrorPreferences | undefined> {
+    const [preferences] = await db
+      .select()
+      .from(userErrorPreferences)
+      .where(eq(userErrorPreferences.userId, userId));
+    return preferences;
+  }
+
+  async createUserErrorPreferences(preferences: InsertUserErrorPreferences): Promise<UserErrorPreferences> {
+    const [created] = await db
+      .insert(userErrorPreferences)
+      .values(preferences)
+      .returning();
+    return created;
+  }
+
+  async updateUserErrorPreferences(userId: string, updates: Partial<InsertUserErrorPreferences>): Promise<UserErrorPreferences | undefined> {
+    const [updated] = await db
+      .update(userErrorPreferences)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userErrorPreferences.userId, userId))
+      .returning();
+    return updated;
   }
 }
 

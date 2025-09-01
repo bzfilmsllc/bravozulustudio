@@ -1296,3 +1296,82 @@ export type SpendingTier = typeof spendingTiers.$inferSelect;
 export type InsertSpendingTier = z.infer<typeof insertSpendingTierSchema>;
 export type UserSpending = typeof userSpending.$inferSelect;
 export type InsertUserSpending = z.infer<typeof insertUserSpendingSchema>;
+
+// ERROR REPORTING SYSTEM
+
+// Error reports table
+export const errorReports = pgTable("error_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: 'set null' }), // Optional, can be null for anonymous reports
+  errorType: varchar("error_type", { 
+    enum: ['javascript', 'api', 'network', 'database', 'authentication', 'validation', 'other'] 
+  }).notNull(),
+  severity: varchar("severity", { 
+    enum: ['low', 'medium', 'high', 'critical'] 
+  }).default('medium').notNull(),
+  message: text("message").notNull(), // Error message
+  stack: text("stack"), // Stack trace if available
+  url: varchar("url"), // URL where error occurred
+  userAgent: text("user_agent"), // Browser/device info
+  timestamp: timestamp("timestamp").defaultNow(),
+  sessionId: varchar("session_id"), // Anonymous session tracking
+  additionalData: jsonb("additional_data"), // Any extra context
+  status: varchar("status", { 
+    enum: ['new', 'investigating', 'resolved', 'ignored'] 
+  }).default('new').notNull(),
+  adminNotes: text("admin_notes"), // Internal notes from admins
+  userReported: boolean("user_reported").default(false).notNull(), // Was this manually reported by user?
+  reproduced: boolean("reproduced").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// User error preferences - controls how errors are reported for each user
+export const userErrorPreferences = pgTable("user_error_preferences", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  automaticReporting: boolean("automatic_reporting").default(true).notNull(), // Auto-send errors
+  includeUserData: boolean("include_user_data").default(false).notNull(), // Include user info in reports
+  includeUrl: boolean("include_url").default(true).notNull(), // Include page URL
+  includeBrowserInfo: boolean("include_browser_info").default(true).notNull(), // Include browser/device info
+  notifyOnResolution: boolean("notify_on_resolution").default(false).notNull(), // Notify when issues are fixed
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Error report relations
+export const errorReportsRelations = relations(errorReports, ({ one }) => ({
+  user: one(users, {
+    fields: [errorReports.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userErrorPreferencesRelations = relations(userErrorPreferences, ({ one }) => ({
+  user: one(users, {
+    fields: [userErrorPreferences.userId],
+    references: [users.id],
+  }),
+}));
+
+// Error reporting insert schemas
+export const insertErrorReportSchema = createInsertSchema(errorReports).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  status: true,
+  adminNotes: true,
+  reproduced: true,
+});
+
+export const insertUserErrorPreferencesSchema = createInsertSchema(userErrorPreferences).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Export error reporting types
+export type ErrorReport = typeof errorReports.$inferSelect;
+export type InsertErrorReport = z.infer<typeof insertErrorReportSchema>;
+export type UserErrorPreferences = typeof userErrorPreferences.$inferSelect;
+export type InsertUserErrorPreferences = z.infer<typeof insertUserErrorPreferencesSchema>;

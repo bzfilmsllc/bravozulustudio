@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
-import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema, insertDesignAssetSchema, insertGiftCodeSchema } from "@shared/schema";
+import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema, insertDesignAssetSchema, insertGiftCodeSchema, insertErrorReportSchema, insertUserErrorPreferencesSchema } from "@shared/schema";
 import OpenAI from "openai";
 import Stripe from "stripe";
 
@@ -2642,6 +2642,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching user tier:", error);
       res.status(500).json({ message: "Failed to fetch user tier" });
+    }
+  });
+
+  // ERROR REPORTING ROUTES
+
+  // Submit error report
+  app.post("/api/error-reports", async (req, res) => {
+    try {
+      // Get user ID if authenticated (optional for error reports)
+      const userId = req.isAuthenticated() ? (req.user as any).claims.sub : null;
+      
+      const validatedData = insertErrorReportSchema.parse({
+        ...req.body,
+        userId,
+        timestamp: new Date(),
+      });
+
+      const errorReport = await storage.createErrorReport(validatedData);
+      res.json(errorReport);
+    } catch (error) {
+      console.error("Error creating error report:", error);
+      res.status(500).json({ message: "Failed to create error report" });
+    }
+  });
+
+  // Get error reports (authenticated users only)
+  app.get("/api/error-reports", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const { status } = req.query;
+      
+      const errorReports = await storage.getErrorReports(userId, status as string);
+      res.json(errorReports);
+    } catch (error) {
+      console.error("Error fetching error reports:", error);
+      res.status(500).json({ message: "Failed to fetch error reports" });
+    }
+  });
+
+  // Get single error report
+  app.get("/api/error-reports/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const errorReport = await storage.getErrorReport(id);
+      
+      if (!errorReport) {
+        return res.status(404).json({ message: "Error report not found" });
+      }
+      
+      res.json(errorReport);
+    } catch (error) {
+      console.error("Error fetching error report:", error);
+      res.status(500).json({ message: "Failed to fetch error report" });
+    }
+  });
+
+  // Get user error preferences
+  app.get("/api/error-preferences", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const preferences = await storage.getUserErrorPreferences(userId);
+      
+      // If no preferences exist, return default settings
+      if (!preferences) {
+        const defaultPreferences = {
+          automaticReporting: true,
+          includeUserData: false,
+          includeUrl: true,
+          includeBrowserInfo: true,
+          notifyOnResolution: false,
+        };
+        return res.json(defaultPreferences);
+      }
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error fetching error preferences:", error);
+      res.status(500).json({ message: "Failed to fetch error preferences" });
+    }
+  });
+
+  // Create/update user error preferences
+  app.post("/api/error-preferences", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      
+      const validatedData = insertUserErrorPreferencesSchema.parse({
+        ...req.body,
+        userId,
+      });
+
+      // Check if preferences already exist
+      const existing = await storage.getUserErrorPreferences(userId);
+      
+      let preferences;
+      if (existing) {
+        preferences = await storage.updateUserErrorPreferences(userId, validatedData);
+      } else {
+        preferences = await storage.createUserErrorPreferences(validatedData);
+      }
+      
+      res.json(preferences);
+    } catch (error) {
+      console.error("Error saving error preferences:", error);
+      res.status(500).json({ message: "Failed to save error preferences" });
+    }
+  });
+
+  // Admin route to get all error reports (super users only)
+  app.get("/api/admin/error-reports", isAuthenticated, async (req: any, res) => {
+    try {
+      const userEmail = (req.user as any).claims.email;
+      
+      if (!isSuperUser(userEmail)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { status } = req.query;
+      const errorReports = await storage.getErrorReports(undefined, status as string);
+      res.json(errorReports);
+    } catch (error) {
+      console.error("Error fetching admin error reports:", error);
+      res.status(500).json({ message: "Failed to fetch error reports" });
+    }
+  });
+
+  // Admin route to update error report status
+  app.put("/api/admin/error-reports/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userEmail = (req.user as any).claims.email;
+      
+      if (!isSuperUser(userEmail)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { id } = req.params;
+      const { status, adminNotes } = req.body;
+      
+      const updatedReport = await storage.updateErrorReportStatus(id, status, adminNotes);
+      
+      if (!updatedReport) {
+        return res.status(404).json({ message: "Error report not found" });
+      }
+      
+      res.json(updatedReport);
+    } catch (error) {
+      console.error("Error updating error report:", error);
+      res.status(500).json({ message: "Failed to update error report" });
     }
   });
 

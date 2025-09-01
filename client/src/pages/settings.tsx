@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { ObjectUploader } from "@/components/ObjectUploader";
+import { ErrorConsentModal } from "@/components/error-consent-modal";
 import type { UploadResult } from "@uppy/core";
 import {
   User,
@@ -485,6 +486,16 @@ export default function Settings() {
                 <Button variant="outline" size="sm" disabled data-testid="button-setup-2fa">
                   Coming Soon
                 </Button>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <div>
+                  <h4 className="font-medium">Error Reporting</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Configure automatic error reporting and privacy settings
+                  </p>
+                </div>
+                <ErrorConsentModal />
               </div>
             </div>
           </CardContent>
