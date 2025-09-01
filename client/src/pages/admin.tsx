@@ -849,7 +849,7 @@ export default function AdminPanel() {
 
         {/* Main Admin Interface */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-6 bg-tactical-black/20 h-auto">
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-7 bg-tactical-black/20 h-auto">
             <TabsTrigger value="users" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
               <span className="hidden sm:inline">User Management</span>
               <span className="sm:hidden">Users</span>
@@ -857,6 +857,10 @@ export default function AdminPanel() {
             <TabsTrigger value="verification" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
               <span className="hidden sm:inline">Service Verification</span>
               <span className="sm:hidden">Verify</span>
+            </TabsTrigger>
+            <TabsTrigger value="moderation" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
+              <span className="hidden sm:inline">Forum Moderation</span>
+              <span className="sm:hidden">Moderate</span>
             </TabsTrigger>
             <TabsTrigger value="credits" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
               <span className="hidden sm:inline">Credit System</span>
@@ -1181,6 +1185,125 @@ export default function AdminPanel() {
                       </div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Forum Moderation Tab */}
+          <TabsContent value="moderation" className="space-y-6">
+            <h2 className="font-command text-2xl font-bold">Forum Moderation</h2>
+            
+            {/* Moderator Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="w-5 h-5 text-blue-500" />
+                  Moderator Management
+                </CardTitle>
+                <CardDescription>
+                  Assign and manage community moderators
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Button data-testid="button-add-moderator" className="bg-red-600 hover:bg-red-700">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add New Moderator
+                  </Button>
+                  
+                  <div data-testid="list-moderators" className="space-y-2">
+                    <p className="text-sm text-muted-foreground">No moderators assigned yet.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Content Reports */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-yellow-500" />
+                  Content Reports
+                </CardTitle>
+                <CardDescription>
+                  Review user-reported content and moderation actions
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex gap-4">
+                    <Select defaultValue="all">
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Filter by status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Reports</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="under_review">Under Review</SelectItem>
+                        <SelectItem value="resolved">Resolved</SelectItem>
+                        <SelectItem value="dismissed">Dismissed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div data-testid="list-content-reports" className="space-y-2">
+                    <p className="text-sm text-muted-foreground">No content reports to review.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Auto-Moderation Rules */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-purple-500" />
+                  Auto-Moderation Rules
+                </CardTitle>
+                <CardDescription>
+                  Configure automated content filtering and moderation
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <Button data-testid="button-add-rule" variant="outline">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add New Rule
+                  </Button>
+                  
+                  <div data-testid="list-moderation-rules" className="space-y-2">
+                    <p className="text-sm text-muted-foreground">No auto-moderation rules configured.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Moderation Statistics */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-green-500" />
+                  Moderation Statistics
+                </CardTitle>
+                <CardDescription>
+                  Overview of forum moderation activity
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-blue-500">0</div>
+                    <div className="text-sm text-muted-foreground">Active Moderators</div>
+                  </div>
+                  <div className="text-center p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-500">0</div>
+                    <div className="text-sm text-muted-foreground">Pending Reports</div>
+                  </div>
+                  <div className="text-center p-4 border rounded-lg">
+                    <div className="text-2xl font-bold text-green-500">0</div>
+                    <div className="text-sm text-muted-foreground">Actions Taken</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>

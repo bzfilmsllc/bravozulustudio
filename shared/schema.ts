@@ -1375,3 +1375,196 @@ export type ErrorReport = typeof errorReports.$inferSelect;
 export type InsertErrorReport = z.infer<typeof insertErrorReportSchema>;
 export type UserErrorPreferences = typeof userErrorPreferences.$inferSelect;
 export type InsertUserErrorPreferences = z.infer<typeof insertUserErrorPreferencesSchema>;
+
+// FORUM MODERATION SYSTEM
+
+// Moderators table - tracks users with moderation privileges
+export const moderators = pgTable("moderators", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  assignedBy: varchar("assigned_by").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  permissions: jsonb("permissions").notNull(), // Array of permissions like ['moderate_posts', 'moderate_comments', 'ban_users']
+  isActive: boolean("is_active").default(true).notNull(),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  deactivatedAt: timestamp("deactivated_at"),
+  notes: text("notes"), // Admin notes about the moderator
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Forum moderation actions - tracks all moderation activities
+export const moderationActions = pgTable("moderation_actions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  moderatorId: varchar("moderator_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  actionType: varchar("action_type", { 
+    enum: ['approve', 'remove', 'hide', 'flag', 'warn_user', 'ban_user', 'edit_content', 'pin_post', 'lock_post'] 
+  }).notNull(),
+  targetType: varchar("target_type", { 
+    enum: ['post', 'reply', 'user', 'category'] 
+  }).notNull(),
+  targetId: varchar("target_id").notNull(), // ID of the post, reply, user, etc.
+  reason: text("reason"), // Reason for the action
+  details: jsonb("details"), // Additional details about the action
+  isReversed: boolean("is_reversed").default(false).notNull(), // If the action was later undone
+  reversedBy: varchar("reversed_by").references(() => users.id, { onDelete: 'set null' }),
+  reversedAt: timestamp("reversed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Content reports - users can report inappropriate content
+export const contentReports = pgTable("content_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  reporterId: varchar("reporter_id").references(() => users.id, { onDelete: 'set null' }), // Can be null for anonymous reports
+  contentType: varchar("content_type", { 
+    enum: ['post', 'reply', 'user_profile', 'message'] 
+  }).notNull(),
+  contentId: varchar("content_id").notNull(), // ID of the reported content
+  reportType: varchar("report_type", { 
+    enum: ['spam', 'harassment', 'inappropriate', 'violence', 'hate_speech', 'misinformation', 'copyright', 'other'] 
+  }).notNull(),
+  description: text("description"), // Optional details from reporter
+  status: varchar("status", { 
+    enum: ['pending', 'under_review', 'resolved', 'dismissed'] 
+  }).default('pending').notNull(),
+  assignedTo: varchar("assigned_to").references(() => users.id, { onDelete: 'set null' }), // Moderator assigned to review
+  resolution: text("resolution"), // Resolution notes
+  resolvedAt: timestamp("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Auto-moderation rules - automated content filtering
+export const autoModerationRules = pgTable("auto_moderation_rules", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ruleName: varchar("rule_name").notNull(),
+  ruleType: varchar("rule_type", { 
+    enum: ['keyword_filter', 'spam_detection', 'link_validation', 'length_limit', 'profanity_filter'] 
+  }).notNull(),
+  contentTypes: jsonb("content_types").notNull(), // Array like ['posts', 'replies', 'messages']
+  configuration: jsonb("configuration").notNull(), // Rule-specific config (keywords, limits, etc.)
+  action: varchar("action", { 
+    enum: ['flag', 'auto_remove', 'require_approval', 'warn_user'] 
+  }).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  severity: varchar("severity", { 
+    enum: ['low', 'medium', 'high', 'critical'] 
+  }).default('medium').notNull(),
+  createdBy: varchar("created_by").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Update forum posts to include moderation status
+export const postModerationStatus = pgTable("post_moderation_status", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  postId: varchar("post_id").notNull().references(() => forumPosts.id, { onDelete: 'cascade' }).unique(),
+  status: varchar("status", { 
+    enum: ['approved', 'pending', 'flagged', 'removed', 'hidden'] 
+  }).default('approved').notNull(),
+  flaggedAt: timestamp("flagged_at"),
+  flaggedBy: varchar("flagged_by").references(() => users.id, { onDelete: 'set null' }),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: varchar("reviewed_by").references(() => users.id, { onDelete: 'set null' }),
+  moderationNotes: text("moderation_notes"),
+  autoFlagged: boolean("auto_flagged").default(false).notNull(), // If flagged by auto-moderation
+  reportCount: integer("report_count").default(0).notNull(), // Number of user reports
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Moderation relations
+export const moderatorsRelations = relations(moderators, ({ one }) => ({
+  user: one(users, {
+    fields: [moderators.userId],
+    references: [users.id],
+  }),
+  assignedByUser: one(users, {
+    fields: [moderators.assignedBy],
+    references: [users.id],
+  }),
+}));
+
+export const moderationActionsRelations = relations(moderationActions, ({ one }) => ({
+  moderator: one(users, {
+    fields: [moderationActions.moderatorId],
+    references: [users.id],
+  }),
+  reversedByUser: one(users, {
+    fields: [moderationActions.reversedBy],
+    references: [users.id],
+  }),
+}));
+
+export const contentReportsRelations = relations(contentReports, ({ one }) => ({
+  reporter: one(users, {
+    fields: [contentReports.reporterId],
+    references: [users.id],
+  }),
+  assignedModerator: one(users, {
+    fields: [contentReports.assignedTo],
+    references: [users.id],
+  }),
+}));
+
+export const autoModerationRulesRelations = relations(autoModerationRules, ({ one }) => ({
+  creator: one(users, {
+    fields: [autoModerationRules.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const postModerationStatusRelations = relations(postModerationStatus, ({ one }) => ({
+  post: one(forumPosts, {
+    fields: [postModerationStatus.postId],
+    references: [forumPosts.id],
+  }),
+  flaggedByUser: one(users, {
+    fields: [postModerationStatus.flaggedBy],
+    references: [users.id],
+  }),
+  reviewedByUser: one(users, {
+    fields: [postModerationStatus.reviewedBy],
+    references: [users.id],
+  }),
+}));
+
+// Moderation insert schemas
+export const insertModeratorSchema = createInsertSchema(moderators).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  assignedAt: true,
+});
+
+export const insertModerationActionSchema = createInsertSchema(moderationActions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertContentReportSchema = createInsertSchema(contentReports).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAutoModerationRuleSchema = createInsertSchema(autoModerationRules).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPostModerationStatusSchema = createInsertSchema(postModerationStatus).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Export moderation types
+export type Moderator = typeof moderators.$inferSelect;
+export type InsertModerator = z.infer<typeof insertModeratorSchema>;
+export type ModerationAction = typeof moderationActions.$inferSelect;
+export type InsertModerationAction = z.infer<typeof insertModerationActionSchema>;
+export type ContentReport = typeof contentReports.$inferSelect;
+export type InsertContentReport = z.infer<typeof insertContentReportSchema>;
+export type AutoModerationRule = typeof autoModerationRules.$inferSelect;
+export type InsertAutoModerationRule = z.infer<typeof insertAutoModerationRuleSchema>;
+export type PostModerationStatus = typeof postModerationStatus.$inferSelect;
+export type InsertPostModerationStatus = z.infer<typeof insertPostModerationStatusSchema>;

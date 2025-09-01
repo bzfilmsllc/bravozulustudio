@@ -36,6 +36,12 @@ import {
   // Error reporting tables
   errorReports,
   userErrorPreferences,
+  // Moderation tables
+  moderators,
+  moderationActions,
+  contentReports,
+  autoModerationRules,
+  postModerationStatus,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -136,6 +142,17 @@ import {
   type InsertErrorReport,
   type UserErrorPreferences,
   type InsertUserErrorPreferences,
+  // Moderation types
+  type Moderator,
+  type InsertModerator,
+  type ModerationAction,
+  type InsertModerationAction,
+  type ContentReport,
+  type InsertContentReport,
+  type AutoModerationRule,
+  type InsertAutoModerationRule,
+  type PostModerationStatus,
+  type InsertPostModerationStatus,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, sql, isNotNull } from "drizzle-orm";
@@ -292,6 +309,31 @@ export interface IStorage {
   getUserErrorPreferences(userId: string): Promise<UserErrorPreferences | undefined>;
   createUserErrorPreferences(preferences: InsertUserErrorPreferences): Promise<UserErrorPreferences>;
   updateUserErrorPreferences(userId: string, preferences: Partial<InsertUserErrorPreferences>): Promise<UserErrorPreferences | undefined>;
+
+  // Moderation operations
+  createModerator(moderator: InsertModerator): Promise<Moderator>;
+  getModerators(activeOnly?: boolean): Promise<(Moderator & { user: User; assignedByUser: User })[]>;
+  getModerator(userId: string): Promise<Moderator | undefined>;
+  updateModeratorStatus(userId: string, isActive: boolean, deactivatedBy?: string): Promise<Moderator | undefined>;
+  updateModeratorPermissions(userId: string, permissions: string[]): Promise<Moderator | undefined>;
+  
+  createModerationAction(action: InsertModerationAction): Promise<ModerationAction>;
+  getModerationActions(targetType?: string, targetId?: string): Promise<(ModerationAction & { moderator: User })[]>;
+  
+  createContentReport(report: InsertContentReport): Promise<ContentReport>;
+  getContentReports(status?: string, assignedTo?: string): Promise<(ContentReport & { reporter?: User; assignedModerator?: User })[]>;
+  updateContentReportStatus(reportId: string, status: string, assignedTo?: string, resolution?: string): Promise<ContentReport | undefined>;
+  
+  createAutoModerationRule(rule: InsertAutoModerationRule): Promise<AutoModerationRule>;
+  getAutoModerationRules(isActive?: boolean): Promise<(AutoModerationRule & { creator: User })[]>;
+  updateAutoModerationRuleStatus(ruleId: string, isActive: boolean): Promise<AutoModerationRule | undefined>;
+  
+  createPostModerationStatus(status: InsertPostModerationStatus): Promise<PostModerationStatus>;
+  getPostModerationStatus(postId: string): Promise<PostModerationStatus | undefined>;
+  updatePostModerationStatus(postId: string, status: string, moderatorId?: string, notes?: string): Promise<PostModerationStatus | undefined>;
+  
+  isUserModerator(userId: string): Promise<boolean>;
+  getUserModeratorPermissions(userId: string): Promise<string[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -2655,6 +2697,300 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userErrorPreferences.userId, userId))
       .returning();
     return updated;
+  }
+
+  // Moderation operations
+  async createModerator(moderatorData: InsertModerator): Promise<Moderator> {
+    const [moderator] = await db
+      .insert(moderators)
+      .values(moderatorData)
+      .returning();
+    return moderator;
+  }
+
+  async getModerators(activeOnly?: boolean): Promise<(Moderator & { user: User; assignedByUser: User })[]> {
+    let query = db
+      .select({
+        id: moderators.id,
+        userId: moderators.userId,
+        assignedBy: moderators.assignedBy,
+        permissions: moderators.permissions,
+        isActive: moderators.isActive,
+        assignedAt: moderators.assignedAt,
+        deactivatedAt: moderators.deactivatedAt,
+        notes: moderators.notes,
+        createdAt: moderators.createdAt,
+        updatedAt: moderators.updatedAt,
+        user: users,
+        assignedByUser: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+        },
+      })
+      .from(moderators)
+      .innerJoin(users, eq(moderators.userId, users.id))
+      .leftJoin(users, eq(moderators.assignedBy, users.id));
+
+    if (activeOnly) {
+      query = query.where(eq(moderators.isActive, true));
+    }
+
+    return query.orderBy(desc(moderators.assignedAt));
+  }
+
+  async getModerator(userId: string): Promise<Moderator | undefined> {
+    const [moderator] = await db
+      .select()
+      .from(moderators)
+      .where(eq(moderators.userId, userId));
+    return moderator;
+  }
+
+  async updateModeratorStatus(userId: string, isActive: boolean, deactivatedBy?: string): Promise<Moderator | undefined> {
+    const updateData: any = { 
+      isActive, 
+      updatedAt: new Date() 
+    };
+    
+    if (!isActive && deactivatedBy) {
+      updateData.deactivatedAt = new Date();
+    }
+
+    const [updated] = await db
+      .update(moderators)
+      .set(updateData)
+      .where(eq(moderators.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  async updateModeratorPermissions(userId: string, permissions: string[]): Promise<Moderator | undefined> {
+    const [updated] = await db
+      .update(moderators)
+      .set({ permissions, updatedAt: new Date() })
+      .where(eq(moderators.userId, userId))
+      .returning();
+    return updated;
+  }
+
+  async createModerationAction(actionData: InsertModerationAction): Promise<ModerationAction> {
+    const [action] = await db
+      .insert(moderationActions)
+      .values(actionData)
+      .returning();
+    return action;
+  }
+
+  async getModerationActions(targetType?: string, targetId?: string): Promise<(ModerationAction & { moderator: User })[]> {
+    let query = db
+      .select({
+        id: moderationActions.id,
+        moderatorId: moderationActions.moderatorId,
+        actionType: moderationActions.actionType,
+        targetType: moderationActions.targetType,
+        targetId: moderationActions.targetId,
+        reason: moderationActions.reason,
+        details: moderationActions.details,
+        isReversed: moderationActions.isReversed,
+        reversedBy: moderationActions.reversedBy,
+        reversedAt: moderationActions.reversedAt,
+        createdAt: moderationActions.createdAt,
+        moderator: users,
+      })
+      .from(moderationActions)
+      .innerJoin(users, eq(moderationActions.moderatorId, users.id));
+
+    if (targetType) {
+      query = query.where(eq(moderationActions.targetType, targetType as any));
+    }
+
+    if (targetId) {
+      query = query.where(eq(moderationActions.targetId, targetId));
+    }
+
+    return query.orderBy(desc(moderationActions.createdAt));
+  }
+
+  async createContentReport(reportData: InsertContentReport): Promise<ContentReport> {
+    const [report] = await db
+      .insert(contentReports)
+      .values(reportData)
+      .returning();
+    return report;
+  }
+
+  async getContentReports(status?: string, assignedTo?: string): Promise<(ContentReport & { reporter?: User; assignedModerator?: User })[]> {
+    let query = db
+      .select({
+        id: contentReports.id,
+        reporterId: contentReports.reporterId,
+        contentType: contentReports.contentType,
+        contentId: contentReports.contentId,
+        reportType: contentReports.reportType,
+        description: contentReports.description,
+        status: contentReports.status,
+        assignedTo: contentReports.assignedTo,
+        resolution: contentReports.resolution,
+        resolvedAt: contentReports.resolvedAt,
+        createdAt: contentReports.createdAt,
+        reporter: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+        },
+        assignedModerator: {
+          id: users.id,
+          email: users.email,
+          firstName: users.firstName,
+          lastName: users.lastName,
+          profileImageUrl: users.profileImageUrl,
+        },
+      })
+      .from(contentReports)
+      .leftJoin(users, eq(contentReports.reporterId, users.id))
+      .leftJoin(users, eq(contentReports.assignedTo, users.id));
+
+    if (status) {
+      query = query.where(eq(contentReports.status, status as any));
+    }
+
+    if (assignedTo) {
+      query = query.where(eq(contentReports.assignedTo, assignedTo));
+    }
+
+    return query.orderBy(desc(contentReports.createdAt));
+  }
+
+  async updateContentReportStatus(reportId: string, status: string, assignedTo?: string, resolution?: string): Promise<ContentReport | undefined> {
+    const updateData: any = { 
+      status,
+      updatedAt: new Date()
+    };
+    
+    if (assignedTo) {
+      updateData.assignedTo = assignedTo;
+    }
+    
+    if (resolution) {
+      updateData.resolution = resolution;
+      updateData.resolvedAt = new Date();
+    }
+
+    const [updated] = await db
+      .update(contentReports)
+      .set(updateData)
+      .where(eq(contentReports.id, reportId))
+      .returning();
+    return updated;
+  }
+
+  async createAutoModerationRule(ruleData: InsertAutoModerationRule): Promise<AutoModerationRule> {
+    const [rule] = await db
+      .insert(autoModerationRules)
+      .values(ruleData)
+      .returning();
+    return rule;
+  }
+
+  async getAutoModerationRules(isActive?: boolean): Promise<(AutoModerationRule & { creator: User })[]> {
+    let query = db
+      .select({
+        id: autoModerationRules.id,
+        ruleName: autoModerationRules.ruleName,
+        ruleType: autoModerationRules.ruleType,
+        contentTypes: autoModerationRules.contentTypes,
+        configuration: autoModerationRules.configuration,
+        action: autoModerationRules.action,
+        isActive: autoModerationRules.isActive,
+        severity: autoModerationRules.severity,
+        createdBy: autoModerationRules.createdBy,
+        createdAt: autoModerationRules.createdAt,
+        updatedAt: autoModerationRules.updatedAt,
+        creator: users,
+      })
+      .from(autoModerationRules)
+      .innerJoin(users, eq(autoModerationRules.createdBy, users.id));
+
+    if (isActive !== undefined) {
+      query = query.where(eq(autoModerationRules.isActive, isActive));
+    }
+
+    return query.orderBy(desc(autoModerationRules.createdAt));
+  }
+
+  async updateAutoModerationRuleStatus(ruleId: string, isActive: boolean): Promise<AutoModerationRule | undefined> {
+    const [updated] = await db
+      .update(autoModerationRules)
+      .set({ isActive, updatedAt: new Date() })
+      .where(eq(autoModerationRules.id, ruleId))
+      .returning();
+    return updated;
+  }
+
+  async createPostModerationStatus(statusData: InsertPostModerationStatus): Promise<PostModerationStatus> {
+    const [status] = await db
+      .insert(postModerationStatus)
+      .values(statusData)
+      .returning();
+    return status;
+  }
+
+  async getPostModerationStatus(postId: string): Promise<PostModerationStatus | undefined> {
+    const [status] = await db
+      .select()
+      .from(postModerationStatus)
+      .where(eq(postModerationStatus.postId, postId));
+    return status;
+  }
+
+  async updatePostModerationStatus(postId: string, status: string, moderatorId?: string, notes?: string): Promise<PostModerationStatus | undefined> {
+    const updateData: any = { 
+      status,
+      updatedAt: new Date()
+    };
+    
+    if (moderatorId) {
+      updateData.reviewedBy = moderatorId;
+      updateData.reviewedAt = new Date();
+    }
+    
+    if (notes) {
+      updateData.moderationNotes = notes;
+    }
+
+    const [updated] = await db
+      .update(postModerationStatus)
+      .set(updateData)
+      .where(eq(postModerationStatus.postId, postId))
+      .returning();
+    return updated;
+  }
+
+  async isUserModerator(userId: string): Promise<boolean> {
+    const [moderator] = await db
+      .select()
+      .from(moderators)
+      .where(and(
+        eq(moderators.userId, userId),
+        eq(moderators.isActive, true)
+      ));
+    return !!moderator;
+  }
+
+  async getUserModeratorPermissions(userId: string): Promise<string[]> {
+    const [moderator] = await db
+      .select()
+      .from(moderators)
+      .where(and(
+        eq(moderators.userId, userId),
+        eq(moderators.isActive, true)
+      ));
+    return moderator?.permissions as string[] || [];
   }
 }
 

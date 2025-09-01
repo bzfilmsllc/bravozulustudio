@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
-import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema, insertDesignAssetSchema, insertGiftCodeSchema, insertErrorReportSchema, insertUserErrorPreferencesSchema } from "@shared/schema";
+import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema, insertDesignAssetSchema, insertGiftCodeSchema, insertErrorReportSchema, insertUserErrorPreferencesSchema, insertModeratorSchema, insertModerationActionSchema, insertContentReportSchema, insertAutoModerationRuleSchema, insertPostModerationStatusSchema } from "@shared/schema";
 import OpenAI from "openai";
 import Stripe from "stripe";
 
@@ -450,8 +450,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      if (!user || user.role !== 'verified') {
-        return res.status(403).json({ message: "Verified membership required" });
+      if (!user) {
+        return res.status(403).json({ message: "User not found" });
       }
 
       const postData = insertForumPostSchema.parse({ ...req.body, authorId: userId });
@@ -2790,6 +2790,328 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating error report:", error);
       res.status(500).json({ message: "Failed to update error report" });
+    }
+  });
+
+  // MODERATION ROUTES
+
+  // Create a moderator (admin only)
+  app.post("/api/admin/moderators", isAuthenticated, async (req: any, res) => {
+    try {
+      const userEmail = (req.user as any).claims.email;
+      const adminUserId = (req.user as any).claims.sub;
+      
+      if (!isSuperUser(userEmail)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const validatedData = insertModeratorSchema.parse({
+        ...req.body,
+        assignedBy: adminUserId,
+      });
+      
+      const moderator = await storage.createModerator(validatedData);
+      res.json(moderator);
+    } catch (error) {
+      console.error("Error creating moderator:", error);
+      res.status(500).json({ message: "Failed to create moderator" });
+    }
+  });
+
+  // Get all moderators (admin only)
+  app.get("/api/admin/moderators", isAuthenticated, async (req: any, res) => {
+    try {
+      const userEmail = (req.user as any).claims.email;
+      
+      if (!isSuperUser(userEmail)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { activeOnly } = req.query;
+      const moderators = await storage.getModerators(activeOnly === 'true');
+      res.json(moderators);
+    } catch (error) {
+      console.error("Error fetching moderators:", error);
+      res.status(500).json({ message: "Failed to fetch moderators" });
+    }
+  });
+
+  // Update moderator status (admin only)
+  app.put("/api/admin/moderators/:userId/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const userEmail = (req.user as any).claims.email;
+      const adminUserId = (req.user as any).claims.sub;
+      
+      if (!isSuperUser(userEmail)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { userId } = req.params;
+      const { isActive } = req.body;
+      
+      const moderator = await storage.updateModeratorStatus(userId, isActive, adminUserId);
+      
+      if (!moderator) {
+        return res.status(404).json({ message: "Moderator not found" });
+      }
+      
+      res.json(moderator);
+    } catch (error) {
+      console.error("Error updating moderator status:", error);
+      res.status(500).json({ message: "Failed to update moderator status" });
+    }
+  });
+
+  // Update moderator permissions (admin only)
+  app.put("/api/admin/moderators/:userId/permissions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userEmail = (req.user as any).claims.email;
+      
+      if (!isSuperUser(userEmail)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { userId } = req.params;
+      const { permissions } = req.body;
+      
+      const moderator = await storage.updateModeratorPermissions(userId, permissions);
+      
+      if (!moderator) {
+        return res.status(404).json({ message: "Moderator not found" });
+      }
+      
+      res.json(moderator);
+    } catch (error) {
+      console.error("Error updating moderator permissions:", error);
+      res.status(500).json({ message: "Failed to update moderator permissions" });
+    }
+  });
+
+  // Create content report (all authenticated users)
+  app.post("/api/moderation/reports", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      
+      const validatedData = insertContentReportSchema.parse({
+        ...req.body,
+        reporterId: userId,
+      });
+      
+      const report = await storage.createContentReport(validatedData);
+      res.json(report);
+    } catch (error) {
+      console.error("Error creating content report:", error);
+      res.status(500).json({ message: "Failed to create content report" });
+    }
+  });
+
+  // Get content reports (moderators and admins only)
+  app.get("/api/moderation/reports", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const userEmail = (req.user as any).claims.email;
+      
+      // Check if user is admin or moderator
+      const isModerator = await storage.isUserModerator(userId);
+      const isAdmin = isSuperUser(userEmail);
+      
+      if (!isModerator && !isAdmin) {
+        return res.status(403).json({ message: "Moderator access required" });
+      }
+      
+      const { status, assignedTo } = req.query;
+      const reports = await storage.getContentReports(status as string, assignedTo as string);
+      res.json(reports);
+    } catch (error) {
+      console.error("Error fetching content reports:", error);
+      res.status(500).json({ message: "Failed to fetch content reports" });
+    }
+  });
+
+  // Update content report status (moderators and admins only)
+  app.put("/api/moderation/reports/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const userEmail = (req.user as any).claims.email;
+      
+      // Check if user is admin or moderator
+      const isModerator = await storage.isUserModerator(userId);
+      const isAdmin = isSuperUser(userEmail);
+      
+      if (!isModerator && !isAdmin) {
+        return res.status(403).json({ message: "Moderator access required" });
+      }
+      
+      const { id } = req.params;
+      const { status, resolution } = req.body;
+      
+      const report = await storage.updateContentReportStatus(id, status, userId, resolution);
+      
+      if (!report) {
+        return res.status(404).json({ message: "Content report not found" });
+      }
+      
+      res.json(report);
+    } catch (error) {
+      console.error("Error updating content report:", error);
+      res.status(500).json({ message: "Failed to update content report" });
+    }
+  });
+
+  // Create moderation action (moderators and admins only)
+  app.post("/api/moderation/actions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const userEmail = (req.user as any).claims.email;
+      
+      // Check if user is admin or moderator
+      const isModerator = await storage.isUserModerator(userId);
+      const isAdmin = isSuperUser(userEmail);
+      
+      if (!isModerator && !isAdmin) {
+        return res.status(403).json({ message: "Moderator access required" });
+      }
+      
+      const validatedData = insertModerationActionSchema.parse({
+        ...req.body,
+        moderatorId: userId,
+      });
+      
+      const action = await storage.createModerationAction(validatedData);
+      res.json(action);
+    } catch (error) {
+      console.error("Error creating moderation action:", error);
+      res.status(500).json({ message: "Failed to create moderation action" });
+    }
+  });
+
+  // Get moderation actions (moderators and admins only)
+  app.get("/api/moderation/actions", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const userEmail = (req.user as any).claims.email;
+      
+      // Check if user is admin or moderator
+      const isModerator = await storage.isUserModerator(userId);
+      const isAdmin = isSuperUser(userEmail);
+      
+      if (!isModerator && !isAdmin) {
+        return res.status(403).json({ message: "Moderator access required" });
+      }
+      
+      const { targetType, targetId } = req.query;
+      const actions = await storage.getModerationActions(targetType as string, targetId as string);
+      res.json(actions);
+    } catch (error) {
+      console.error("Error fetching moderation actions:", error);
+      res.status(500).json({ message: "Failed to fetch moderation actions" });
+    }
+  });
+
+  // Moderate forum post (moderators and admins only)
+  app.put("/api/moderation/posts/:postId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const userEmail = (req.user as any).claims.email;
+      
+      // Check if user is admin or moderator
+      const isModerator = await storage.isUserModerator(userId);
+      const isAdmin = isSuperUser(userEmail);
+      
+      if (!isModerator && !isAdmin) {
+        return res.status(403).json({ message: "Moderator access required" });
+      }
+      
+      const { postId } = req.params;
+      const { status, notes } = req.body;
+      
+      // Check if moderation status exists, create if not
+      let moderationStatus = await storage.getPostModerationStatus(postId);
+      
+      if (!moderationStatus) {
+        moderationStatus = await storage.createPostModerationStatus({
+          postId,
+          status: 'approved', // Default status
+        });
+      }
+      
+      // Update the moderation status
+      const updated = await storage.updatePostModerationStatus(postId, status, userId, notes);
+      
+      if (!updated) {
+        return res.status(404).json({ message: "Post moderation status not found" });
+      }
+      
+      res.json(updated);
+    } catch (error) {
+      console.error("Error moderating post:", error);
+      res.status(500).json({ message: "Failed to moderate post" });
+    }
+  });
+
+  // Get auto-moderation rules (admin only)
+  app.get("/api/admin/moderation/rules", isAuthenticated, async (req: any, res) => {
+    try {
+      const userEmail = (req.user as any).claims.email;
+      
+      if (!isSuperUser(userEmail)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { isActive } = req.query;
+      const rules = await storage.getAutoModerationRules(isActive === 'true' ? true : isActive === 'false' ? false : undefined);
+      res.json(rules);
+    } catch (error) {
+      console.error("Error fetching auto-moderation rules:", error);
+      res.status(500).json({ message: "Failed to fetch auto-moderation rules" });
+    }
+  });
+
+  // Create auto-moderation rule (admin only)
+  app.post("/api/admin/moderation/rules", isAuthenticated, async (req: any, res) => {
+    try {
+      const userEmail = (req.user as any).claims.email;
+      const userId = (req.user as any).claims.sub;
+      
+      if (!isSuperUser(userEmail)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const validatedData = insertAutoModerationRuleSchema.parse({
+        ...req.body,
+        createdBy: userId,
+      });
+      
+      const rule = await storage.createAutoModerationRule(validatedData);
+      res.json(rule);
+    } catch (error) {
+      console.error("Error creating auto-moderation rule:", error);
+      res.status(500).json({ message: "Failed to create auto-moderation rule" });
+    }
+  });
+
+  // Update auto-moderation rule status (admin only)
+  app.put("/api/admin/moderation/rules/:id/status", isAuthenticated, async (req: any, res) => {
+    try {
+      const userEmail = (req.user as any).claims.email;
+      
+      if (!isSuperUser(userEmail)) {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      
+      const { id } = req.params;
+      const { isActive } = req.body;
+      
+      const rule = await storage.updateAutoModerationRuleStatus(id, isActive);
+      
+      if (!rule) {
+        return res.status(404).json({ message: "Auto-moderation rule not found" });
+      }
+      
+      res.json(rule);
+    } catch (error) {
+      console.error("Error updating auto-moderation rule:", error);
+      res.status(500).json({ message: "Failed to update auto-moderation rule" });
     }
   });
 
