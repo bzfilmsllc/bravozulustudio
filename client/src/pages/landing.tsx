@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -70,15 +72,23 @@ import {
 export default function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [referralCode, setReferralCode] = useState('');
+  const [referralData, setReferralData] = useState<any>(null);
+  const [isValidatingReferral, setIsValidatingReferral] = useState(false);
+  const { toast } = useToast();
 
   // Capture referral code from URL parameter
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    const referralCode = urlParams.get('ref');
+    const urlReferralCode = urlParams.get('ref');
     
-    if (referralCode) {
+    if (urlReferralCode) {
       // Store referral code in sessionStorage for processing after login
-      sessionStorage.setItem('pendingReferralCode', referralCode.toUpperCase());
+      sessionStorage.setItem('pendingReferralCode', urlReferralCode.toUpperCase());
+      setReferralCode(urlReferralCode.toUpperCase());
+      
+      // Validate the referral code immediately
+      validateReferralCode(urlReferralCode.toUpperCase());
       
       // Clean URL to remove the referral parameter
       const newUrl = new URL(window.location.href);
@@ -98,7 +108,54 @@ export default function Landing() {
     retry: false,
   });
 
+  // Validate referral code function
+  const validateReferralCode = async (code: string) => {
+    if (!code.trim()) {
+      setReferralData(null);
+      return;
+    }
+    
+    setIsValidatingReferral(true);
+    try {
+      const response = await fetch(`/api/referrals/validate/${code.toUpperCase()}`);
+      const data = await response.json();
+      
+      if (data.valid) {
+        setReferralData(data);
+        toast({
+          title: "Valid Referral Code!",
+          description: `You'll earn ${data.referredReward} bonus credits when you join!`,
+        });
+      } else {
+        setReferralData(null);
+        toast({
+          title: "Invalid Referral Code",
+          description: data.message || "This referral code is not valid.",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      setReferralData(null);
+      console.error('Error validating referral code:', error);
+    } finally {
+      setIsValidatingReferral(false);
+    }
+  };
+
+  const handleReferralCodeChange = (code: string) => {
+    setReferralCode(code.toUpperCase());
+    // Debounce validation
+    clearTimeout((window as any).referralTimeout);
+    (window as any).referralTimeout = setTimeout(() => {
+      validateReferralCode(code);
+    }, 500);
+  };
+
   const handleLogin = () => {
+    // Store referral code if entered
+    if (referralCode && referralData?.valid) {
+      sessionStorage.setItem('pendingReferralCode', referralCode);
+    }
     window.location.href = "/api/login";
   };
 
@@ -264,7 +321,7 @@ export default function Landing() {
               </Badge>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12 animate-fade-in-up" style={{animationDelay: '1s'}}>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-8 animate-fade-in-up" style={{animationDelay: '1s'}}>
               <Button 
                 size="lg" 
                 className="px-16 py-8 text-xl bg-gradient-to-r from-primary to-yellow-400 hover:from-yellow-400 hover:to-primary text-background font-military tracking-wide shadow-2xl hover:shadow-3xl transition-all duration-300 hover:scale-110 border-2 border-primary/50 group relative overflow-hidden" 
@@ -285,6 +342,40 @@ export default function Landing() {
                 <Play className="w-6 h-6 mr-3 group-hover:text-yellow-400 transition-colors" />
                 MISSION BRIEFING
               </Button>
+            </div>
+
+            {/* Referral Benefits Banner */}
+            <div className="mb-12 animate-fade-in-up" style={{animationDelay: '1.2s'}}>
+              <Card className="max-w-2xl mx-auto bg-gradient-to-r from-amber-50/50 to-amber-100/50 dark:from-amber-950/20 dark:to-amber-900/20 border-amber-200 dark:border-amber-800 shadow-xl">
+                <CardContent className="p-6">
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <Crown className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                      <h3 className="text-lg font-bold text-amber-800 dark:text-amber-200 font-military">
+                        REFERRAL REWARDS ACTIVE
+                      </h3>
+                      <Crown className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <p className="text-amber-700 dark:text-amber-300 text-sm mb-4 leading-relaxed">
+                      🎖️ <strong>Bring a Battle Buddy!</strong> Refer friends and <strong>both of you earn 25-50 bonus credits</strong> for AI tools, premium features, and more.
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-xs text-amber-600 dark:text-amber-400">
+                      <div className="flex items-center gap-1">
+                        <Users2 className="w-4 h-4" />
+                        <span>Unlimited referrals</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Zap className="w-4 h-4" />
+                        <span>Instant credit rewards</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Target className="w-4 h-4" />
+                        <span>One-time use protection</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
             
             {/* Urgency Indicator */}
@@ -1379,22 +1470,60 @@ export default function Landing() {
       <Dialog open={isAuthModalOpen} onOpenChange={setIsAuthModalOpen}>
         <DialogContent className="max-w-md" data-testid="auth-modal">
           <DialogHeader>
-            <DialogTitle>Join Bravo Zulu Films</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5 text-primary" />
+              Join Bravo Zulu Films
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
+            {/* Referral Code Section */}
+            <div className="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+              <Label htmlFor="referralCode" className="text-amber-800 dark:text-amber-200 font-semibold flex items-center gap-2">
+                <Crown className="w-4 h-4" />
+                Referral Code (Optional)
+              </Label>
+              <Input 
+                id="referralCode" 
+                type="text" 
+                placeholder="Enter referral code for bonus credits"
+                value={referralCode}
+                onChange={(e) => handleReferralCodeChange(e.target.value)}
+                className="mt-2 bg-white dark:bg-slate-800 border-amber-300 dark:border-amber-700 focus:border-amber-500"
+                data-testid="input-referral-code"
+              />
+              {isValidatingReferral && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1">
+                  <Zap className="w-3 h-3 animate-spin" />
+                  Validating code...
+                </p>
+              )}
+              {referralData?.valid && (
+                <div className="mt-2 p-2 bg-green-100 dark:bg-green-950/30 rounded border border-green-300 dark:border-green-700">
+                  <p className="text-xs text-green-800 dark:text-green-200 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />
+                    Valid! You'll receive {referralData.referredReward} bonus credits
+                  </p>
+                </div>
+              )}
+              <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
+                🎁 Get referred by a friend and earn instant bonus credits!
+              </p>
+            </div>
+
             <div>
-              <Label htmlFor="email">Military Email Address</Label>
+              <Label htmlFor="email" className="text-slate-700 dark:text-slate-300">Military Email Address</Label>
               <Input 
                 id="email" 
                 type="email" 
                 placeholder="your.email@military.mil"
+                className="mt-1"
                 data-testid="input-military-email"
               />
             </div>
             <div>
-              <Label htmlFor="branch">Service Branch</Label>
+              <Label htmlFor="branch" className="text-slate-700 dark:text-slate-300">Service Branch</Label>
               <Select>
-                <SelectTrigger data-testid="select-service-branch">
+                <SelectTrigger data-testid="select-service-branch" className="mt-1">
                   <SelectValue placeholder="Select service branch" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1408,19 +1537,21 @@ export default function Landing() {
               </Select>
             </div>
             <div>
-              <Label htmlFor="years">Years of Service</Label>
+              <Label htmlFor="years" className="text-slate-700 dark:text-slate-300">Years of Service</Label>
               <Input 
                 id="years" 
                 type="number" 
                 placeholder="4"
+                className="mt-1"
                 data-testid="input-years-service"
               />
             </div>
             <div>
-              <Label htmlFor="bio">Brief Bio (Optional)</Label>
+              <Label htmlFor="bio" className="text-slate-700 dark:text-slate-300">Brief Bio (Optional)</Label>
               <Textarea 
                 id="bio" 
                 placeholder="Tell us about your military background and filmmaking interests..."
+                className="mt-1"
                 data-testid="textarea-bio"
               />
             </div>
@@ -1431,11 +1562,12 @@ export default function Landing() {
               </Label>
             </div>
             <Button 
-              className="w-full" 
+              className="w-full bg-gradient-to-r from-primary to-amber-500 hover:from-amber-500 hover:to-primary" 
               onClick={handleLogin}
               data-testid="button-submit-application"
             >
-              Submit Application
+              <Shield className="w-4 h-4 mr-2" />
+              Enlist Now {referralData?.valid && `(+${referralData.referredReward} Bonus Credits!)`}
             </Button>
           </div>
         </DialogContent>

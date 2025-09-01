@@ -2105,6 +2105,22 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Referral code has expired');
     }
 
+    // CRITICAL: Check if this user has already been referred (one-time enforcement)
+    const existingReferral = await db
+      .select()
+      .from(referrals)
+      .where(eq(referrals.referredUserId, newUserId))
+      .limit(1);
+
+    if (existingReferral.length > 0) {
+      throw new Error('User has already been referred and cannot use another referral code');
+    }
+
+    // Prevent self-referral
+    if (code.userId === newUserId) {
+      throw new Error('You cannot use your own referral code');
+    }
+
     // Create referral tracking record
     const [newReferral] = await db
       .insert(referrals)
