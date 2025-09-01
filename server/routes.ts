@@ -16,6 +16,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: "2023-10-16",
 });
 
+// Super user emails - get unlimited access to all premium features
+const SUPER_USER_EMAILS = [
+  'bravozulufilms@gmail.com',
+  'usmc2532@gmail.com'
+];
+
+// Helper function to check if user is a super user
+function isSuperUser(email: string): boolean {
+  return SUPER_USER_EMAILS.includes(email.toLowerCase());
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
   await setupAuth(app);
@@ -795,24 +806,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/ai/generate-script', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
       const { prompt, genre, tone, length } = req.body;
       
-      // Check if user has enough credits (10 credits for script generation)
-      const userCredits = await storage.getUserCredits(userId);
+      let userCredits = 0;
       const requiredCredits = 10;
       
-      if (userCredits < requiredCredits) {
-        return res.status(402).json({ 
-          message: "Insufficient credits", 
-          required: requiredCredits, 
-          available: userCredits 
-        });
-      }
+      // Super users bypass credit checks
+      if (user?.email && isSuperUser(user.email)) {
+        userCredits = 999999; // Unlimited for super users
+      } else {
+        // Check if user has enough credits (10 credits for script generation)
+        userCredits = await storage.getUserCredits(userId);
+        
+        if (userCredits < requiredCredits) {
+          return res.status(402).json({ 
+            message: "Insufficient credits", 
+            required: requiredCredits, 
+            available: userCredits 
+          });
+        }
 
-      // Use credits
-      const success = await storage.useCredits(userId, requiredCredits, 'AI Script Generation', 'ai_generation', 'script');
-      if (!success) {
-        return res.status(402).json({ message: "Unable to deduct credits" });
+        // Use credits (only for non-super users)
+        const success = await storage.useCredits(userId, requiredCredits, 'AI Script Generation', 'ai_generation', 'script');
+        if (!success) {
+          return res.status(402).json({ message: "Unable to deduct credits" });
+        }
       }
 
       // Generate script with OpenAI
@@ -860,24 +879,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/ai/enhance-script', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
       const { scriptContent, enhancement } = req.body;
       
-      // Check if user has enough credits (5 credits for script enhancement)
-      const userCredits = await storage.getUserCredits(userId);
+      let userCredits = 0;
       const requiredCredits = 5;
       
-      if (userCredits < requiredCredits) {
-        return res.status(402).json({ 
-          message: "Insufficient credits", 
-          required: requiredCredits, 
-          available: userCredits 
-        });
-      }
+      // Super users bypass credit checks
+      if (user?.email && isSuperUser(user.email)) {
+        userCredits = 999999; // Unlimited for super users
+      } else {
+        // Check if user has enough credits (5 credits for script enhancement)
+        userCredits = await storage.getUserCredits(userId);
+        
+        if (userCredits < requiredCredits) {
+          return res.status(402).json({ 
+            message: "Insufficient credits", 
+            required: requiredCredits, 
+            available: userCredits 
+          });
+        }
 
-      // Use credits
-      const success = await storage.useCredits(userId, requiredCredits, 'AI Script Enhancement', 'ai_generation', 'script_enhancement');
-      if (!success) {
-        return res.status(402).json({ message: "Unable to deduct credits" });
+        // Use credits (only for non-super users)
+        const success = await storage.useCredits(userId, requiredCredits, 'AI Script Enhancement', 'ai_generation', 'script_enhancement');
+        if (!success) {
+          return res.status(402).json({ message: "Unable to deduct credits" });
+        }
       }
 
       // Enhance script with OpenAI
@@ -925,24 +952,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/ai/analyze-script', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
       const { scriptContent } = req.body;
       
-      // Check if user has enough credits (3 credits for script analysis)
-      const userCredits = await storage.getUserCredits(userId);
+      let userCredits = 0;
       const requiredCredits = 3;
       
-      if (userCredits < requiredCredits) {
-        return res.status(402).json({ 
-          message: "Insufficient credits", 
-          required: requiredCredits, 
-          available: userCredits 
-        });
-      }
+      // Super users bypass credit checks
+      if (user?.email && isSuperUser(user.email)) {
+        userCredits = 999999; // Unlimited for super users
+      } else {
+        // Check if user has enough credits (3 credits for script analysis)
+        userCredits = await storage.getUserCredits(userId);
+        
+        if (userCredits < requiredCredits) {
+          return res.status(402).json({ 
+            message: "Insufficient credits", 
+            required: requiredCredits, 
+            available: userCredits 
+          });
+        }
 
-      // Use credits
-      const success = await storage.useCredits(userId, requiredCredits, 'AI Script Analysis', 'ai_generation', 'script_analysis');
-      if (!success) {
-        return res.status(402).json({ message: "Unable to deduct credits" });
+        // Use credits (only for non-super users)
+        const success = await storage.useCredits(userId, requiredCredits, 'AI Script Analysis', 'ai_generation', 'script_analysis');
+        if (!success) {
+          return res.status(402).json({ message: "Unable to deduct credits" });
+        }
       }
 
       // Analyze script with OpenAI
@@ -991,6 +1026,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/billing/credits', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      // Super users get unlimited credits
+      if (user?.email && isSuperUser(user.email)) {
+        res.json({ credits: 999999 }); // Unlimited credits for super users
+        return;
+      }
+      
       const credits = await storage.getUserCredits(userId);
       res.json({ credits });
     } catch (error) {
@@ -1006,7 +1049,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let subscription = null;
       
-      if (user?.subscriptionPlanId && user?.subscriptionStatus) {
+      // Check if user is a super user
+      if (user?.email && isSuperUser(user.email)) {
+        // Super users get unlimited access - simulate premium subscription
+        subscription = {
+          status: 'active',
+          planName: 'Super User - Unlimited Access',
+          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+          planId: 'super-user',
+          isSuperUser: true
+        };
+      } else if (user?.subscriptionPlanId && user?.subscriptionStatus) {
         const plan = await storage.getSubscriptionPlan(user.subscriptionPlanId);
         subscription = {
           status: user.subscriptionStatus,

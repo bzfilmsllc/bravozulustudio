@@ -9,6 +9,7 @@ interface UserBilling {
     status: string;
     planName: string;
     expiresAt: string;
+    isSuperUser?: boolean;
   } | null;
 }
 
@@ -28,10 +29,11 @@ export function GoogleAds({ slot, format = "auto", style, className }: GoogleAds
   });
 
   const hasActiveSubscription = billingInfo?.subscription?.status === 'active';
+  const isSuperUser = billingInfo?.subscription?.isSuperUser === true;
 
   useEffect(() => {
-    // Only load ads if user doesn't have active subscription
-    if (!hasActiveSubscription && adRef.current) {
+    // Only load ads if user doesn't have active subscription and is not a super user
+    if (!hasActiveSubscription && !isSuperUser && adRef.current) {
       try {
         // Load Google AdSense script if not already loaded
         if (!window.adsbygoogle) {
@@ -50,10 +52,10 @@ export function GoogleAds({ slot, format = "auto", style, className }: GoogleAds
         console.error('Error loading Google Ads:', error);
       }
     }
-  }, [hasActiveSubscription, slot]);
+  }, [hasActiveSubscription, isSuperUser, slot]);
 
-  // Don't render ads for premium subscribers
-  if (hasActiveSubscription) {
+  // Don't render ads for premium subscribers or super users
+  if (hasActiveSubscription || isSuperUser) {
     return null;
   }
 
