@@ -209,13 +209,13 @@ export default function AdminPanel() {
     onSuccess: (data) => {
       toast({
         title: "🎁 Monthly Credits Processed",
-        description: `Awarded 150 credits to ${data.veteransAwarded} verified veterans!`,
+        description: `Awarded 150 credits to ${(data as any).veteransAwarded} verified veterans!`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
   });
 
-  const filteredUsers = allUsers.filter((u: any) => {
+  const filteredUsers = (allUsers as any[]).filter((u: any) => {
     const matchesSearch = u.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          u.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          u.email?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -280,7 +280,7 @@ export default function AdminPanel() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Users</p>
-                  <p className="text-2xl font-bold text-red-500">{systemStats.totalUsers || 0}</p>
+                  <p className="text-2xl font-bold text-red-500">{(systemStats as any).totalUsers || 0}</p>
                 </div>
                 <Users className="w-8 h-8 text-red-500" />
               </div>
@@ -292,7 +292,7 @@ export default function AdminPanel() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Verified Veterans</p>
-                  <p className="text-2xl font-bold text-green-500">{systemStats.verifiedVeterans || 0}</p>
+                  <p className="text-2xl font-bold text-green-500">{(systemStats as any).verifiedVeterans || 0}</p>
                 </div>
                 <Medal className="w-8 h-8 text-green-500" />
               </div>
@@ -304,7 +304,7 @@ export default function AdminPanel() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Pending Verifications</p>
-                  <p className="text-2xl font-bold text-yellow-500">{verificationRequests.length}</p>
+                  <p className="text-2xl font-bold text-yellow-500">{(verificationRequests as any[]).length}</p>
                 </div>
                 <AlertTriangle className="w-8 h-8 text-yellow-500" />
               </div>
@@ -316,7 +316,7 @@ export default function AdminPanel() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">Credits Awarded</p>
-                  <p className="text-2xl font-bold text-honor-gold">{systemStats.creditsAwarded || 0}</p>
+                  <p className="text-2xl font-bold text-honor-gold">{(systemStats as any).creditsAwarded || 0}</p>
                 </div>
                 <CreditCard className="w-8 h-8 text-honor-gold" />
               </div>
@@ -517,12 +517,12 @@ export default function AdminPanel() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {verificationRequests.length === 0 ? (
+                  {(verificationRequests as any[]).length === 0 ? (
                     <p className="text-center text-muted-foreground py-8">
                       No pending verification requests.
                     </p>
                   ) : (
-                    verificationRequests.map((request: any) => (
+                    (verificationRequests as any[]).map((request: any) => (
                       <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                           <p className="font-medium">{request.user.firstName} {request.user.lastName}</p>
@@ -622,7 +622,7 @@ export default function AdminPanel() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {creditTransactions.slice(0, 10).map((transaction: any) => (
+                  {(creditTransactions as any[]).slice(0, 10).map((transaction: any) => (
                     <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex items-center gap-3">
                         <CreditCard className="w-5 h-5 text-honor-gold" />

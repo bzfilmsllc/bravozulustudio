@@ -1654,8 +1654,8 @@ export class DatabaseStorage implements IStorage {
   async getSystemStats(): Promise<any> {
     const totalUsers = await db.select({ count: count() }).from(users);
     const verifiedVeterans = await db.select({ count: count() }).from(users)
-      .where(and(eq(users.role, 'verified'), isNotNull(users.militaryVerification)));
-    const creditsAwarded = await db.select({ total: sql<number>`SUM(amount)` }).from(creditTransactions);
+      .where(and(eq(users.role, 'verified'), sql`${users.militaryVerification} IS NOT NULL`));
+    const creditsAwarded = await db.select({ total: sql<number>`COALESCE(SUM(amount), 0)` }).from(creditTransactions);
     
     return {
       totalUsers: totalUsers[0]?.count || 0,
@@ -1823,7 +1823,7 @@ export class DatabaseStorage implements IStorage {
     .from(users)
     .where(and(
       eq(users.role, 'pending'),
-      isNotNull(users.militaryVerification)
+      sql`${users.militaryVerification} IS NOT NULL`
     ))
     .orderBy(desc(users.updatedAt));
   }
