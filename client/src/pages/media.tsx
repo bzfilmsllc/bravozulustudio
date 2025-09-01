@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
-import { MemberGuard } from "@/components/member-guard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -211,7 +210,6 @@ export default function Media() {
   };
 
   return (
-    <MemberGuard requiredRole="pending">
       <div className="min-h-screen bg-background">
         <Navigation />
         
@@ -633,6 +631,5 @@ export default function Media() {
           </div>
         </main>
       </div>
-    </MemberGuard>
   );
 }

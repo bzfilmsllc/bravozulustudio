@@ -7,7 +7,6 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Navigation } from "@/components/navigation";
-import { MemberGuard } from "@/components/member-guard";
 import { BannerAd, SidebarAd } from "@/components/google-ads";
 import { MemberProfile } from "@/components/member-profile";
 import { ActivityFeed } from "@/components/activity-feed";

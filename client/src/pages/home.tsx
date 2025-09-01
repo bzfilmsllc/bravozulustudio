@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
-import { MemberGuard } from "@/components/member-guard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -197,7 +196,6 @@ export default function Home() {
   const timeOfDay = currentHour < 12 ? "MORNING" : currentHour < 17 ? "AFTERNOON" : "EVENING";
 
   return (
-    <MemberGuard>
       <div className="min-h-screen bg-background">
         <Navigation />
         
@@ -777,6 +775,5 @@ export default function Home() {
           </div>
         </main>
       </div>
-    </MemberGuard>
   );
 }

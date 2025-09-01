@@ -29,23 +29,23 @@ function Router() {
 
   return (
     <Switch>
-      {/* Verification page is always accessible */}
+      {/* Always accessible pages */}
       <Route path="/verification" component={Verification} />
+      <Route path="/tools" component={Tools} />
+      <Route path="/portfolio" component={Portfolio} />
+      <Route path="/community" component={Community} />
+      <Route path="/media" component={Media} />
+      <Route path="/directors-toolkit" component={DirectorsToolkit} />
+      <Route path="/editors-toolkit" component={EditorsToolkit} />
+      <Route path="/file-manager" component={FileManager} />
+      <Route path="/creative-suite" component={CreativeSuite} />
       
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
         <>
           <Route path="/" component={Home} />
-          <Route path="/tools" component={Tools} />
-          <Route path="/portfolio" component={Portfolio} />
-          <Route path="/community" component={Community} />
-          <Route path="/media" component={Media} />
           <Route path="/billing" component={Billing} />
-          <Route path="/directors-toolkit" component={DirectorsToolkit} />
-          <Route path="/editors-toolkit" component={EditorsToolkit} />
-          <Route path="/file-manager" component={FileManager} />
-          <Route path="/creative-suite" component={CreativeSuite} />
           <Route path="/admin" component={AdminPanel} />
           <Route path="/settings" component={Settings} />
           <Route path="/referrals" component={Referrals} />
