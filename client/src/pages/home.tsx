@@ -54,29 +54,29 @@ export default function Home() {
             
             {/* COMMAND BRIEFING - Hero Welcome */}
             <div className="honor-display mb-12 relative">
-              <div className="command-console p-8 mb-8">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
+              <div className="command-console p-4 sm:p-8 mb-8 overflow-hidden">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+                  <div className="flex-1 min-w-0 lg:pr-4">
                     <div className="flex items-start space-x-4">
-                      <div className="h-16 w-1 bg-gradient-to-b from-yellow-600 to-amber-500"></div>
-                      <div>
-                        <h1 className="font-command text-4xl mb-3">
+                      <div className="h-16 w-1 bg-gradient-to-b from-yellow-600 to-amber-500 flex-shrink-0"></div>
+                      <div className="min-w-0 flex-1">
+                        <h1 className="font-command text-2xl sm:text-3xl lg:text-4xl mb-3 break-words">
                           <span className="gradient-medal-gold">MISSION COMMAND</span>
                           {user?.firstName && (
-                            <><br /><span className="text-xl font-tactical text-yellow-400">OPERATOR {user.firstName.toUpperCase()}</span></>
+                            <><br /><span className="text-lg sm:text-xl font-tactical text-yellow-400">OPERATOR {user.firstName.toUpperCase()}</span></>
                           )}
                         </h1>
-                        <div className="flex items-center space-x-4 font-tactical text-lg">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 font-tactical text-sm sm:text-lg">
                           <span className="text-slate-300">🎯 STATUS:</span>
                           <span className="text-green-400 font-bold animate-pulse">OPERATIONAL</span>
-                          <span className="text-slate-400">|</span>
+                          <span className="text-slate-400 hidden sm:inline">|</span>
                           <span className="text-yellow-400">READY FOR DEPLOYMENT</span>
                         </div>
                       </div>
                     </div>
                     <div className="service-ribbon mt-4"></div>
                   </div>
-                  <div className="flex flex-col items-end space-y-3">
+                  <div className="flex flex-col items-end space-y-3 flex-shrink-0">
                     {/* Honor Status Badge */}
                     {user?.role === "verified" ? (
                       <div className="badge-medal-honor px-4 py-2 rounded-lg">
