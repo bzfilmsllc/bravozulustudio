@@ -197,18 +197,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await setupAuth(app);
 
   // Auth routes
-  app.get('/api/auth/user', async (req: any, res) => {
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      // Temporary: Handle both authenticated and test scenarios
-      let userId;
-      if (req.user && (req.user as any).claims) {
-        userId = (req.user as any).claims.sub;
-      } else {
-        // For testing: use your actual user ID
-        userId = "46998061";
-        console.log('Using test user for auth check');
-      }
-      
+      const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -988,17 +979,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // AI-powered features with credit requirements  
-  app.post('/api/ai/generate-script', async (req: any, res) => {
+  app.post('/api/ai/generate-script', isAuthenticated, async (req: any, res) => {
     try {
-      // Use authenticated user if available, otherwise use test user
-      let userId;
-      if (req.user && (req.user as any).claims) {
-        userId = (req.user as any).claims.sub;
-      } else {
-        // For testing: use your actual user ID since you're verified
-        userId = "46998061";
-        console.log('Using verified test user for script generation');
-      }
+      // Require authenticated user - no fallback for public access
+      const userId = (req.user as any).claims.sub;
       const { prompt, genre, tone, length } = req.body;
 
       // Basic validation
@@ -2875,17 +2859,9 @@ Keep responses conversational, helpful, and encouraging. If asked to make specif
   });
 
   // Get user's current tier and spending
-  app.get("/api/user/tier", async (req: any, res) => {
+  app.get("/api/user/tier", isAuthenticated, async (req: any, res) => {
     try {
-      // Temporary: Handle both authenticated and test scenarios
-      let userId;
-      if (req.user && (req.user as any).claims) {
-        userId = (req.user as any).claims.sub;
-      } else {
-        // For testing: use your actual user ID
-        userId = "46998061";
-        console.log('Using test user for tier check');
-      }
+      const userId = (req.user as any).claims.sub;
       
       const spending = await storage.getUserSpending(userId);
       const currentTier = await storage.getUserCurrentTier(userId);
