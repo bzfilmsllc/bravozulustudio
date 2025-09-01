@@ -415,6 +415,19 @@ export function AIScriptGenerator() {
                           <SelectItem value="drama">Drama</SelectItem>
                           <SelectItem value="war">War</SelectItem>
                           <SelectItem value="suspense">Suspense</SelectItem>
+                          <SelectItem value="adventure">Adventure</SelectItem>
+                          <SelectItem value="biography">Biography</SelectItem>
+                          <SelectItem value="comedy">Comedy</SelectItem>
+                          <SelectItem value="crime">Crime</SelectItem>
+                          <SelectItem value="documentary">Documentary</SelectItem>
+                          <SelectItem value="family">Family</SelectItem>
+                          <SelectItem value="fantasy">Fantasy</SelectItem>
+                          <SelectItem value="history">Historical</SelectItem>
+                          <SelectItem value="horror">Horror</SelectItem>
+                          <SelectItem value="mystery">Mystery</SelectItem>
+                          <SelectItem value="romance">Romance</SelectItem>
+                          <SelectItem value="sci-fi">Science Fiction</SelectItem>
+                          <SelectItem value="western">Western</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -442,9 +455,10 @@ export function AIScriptGenerator() {
                           <SelectValue placeholder="Select length" />
                         </SelectTrigger>
                         <SelectContent className="bg-slate-900 border-slate-600">
-                          <SelectItem value="short">Short Scene</SelectItem>
-                          <SelectItem value="medium">Medium Scene</SelectItem>
-                          <SelectItem value="long">Full Scene</SelectItem>
+                          <SelectItem value="scene">Single Scene (2-3 pages)</SelectItem>
+                          <SelectItem value="short">Short Script (5-10 pages)</SelectItem>
+                          <SelectItem value="medium">Medium Script (15-25 pages)</SelectItem>
+                          <SelectItem value="long">Feature Length Treatment (outline only)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
