@@ -1679,19 +1679,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async verifyMilitaryService(userId: string, verification: any): Promise<void> {
-    const verificationData = {
-      verified: verification.verified,
-      serviceType: verification.serviceType,
-      branch: verification.branch,
-      yearsServed: verification.yearsServed,
-      verifiedBy: verification.verifiedBy,
-      verifiedAt: new Date(),
-      notes: verification.notes,
-    };
-
     await db.update(users)
       .set({ 
-        militaryVerification: verificationData,
+        relationshipType: verification.serviceType, // Maps to relationship_type enum
+        militaryBranch: verification.branch, // Maps to military_branch enum
+        yearsOfService: verification.yearsServed, // Maps to years_of_service varchar
+        isVerified: verification.verified, // Boolean verification flag
         role: verification.verified ? 'verified' : 'pending',
         updatedAt: new Date(),
       })
@@ -1699,20 +1692,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateMilitaryService(userId: string, serviceData: any): Promise<User | undefined> {
-    const militaryData = {
-      verified: true,
-      serviceType: serviceData.serviceType,
-      branch: serviceData.branch,
-      yearsServed: serviceData.yearsServed,
-      verifiedBy: serviceData.verifiedBy,
-      verifiedAt: new Date(),
-      notes: serviceData.notes || '',
-    };
-
     const [user] = await db.update(users)
       .set({ 
-        militaryVerification: militaryData,
-        role: 'verified',
+        relationshipType: serviceData.serviceType, // Maps to relationship_type enum
+        militaryBranch: serviceData.branch, // Maps to military_branch enum
+        yearsOfService: serviceData.yearsServed, // Maps to years_of_service varchar
+        isVerified: true, // Mark as verified
+        role: 'verified', // Update role
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId))
