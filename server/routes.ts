@@ -1790,7 +1790,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if user has enough credits
       const user = await storage.getUser(userId);
-      if (!user || (user.credits || 0) < creditsRequired) {
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Super users get unlimited access (BravoZuluFilms@gmail.com and usmc2532@gmail.com)
+      const superUsers = ['bravozulufilms@gmail.com', 'usmc2532@gmail.com'];
+      const isSuperUser = user.email && superUsers.includes(user.email.toLowerCase());
+
+      if (!isSuperUser && (user.credits || 0) < creditsRequired) {
         return res.status(402).json({ 
           message: "Insufficient credits", 
           required: creditsRequired,
@@ -1798,8 +1806,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      // Deduct credits
-      await storage.updateUserCredits(userId, (user.credits || 0) - creditsRequired);
+      // Deduct credits only for non-super users
+      if (!isSuperUser) {
+        await storage.updateUserCredits(userId, (user.credits || 0) - creditsRequired);
+      }
 
       // Create AI operation
       const operationData = {

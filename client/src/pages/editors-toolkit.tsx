@@ -107,7 +107,11 @@ export default function EditorsToolkit() {
       return;
     }
 
-    if ((user as any)?.credits < creditsRequired) {
+    // Super users get unlimited access
+    const superUsers = ['bravozulufilms@gmail.com', 'usmc2532@gmail.com'];
+    const isSuperUser = (user as any)?.email && superUsers.includes((user as any).email.toLowerCase());
+
+    if (!isSuperUser && (user as any)?.credits < creditsRequired) {
       toast({
         title: "Insufficient Credits",
         description: `This operation requires ${creditsRequired} credits. Please purchase more credits.`,
@@ -176,12 +180,35 @@ export default function EditorsToolkit() {
               </div>
             </div>
             <div className="text-right">
-              <p className="font-command text-3xl font-bold text-honor-gold">
-                {(user as any)?.credits || 0}
-              </p>
-              <Button size="sm" variant="outline" className="mt-2">
-                Purchase More
-              </Button>
+              {(() => {
+                const superUsers = ['bravozulufilms@gmail.com', 'usmc2532@gmail.com'];
+                const isSuperUser = (user as any)?.email && superUsers.includes((user as any).email.toLowerCase());
+                
+                if (isSuperUser) {
+                  return (
+                    <>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Crown className="w-5 h-5 text-honor-gold" />
+                        <Badge className="bg-honor-gold text-tactical-black font-bold">
+                          UNLIMITED ACCESS
+                        </Badge>
+                      </div>
+                      <p className="font-command text-2xl font-bold text-honor-gold">∞</p>
+                    </>
+                  );
+                }
+                
+                return (
+                  <>
+                    <p className="font-command text-3xl font-bold text-honor-gold">
+                      {(user as any)?.credits || 0}
+                    </p>
+                    <Button size="sm" variant="outline" className="mt-2">
+                      Purchase More
+                    </Button>
+                  </>
+                );
+              })()}
             </div>
           </CardContent>
         </Card>
