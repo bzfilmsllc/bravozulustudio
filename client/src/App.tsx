@@ -21,6 +21,7 @@ import AdminPanel from "@/pages/admin";
 import Settings from "@/pages/settings";
 import Referrals from "@/pages/referrals";
 import Achievements from "@/pages/achievements";
+import TestVerification from "@/pages/test-verification";
 import { TutorialBot } from "@/components/tutorial-bot";
 import { ErrorBoundary } from "@/components/error-boundary";
 
@@ -29,8 +30,9 @@ function Router() {
 
   return (
     <Switch>
-      {/* Verification page is always accessible */}
+      {/* Test pages are always accessible */}
       <Route path="/verification" component={Verification} />
+      <Route path="/test-verification" component={TestVerification} />
       
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
