@@ -4041,5 +4041,29 @@ Keep responses conversational, helpful, and encouraging. If asked to make specif
     }
   });
 
+  // 🚨 EMERGENCY ROOT ROUTE OVERRIDE - Serve fresh rebuild as main page
+  app.get('/', (req, res) => {
+    console.log('🚨 EMERGENCY OVERRIDE: Serving fresh rebuild as main page!');
+    const fs = require('fs');
+    const path = require('path');
+    try {
+      const freshHTML = fs.readFileSync(path.join(process.cwd(), 'fresh-start/index.html'), 'utf8');
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.send(freshHTML);
+    } catch (error) {
+      console.error('❌ Error serving fresh rebuild:', error);
+      res.send('<!DOCTYPE html><html><body><h1>🚀 Bravo Zulu Films</h1><p>Loading fresh version...</p><script>setTimeout(() => window.location.href="/fresh", 1000);</script></body></html>');
+    }
+  });
+
+  // Catch-all route for any remaining requests
+  app.get('*', (req, res) => {
+    console.log('🔄 Catch-all route, redirecting to fresh rebuild');
+    res.redirect('/');
+  });
+
   return httpServer;
 }
