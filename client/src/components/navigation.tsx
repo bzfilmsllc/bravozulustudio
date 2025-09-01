@@ -22,6 +22,7 @@ import {
   Scissors,
   Archive,
   Shield,
+  Gift,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -155,6 +156,12 @@ export function Navigation() {
                     <Link href="/billing" data-testid="menu-billing">
                       <CreditCard className="w-4 h-4 mr-2" />
                       Billing & Credits
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/referrals" data-testid="menu-referrals">
+                      <Gift className="w-4 h-4 mr-2" />
+                      Referral Program
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />

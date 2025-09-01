@@ -249,6 +249,9 @@ export const usersRelations = relations(users, ({ many }) => ({
   reportedBy: many(reports, { relationName: "reportedUserReports" }),
   notifications: many(notifications),
   createdGiftCodes: many(giftCodes, { relationName: "createdGiftCodes" }),
+  referralCodes: many(referralCodes),
+  referralsAsReferrer: many(referrals, { relationName: "referrerRelation" }),
+  referralsAsReferred: many(referrals, { relationName: "referredRelation" }),
 }));
 
 export const friendRequestsRelations = relations(friendRequests, ({ one }) => ({
@@ -506,7 +509,7 @@ export const creditTransactions = pgTable("credit_transactions", {
   userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   amount: integer("amount").notNull(), // Positive for credits added, negative for credits used
   type: varchar("type", {
-    enum: ['purchase', 'usage', 'bonus', 'refund', 'subscription_grant']
+    enum: ['purchase', 'usage', 'bonus', 'refund', 'subscription_grant', 'referral_bonus']
   }).notNull(),
   description: text("description").notNull(),
   relatedEntityType: varchar("related_entity_type"), // 'script', 'project', 'ai_generation', etc.
@@ -588,6 +591,42 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 // Export notification types
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
+// Referral codes table
+export const referralCodes = pgTable("referral_codes", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  code: varchar("code").unique().notNull(), // Unique referral code (e.g., "BRAVO123")
+  isActive: boolean("is_active").default(true).notNull(),
+  maxUses: integer("max_uses").default(100).notNull(), // Maximum number of times it can be used
+  currentUses: integer("current_uses").default(0).notNull(),
+  referrerReward: integer("referrer_reward").default(50).notNull(), // Credits given to referrer
+  referredReward: integer("referred_reward").default(25).notNull(), // Credits given to new user
+  minimumSpend: integer("minimum_spend").default(0).notNull(), // Minimum amount new user must spend to trigger reward (in cents)
+  expiresAt: timestamp("expires_at"), // Optional expiration date
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Referral tracking table
+export const referrals = pgTable("referrals", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  referralCodeId: varchar("referral_code_id").notNull().references(() => referralCodes.id, { onDelete: 'cascade' }),
+  referrerId: varchar("referrer_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  referredUserId: varchar("referred_user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  referredUserEmail: varchar("referred_user_email").notNull(),
+  status: varchar("status", { 
+    enum: ['pending', 'qualified', 'credited', 'expired'] 
+  }).default('pending').notNull(),
+  referrerCreditsAwarded: integer("referrer_credits_awarded").default(0).notNull(),
+  referredCreditsAwarded: integer("referred_credits_awarded").default(0).notNull(),
+  qualificationMet: boolean("qualification_met").default(false).notNull(), // Has user met minimum spend?
+  qualificationAmount: integer("qualification_amount").default(0).notNull(), // Amount spent by referred user
+  qualificationDate: timestamp("qualification_date"),
+  creditedAt: timestamp("credited_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
 
 // Gift codes table for credit redemption system
 export const giftCodes = pgTable("gift_codes", {
@@ -1088,3 +1127,52 @@ export type ExportTemplate = typeof exportTemplates.$inferSelect;
 export type InsertExportTemplate = z.infer<typeof insertExportTemplateSchema>;
 export type MonthlyVeteranCredits = typeof monthlyVeteranCredits.$inferSelect;
 export type InsertMonthlyVeteranCredits = z.infer<typeof insertMonthlyVeteranCreditsSchema>;
+
+// Referral system relations
+export const referralCodesRelations = relations(referralCodes, ({ one, many }) => ({
+  user: one(users, {
+    fields: [referralCodes.userId],
+    references: [users.id],
+  }),
+  referrals: many(referrals),
+}));
+
+export const referralsRelations = relations(referrals, ({ one }) => ({
+  referralCode: one(referralCodes, {
+    fields: [referrals.referralCodeId],
+    references: [referralCodes.id],
+  }),
+  referrer: one(users, {
+    fields: [referrals.referrerId],
+    references: [users.id],
+    relationName: "referrerRelation",
+  }),
+  referredUser: one(users, {
+    fields: [referrals.referredUserId],
+    references: [users.id],
+    relationName: "referredRelation",
+  }),
+}));
+
+// Referral system insert schemas
+export const insertReferralCodeSchema = createInsertSchema(referralCodes).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  currentUses: true,
+});
+
+export const insertReferralSchema = createInsertSchema(referrals).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  qualificationMet: true,
+  qualificationDate: true,
+  creditedAt: true,
+});
+
+// Export referral system types
+export type ReferralCode = typeof referralCodes.$inferSelect;
+export type InsertReferralCode = z.infer<typeof insertReferralCodeSchema>;
+export type Referral = typeof referrals.$inferSelect;
+export type InsertReferral = z.infer<typeof insertReferralSchema>;

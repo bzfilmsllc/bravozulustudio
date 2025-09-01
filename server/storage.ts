@@ -18,6 +18,8 @@ import {
   notifications,
   giftCodes,
   giftCodeRedemptions,
+  referralCodes,
+  referrals,
   // Director's Toolkit tables
   shotLists,
   shots,
@@ -62,6 +64,10 @@ import {
   type InsertGiftCode,
   type GiftCodeRedemption,
   type InsertGiftCodeRedemption,
+  type ReferralCode,
+  type InsertReferralCode,
+  type Referral,
+  type InsertReferral,
   // Director's Toolkit types
   type ShotList,
   type InsertShotList,
@@ -2025,6 +2031,272 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return deactivatedGiftCode;
+  }
+
+  // REFERRAL SYSTEM METHODS
+
+  // Generate a unique referral code for a user
+  async createReferralCode(userId: string, customCode?: string): Promise<ReferralCode> {
+    let code = customCode;
+    
+    // Generate a unique code if none provided
+    if (!code) {
+      const user = await this.getUser(userId);
+      const firstName = user?.firstName || 'BRAVO';
+      const randomSuffix = Math.floor(Math.random() * 9999).toString().padStart(4, '0');
+      code = `${firstName.toUpperCase()}${randomSuffix}`;
+    }
+    
+    // Check if code already exists
+    const existing = await this.getReferralCodeByCode(code);
+    if (existing) {
+      throw new Error('Referral code already exists');
+    }
+
+    const [newReferralCode] = await db
+      .insert(referralCodes)
+      .values({
+        userId,
+        code,
+        referrerReward: 50, // 50 credits for referrer
+        referredReward: 25, // 25 credits for new user
+        minimumSpend: 999, // $9.99 minimum spend to trigger rewards
+      })
+      .returning();
+
+    return newReferralCode;
+  }
+
+  // Get user's referral codes
+  async getUserReferralCodes(userId: string): Promise<ReferralCode[]> {
+    return await db
+      .select()
+      .from(referralCodes)
+      .where(eq(referralCodes.userId, userId))
+      .orderBy(desc(referralCodes.createdAt));
+  }
+
+  // Get referral code by code string
+  async getReferralCodeByCode(code: string): Promise<ReferralCode | undefined> {
+    const [referralCode] = await db
+      .select()
+      .from(referralCodes)
+      .where(eq(referralCodes.code, code.toUpperCase()));
+    
+    return referralCode;
+  }
+
+  // Process a referral when someone signs up with a code
+  async processReferral(referralCode: string, newUserId: string, newUserEmail: string): Promise<Referral> {
+    const code = await this.getReferralCodeByCode(referralCode);
+    if (!code) {
+      throw new Error('Invalid referral code');
+    }
+
+    if (!code.isActive) {
+      throw new Error('Referral code is no longer active');
+    }
+
+    if (code.currentUses >= code.maxUses) {
+      throw new Error('Referral code has reached maximum usage');
+    }
+
+    if (code.expiresAt && new Date() > code.expiresAt) {
+      throw new Error('Referral code has expired');
+    }
+
+    // Create referral tracking record
+    const [newReferral] = await db
+      .insert(referrals)
+      .values({
+        referralCodeId: code.id,
+        referrerId: code.userId,
+        referredUserId: newUserId,
+        referredUserEmail: newUserEmail,
+        status: 'pending',
+      })
+      .returning();
+
+    // Update referral code usage count
+    await db
+      .update(referralCodes)
+      .set({ 
+        currentUses: code.currentUses + 1,
+        updatedAt: new Date()
+      })
+      .where(eq(referralCodes.id, code.id));
+
+    // If no minimum spend required, immediately qualify the referral
+    if (code.minimumSpend === 0) {
+      await this.qualifyReferral(newReferral.id);
+    }
+
+    return newReferral;
+  }
+
+  // Check if a user can qualify referrals (when they make a purchase)
+  async checkReferralQualification(userId: string, purchaseAmount: number): Promise<void> {
+    // Find pending referrals for this user
+    const pendingReferrals = await db
+      .select({
+        referral: referrals,
+        code: referralCodes
+      })
+      .from(referrals)
+      .innerJoin(referralCodes, eq(referrals.referralCodeId, referralCodes.id))
+      .where(
+        and(
+          eq(referrals.referredUserId, userId),
+          eq(referrals.status, 'pending'),
+          eq(referrals.qualificationMet, false)
+        )
+      );
+
+    for (const { referral, code } of pendingReferrals) {
+      // Update qualification amount
+      const newAmount = referral.qualificationAmount + purchaseAmount;
+      
+      await db
+        .update(referrals)
+        .set({ 
+          qualificationAmount: newAmount,
+          updatedAt: new Date()
+        })
+        .where(eq(referrals.id, referral.id));
+
+      // Check if user has met minimum spend requirement
+      if (newAmount >= code.minimumSpend) {
+        await this.qualifyReferral(referral.id);
+      }
+    }
+  }
+
+  // Qualify a referral and award credits
+  async qualifyReferral(referralId: string): Promise<void> {
+    const [referralData] = await db
+      .select({
+        referral: referrals,
+        code: referralCodes
+      })
+      .from(referrals)
+      .innerJoin(referralCodes, eq(referrals.referralCodeId, referralCodes.id))
+      .where(eq(referrals.id, referralId));
+
+    if (!referralData || referralData.referral.status !== 'pending') {
+      return;
+    }
+
+    const { referral, code } = referralData;
+
+    // Mark referral as qualified
+    await db
+      .update(referrals)
+      .set({
+        status: 'qualified',
+        qualificationMet: true,
+        qualificationDate: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(referrals.id, referralId));
+
+    // Award credits to referrer
+    await this.addCredits(
+      referral.referrerId, 
+      code.referrerReward, 
+      'referral_bonus',
+      `Referral bonus for inviting ${referral.referredUserEmail}`,
+      'referral',
+      referralId
+    );
+
+    // Award credits to referred user
+    await this.addCredits(
+      referral.referredUserId, 
+      code.referredReward, 
+      'referral_bonus',
+      `Welcome bonus for joining via referral code ${code.code}`,
+      'referral',
+      referralId
+    );
+
+    // Mark referral as credited
+    await db
+      .update(referrals)
+      .set({
+        status: 'credited',
+        referrerCreditsAwarded: code.referrerReward,
+        referredCreditsAwarded: code.referredReward,
+        creditedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(referrals.id, referralId));
+
+    // Create notifications
+    await this.createNotification({
+      userId: referral.referrerId,
+      type: 'credit_awarded',
+      title: 'Referral Bonus Awarded!',
+      message: `You earned ${code.referrerReward} credits for referring ${referral.referredUserEmail}`,
+      actionUrl: '/dashboard/referrals'
+    });
+
+    await this.createNotification({
+      userId: referral.referredUserId,
+      type: 'credit_awarded',
+      title: 'Welcome Bonus!',
+      message: `You received ${code.referredReward} bonus credits for joining Bravo Zulu Films`,
+      actionUrl: '/dashboard'
+    });
+  }
+
+  // Get user's referral stats
+  async getUserReferralStats(userId: string): Promise<{
+    totalReferrals: number;
+    qualifiedReferrals: number;
+    totalCreditsEarned: number;
+    pendingReferrals: number;
+  }> {
+    const stats = await db
+      .select({
+        totalReferrals: count(),
+        qualifiedReferrals: sql<number>`sum(case when ${referrals.status} in ('qualified', 'credited') then 1 else 0 end)`,
+        totalCreditsEarned: sql<number>`sum(${referrals.referrerCreditsAwarded})`,
+        pendingReferrals: sql<number>`sum(case when ${referrals.status} = 'pending' then 1 else 0 end)`,
+      })
+      .from(referrals)
+      .where(eq(referrals.referrerId, userId))
+      .groupBy(referrals.referrerId);
+
+    return stats[0] || {
+      totalReferrals: 0,
+      qualifiedReferrals: 0,
+      totalCreditsEarned: 0,
+      pendingReferrals: 0
+    };
+  }
+
+  // Get user's referral history
+  async getUserReferrals(userId: string, limit = 50): Promise<Referral[]> {
+    return await db
+      .select()
+      .from(referrals)
+      .where(eq(referrals.referrerId, userId))
+      .orderBy(desc(referrals.createdAt))
+      .limit(limit);
+  }
+
+  // Deactivate a referral code
+  async deactivateReferralCode(id: string): Promise<ReferralCode | undefined> {
+    const [deactivatedCode] = await db
+      .update(referralCodes)
+      .set({ 
+        isActive: false,
+        updatedAt: new Date()
+      })
+      .where(eq(referralCodes.id, id))
+      .returning();
+    
+    return deactivatedCode;
   }
 }
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -70,6 +70,22 @@ import {
 export default function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Capture referral code from URL parameter
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const referralCode = urlParams.get('ref');
+    
+    if (referralCode) {
+      // Store referral code in sessionStorage for processing after login
+      sessionStorage.setItem('pendingReferralCode', referralCode.toUpperCase());
+      
+      // Clean URL to remove the referral parameter
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('ref');
+      window.history.replaceState({}, '', newUrl.toString());
+    }
+  }, []);
 
   // Fetch real stats from the API
   const { data: stats = { totalUsers: 0, totalScripts: 0, totalProjects: 0, verifiedVeterans: 0 } } = useQuery<{

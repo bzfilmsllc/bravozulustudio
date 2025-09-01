@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
+import { useReferralProcessing } from "@/hooks/useReferralProcessing";
 import { BannerAd, SidebarAd, BottomAd } from "@/components/google-ads";
 import {
   Film,
@@ -152,6 +153,9 @@ export default function Home() {
   const { user } = useAuth();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [systemStatus, setSystemStatus] = useState("OPERATIONAL");
+
+  // Process any pending referral codes from URL
+  useReferralProcessing();
 
   // Update time every second for real-time display
   useEffect(() => {
