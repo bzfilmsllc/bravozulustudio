@@ -6,6 +6,12 @@ import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
 import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema, insertDesignAssetSchema, insertGiftCodeSchema, insertErrorReportSchema, insertUserErrorPreferencesSchema, insertModeratorSchema, insertModerationActionSchema, insertContentReportSchema, insertAutoModerationRuleSchema, insertPostModerationStatusSchema } from "@shared/schema";
 import Stripe from "stripe";
+import Anthropic from "@anthropic-ai/sdk";
+
+// Initialize Anthropic client
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
+});
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -826,11 +832,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Generate script with Anthropic
-      const Anthropic = require('@anthropic-ai/sdk');
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
-
       const response = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2000,
@@ -922,11 +923,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Enhance script with Anthropic
-      const Anthropic = require('@anthropic-ai/sdk');
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
-
       const response = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 2000,
@@ -1016,11 +1012,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Analyze script with Anthropic
-      const Anthropic = require('@anthropic-ai/sdk');
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
-
       const response = await anthropic.messages.create({
         model: 'claude-3-5-sonnet-20241022',
         max_tokens: 1500,
@@ -1101,12 +1092,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-
-      // Initialize Anthropic client
-      const Anthropic = require('@anthropic-ai/sdk');
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
 
       // Build conversation context
       const systemPrompt = `You are a professional script writing assistant for Bravo Zulu Films, a platform for military veterans and filmmakers. You help users with:
