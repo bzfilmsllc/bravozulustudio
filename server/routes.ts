@@ -205,6 +205,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.sendFile(path.join(__dirname, '../client/public/emergency.html'));
   });
   
+  app.get('/fresh', (req, res) => {
+    console.log('🚀 SERVING FRESH CLEAN BUILD');
+    res.sendFile(path.join(__dirname, '../fresh-app/simple.html'));
+  });
+  
   app.post('/api/users/verification*', (req, res) => {
     console.log('🚫 BLOCKED VERIFICATION API - RETURNING SUCCESS');
     res.json({ success: true, message: 'Verification disabled for public access' });
