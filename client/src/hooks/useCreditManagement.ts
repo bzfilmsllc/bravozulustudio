@@ -39,8 +39,11 @@ export function useCreditManagement() {
     return result;
   }, [currentCredits, isSuperUser]);
 
-  // Check credits and show modal if insufficient
+  // DISABLED FOR TESTING: Check credits and show modal if insufficient
   const requireCredits = useCallback((requiredCredits: number, featureName?: string): boolean => {
+    // DISABLED ALL CREDIT BLOCKING FOR FACEBOOK LAUNCH TESTING
+    return true;
+    
     const result = checkCredits(requiredCredits);
     
     if (!result.hasEnoughCredits) {
@@ -57,8 +60,11 @@ export function useCreditManagement() {
     return true;
   }, [checkCredits, currentCredits, toast]);
 
-  // Auto-check for low balance and warn user
+  // DISABLED FOR TESTING: Auto-check for low balance and warn user
   const checkLowBalance = useCallback((threshold: number = 50) => {
+    // DISABLED ALL CREDIT POPUPS FOR FACEBOOK LAUNCH TESTING
+    return false;
+    
     if (isSuperUser) return false;
     
     if (currentCredits <= threshold && currentCredits > 0) {
