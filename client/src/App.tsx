@@ -22,6 +22,7 @@ import Settings from "@/pages/settings";
 import Referrals from "@/pages/referrals";
 import Achievements from "@/pages/achievements";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { EmergencyFix } from "@/components/emergency-fix";
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -66,6 +67,7 @@ function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
+          <EmergencyFix />
           <Toaster />
           <Router />
         </TooltipProvider>
