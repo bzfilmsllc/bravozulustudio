@@ -748,25 +748,6 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Verification Prompt */}
-            {user?.role !== "verified" && (
-              <Card className="mt-12 border-primary/20 bg-primary/5" data-testid="verification-prompt">
-                <CardContent className="p-8 text-center">
-                  <Star className="w-16 h-16 text-primary mx-auto mb-4" />
-                  <h3 className="text-2xl font-semibold mb-4">Unlock Professional Tools</h3>
-                  <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                    Complete military verification to access our full suite of professional studio tools, 
-                    including AI script writing, project collaboration, and industry networking features.
-                  </p>
-                  <Link href="/verification">
-                    <Button size="lg" data-testid="button-get-verified">
-                      <BarChart3 className="w-5 h-5 mr-2" />
-                      Get Verified Now
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Bottom Ad - Elegant Integration */}
             <div className="mt-16 mb-8">
