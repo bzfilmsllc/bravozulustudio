@@ -211,8 +211,8 @@ export default function Landing() {
             
             <div className="mb-8">
               <Badge className="badge-verified px-4 py-2 text-base font-military mb-4" data-testid="badge-studio-type">
-                <Shield className="w-5 h-5 mr-2" />
-                ELITE MILITARY FILM STUDIO
+                <Users className="w-5 h-5 mr-2" />
+                MILITARY FILM COMMUNITY
               </Badge>
             </div>
             
@@ -229,7 +229,7 @@ export default function Landing() {
             </h1>
             
             <p className="text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto mb-8 leading-relaxed font-medium animate-fade-in-up" style={{animationDelay: '0.6s'}}>
-              Transform your military experience into cinematic excellence. Join the most advanced film production platform built exclusively for veterans and military families.
+              Transform your military experience into cinematic excellence. Join the most advanced film production platform built for veterans, their families, and supporters.
             </p>
             
             {/* Enhanced Value Propositions */}
@@ -239,8 +239,8 @@ export default function Landing() {
                 AI-POWERED SCRIPTWRITING
               </Badge>
               <Badge className="bg-blue-600/20 text-blue-400 border-blue-600/50 px-4 py-2 text-sm font-military">
-                <Shield className="w-4 h-4 mr-2" />
-                VERIFIED VETERANS ONLY
+                <Users className="w-4 h-4 mr-2" />
+                VETERANS & SUPPORTERS WELCOME
               </Badge>
               <Badge className="bg-purple-600/20 text-purple-400 border-purple-600/50 px-4 py-2 text-sm font-military">
                 <Crown className="w-4 h-4 mr-2" />
@@ -275,10 +275,10 @@ export default function Landing() {
             <div className="text-center mb-20 animate-fade-in-up" style={{animationDelay: '1.2s'}}>
               <p className="text-sm text-yellow-400 font-military tracking-wide mb-2">
                 <Clock className="w-4 h-4 inline mr-2" />
-                LIMITED ENROLLMENT - VERIFIED VETERANS ONLY
+                EARLY ACCESS - VETERANS & SUPPORTERS WELCOME
               </p>
               <p className="text-xs text-muted-foreground">
-                Join {stats.verifiedVeterans} verified veterans already creating with professional tools
+                Join {stats.totalUsers} members building this community together
               </p>
             </div>
 
@@ -340,12 +340,12 @@ export default function Landing() {
                     <Shield className="w-8 h-8 text-green-400" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-lg">Military Exclusive</h4>
-                    <p className="text-sm text-green-400 font-military">VERIFIED VETERANS ONLY</p>
+                    <h4 className="font-bold text-lg">Military Community</h4>
+                    <p className="text-sm text-green-400 font-military">VETERANS, FAMILY & SUPPORTERS</p>
                   </div>
                 </div>
                 <p className="text-muted-foreground mb-6 leading-relaxed">
-                  Connect with fellow veterans who understand your journey. Our verification process ensures an authentic military community focused on serious filmmaking.
+                  Connect with veterans, their families, and supporters who understand the military experience. A welcoming community focused on authentic storytelling.
                 </p>
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="w-4 h-4 text-green-400" />
@@ -727,8 +727,8 @@ export default function Landing() {
                   <Shield className="text-primary w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-xl mb-3 gradient-gold">Military-Only Community</h3>
-                  <p className="text-muted-foreground leading-relaxed">Connect exclusively with verified veterans who understand your journey. No civilians, no wannabes - just authentic military professionals transitioning to filmmaking excellence.</p>
+                  <h3 className="font-bold text-xl mb-3 gradient-gold">Military-Connected Community</h3>
+                  <p className="text-muted-foreground leading-relaxed">Connect with veterans, military families, and supporters who understand the military experience. A respectful community built around authentic military storytelling.</p>
                 </div>
               </div>
               
@@ -775,7 +775,7 @@ export default function Landing() {
                 
                 <div className="space-y-4 mb-8">
                   <div className="flex items-center justify-between p-3 bg-green-600/10 rounded-lg border border-green-600/20">
-                    <span className="text-sm font-military">Military Verification</span>
+                    <span className="text-sm font-military">Community Verification</span>
                     <CheckCircle className="w-5 h-5 text-green-400" />
                   </div>
                   <div className="flex items-center justify-between p-3 bg-blue-600/10 rounded-lg border border-blue-600/20">
@@ -804,7 +804,7 @@ export default function Landing() {
                 <div className="text-center mt-4">
                   <p className="text-xs text-muted-foreground">
                     <Lock className="w-3 h-3 inline mr-1" />
-                    Secure application process • Verified veterans only
+                    Secure application process • Veterans, families & supporters welcome
                   </p>
                 </div>
               </CardContent>
@@ -841,8 +841,8 @@ export default function Landing() {
                     <Shield className="text-primary w-4 h-4" />
                   </div>
                   <div>
-                    <h3 className="font-semibold mb-2">Military Verification</h3>
-                    <p className="text-muted-foreground">Secure verification process confirming military connection and service history.</p>
+                    <h3 className="font-semibold mb-2">Community Verification</h3>
+                    <p className="text-muted-foreground">Verification process for veterans, with open access for military families and supporters.</p>
                   </div>
                 </div>
                 
@@ -1147,8 +1147,8 @@ export default function Landing() {
             </div>
             <div className="flex flex-col items-center">
               <Users2 className="w-8 h-8 text-blue-400 mb-3" />
-              <h4 className="font-military text-lg text-blue-400 mb-2">EXCLUSIVE ACCESS</h4>
-              <p className="text-sm text-muted-foreground">Veterans-only community with industry connections</p>
+              <h4 className="font-military text-lg text-blue-400 mb-2">WELCOMING COMMUNITY</h4>
+              <p className="text-sm text-muted-foreground">Veterans, families, and supporters with shared values</p>
             </div>
           </div>
         </div>
