@@ -73,12 +73,12 @@ export default function Portfolio() {
   const queryClient = useQueryClient();
 
   // Fetch user's creative work
-  const { data: scripts = [], isLoading: scriptsLoading } = useQuery({
+  const { data: scripts = [], isLoading: scriptsLoading } = useQuery<Script[]>({
     queryKey: ["/api/scripts"],
     retry: false,
   });
 
-  const { data: projects = [], isLoading: projectsLoading } = useQuery({
+  const { data: projects = [], isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects/my"],
     retry: false,
   });

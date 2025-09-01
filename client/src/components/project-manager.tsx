@@ -76,13 +76,13 @@ export function ProjectManager() {
   });
 
   // Fetch user projects
-  const { data: userProjects = [], isLoading: projectsLoading } = useQuery({
+  const { data: userProjects = [], isLoading: projectsLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects/my"],
     retry: false,
   });
 
   // Fetch public projects for collaboration
-  const { data: publicProjects = [], isLoading: publicProjectsLoading } = useQuery({
+  const { data: publicProjects = [], isLoading: publicProjectsLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
     retry: false,
   });

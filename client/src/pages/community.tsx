@@ -65,7 +65,7 @@ const forumPostSchema = z.object({
 
 export default function Community() {
   const [activeTab, setActiveTab] = useState("directory");
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<string | undefined>(undefined);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [newPostOpen, setNewPostOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -97,7 +97,7 @@ export default function Community() {
     retry: false,
   });
 
-  const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
+  const { data: conversations = [], isLoading: conversationsLoading } = useQuery<any[]>({
     queryKey: ["/api/messages/conversations"],
     retry: false,
   });
@@ -107,12 +107,12 @@ export default function Community() {
     retry: false,
   });
 
-  const { data: forumPosts = [] } = useQuery({
+  const { data: forumPosts = [] } = useQuery<any[]>({
     queryKey: ["/api/forum/posts"],
     retry: false,
   });
 
-  const { data: friends = [] } = useQuery({
+  const { data: friends = [] } = useQuery<User[]>({
     queryKey: ["/api/friends"],
     retry: false,
   });
