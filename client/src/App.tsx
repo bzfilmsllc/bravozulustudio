@@ -11,7 +11,7 @@ import Tools from "@/pages/tools";
 import Portfolio from "@/pages/portfolio";
 import Community from "@/pages/community";
 import Media from "@/pages/media";
-import Verification from "@/pages/verification";
+// import Verification from "@/pages/verification"; // DISABLED
 import Billing from "@/pages/billing";
 import DirectorsToolkit from "@/pages/directors-toolkit";
 import EditorsToolkit from "@/pages/editors-toolkit";
@@ -28,8 +28,13 @@ function Router() {
 
   return (
     <Switch>
-      {/* DISABLED FOR TESTING: Public pages */}
-      {/* <Route path="/verification" component={Verification} /> */}
+      {/* VERIFICATION ROUTE DISABLED - REDIRECT TO HOME */}
+      <Route path="/verification">
+        {() => {
+          window.location.href = '/';
+          return null;
+        }}
+      </Route>
       
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
