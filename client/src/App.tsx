@@ -21,7 +21,6 @@ import AdminPanel from "@/pages/admin";
 import Settings from "@/pages/settings";
 import Referrals from "@/pages/referrals";
 import Achievements from "@/pages/achievements";
-import { TutorialBot } from "@/components/tutorial-bot";
 import { ErrorBoundary } from "@/components/error-boundary";
 
 function Router() {
@@ -64,7 +63,6 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
-          <TutorialBot />
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>
