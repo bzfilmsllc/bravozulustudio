@@ -68,11 +68,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/users/members', isAuthenticated, async (req: any, res) => {
     try {
-      const members = await storage.getVerifiedMembers(50);
+      const { search, limit } = req.query;
+      let members;
+      
+      if (search && typeof search === 'string') {
+        members = await storage.searchMembers(search, limit ? parseInt(limit as string) : 20);
+      } else {
+        members = await storage.getMembers(limit ? parseInt(limit as string) : 50);
+      }
+      
       res.json(members);
     } catch (error) {
       console.error("Error fetching members:", error);
       res.status(500).json({ message: "Failed to fetch members" });
+    }
+  });
+
+  // Individual member profile with projects and scripts
+  app.get('/api/users/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const member = await storage.getUser(req.params.id);
+      if (!member) {
+        return res.status(404).json({ message: "Member not found" });
+      }
+      res.json(member);
+    } catch (error) {
+      console.error("Error fetching member:", error);
+      res.status(500).json({ message: "Failed to fetch member" });
+    }
+  });
+
+  // Member's public projects
+  app.get('/api/users/:id/projects', isAuthenticated, async (req: any, res) => {
+    try {
+      const projects = await storage.getUserProjects(req.params.id);
+      // Only return public projects unless it's the user's own profile
+      const userId = req.user.claims.sub;
+      const filteredProjects = projects.filter(p => p.isPublic || p.creatorId === userId);
+      res.json(filteredProjects);
+    } catch (error) {
+      console.error("Error fetching member projects:", error);
+      res.status(500).json({ message: "Failed to fetch member projects" });
+    }
+  });
+
+  // Member's public scripts
+  app.get('/api/users/:id/scripts', isAuthenticated, async (req: any, res) => {
+    try {
+      const scripts = await storage.getUserScripts(req.params.id);
+      // Only return public scripts unless it's the user's own profile
+      const userId = req.user.claims.sub;
+      const filteredScripts = scripts.filter(s => s.isPublic || s.authorId === userId);
+      res.json(filteredScripts);
+    } catch (error) {
+      console.error("Error fetching member scripts:", error);
+      res.status(500).json({ message: "Failed to fetch member scripts" });
+    }
+  });
+
+  // Friendship status check
+  app.get('/api/friends/status/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const status = await storage.getFriendshipStatus(userId, req.params.id);
+      res.json(status);
+    } catch (error) {
+      console.error("Error checking friendship status:", error);
+      res.status(500).json({ message: "Failed to check friendship status" });
+    }
+  });
+
+  // Activity feed
+  app.get('/api/activities', isAuthenticated, async (req: any, res) => {
+    try {
+      const { limit } = req.query;
+      const activities = await storage.getRecentActivities(limit ? parseInt(limit as string) : 20);
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      res.status(500).json({ message: "Failed to fetch activities" });
     }
   });
 
@@ -151,6 +225,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const scriptData = insertScriptSchema.parse({ ...req.body, authorId: userId });
       const script = await storage.createScript(scriptData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId,
+        type: 'script_created',
+        title: script.title,
+        description: script.logline || 'A new script has been created',
+        link: `/tools?script=${script.id}`,
+      });
+      
       res.json(script);
     } catch (error) {
       console.error("Error creating script:", error);
@@ -261,6 +345,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const projectData = insertProjectSchema.parse({ ...req.body, creatorId: userId });
       const project = await storage.createProject(projectData);
+      
+      // Log activity
+      await storage.createActivity({
+        userId,
+        type: 'project_created',
+        title: project.title,
+        description: project.description || 'A new project has been started',
+        link: `/tools?project=${project.id}`,
+      });
+      
       res.json(project);
     } catch (error) {
       console.error("Error creating project:", error);

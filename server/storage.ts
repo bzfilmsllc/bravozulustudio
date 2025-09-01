@@ -12,6 +12,7 @@ import {
   reports,
   festivalSubmissions,
   designAssets,
+  activities,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -36,6 +37,8 @@ import {
   type InsertFestivalSubmission,
   type DesignAsset,
   type InsertDesignAsset,
+  type Activity,
+  type InsertActivity,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, sql } from "drizzle-orm";
@@ -790,6 +793,103 @@ export class DatabaseStorage implements IStorage {
         updatedAt: new Date()
       })
       .where(eq(designAssets.id, id));
+  }
+
+  // Activity operations
+  async createActivity(activity: InsertActivity): Promise<Activity> {
+    const [newActivity] = await db.insert(activities).values(activity).returning();
+    return newActivity;
+  }
+
+  async getRecentActivities(limit = 20): Promise<(Activity & { user: User })[]> {
+    return await db
+      .select({
+        id: activities.id,
+        userId: activities.userId,
+        type: activities.type,
+        title: activities.title,
+        description: activities.description,
+        link: activities.link,
+        metadata: activities.metadata,
+        createdAt: activities.createdAt,
+        user: users,
+      })
+      .from(activities)
+      .innerJoin(users, eq(activities.userId, users.id))
+      .orderBy(desc(activities.createdAt))
+      .limit(limit);
+  }
+
+  async getUserActivities(userId: string, limit = 20): Promise<Activity[]> {
+    return await db
+      .select()
+      .from(activities)
+      .where(eq(activities.userId, userId))
+      .orderBy(desc(activities.createdAt))
+      .limit(limit);
+  }
+
+  // Enhanced member operations
+  async getMembers(limit = 50): Promise<User[]> {
+    return await db
+      .select()
+      .from(users)
+      .orderBy(desc(users.createdAt))
+      .limit(limit);
+  }
+
+  async searchMembers(query: string, limit = 20): Promise<User[]> {
+    const searchTerm = `%${query.toLowerCase()}%`;
+    return await db
+      .select()
+      .from(users)
+      .where(
+        or(
+          sql`LOWER(${users.firstName}) LIKE ${searchTerm}`,
+          sql`LOWER(${users.lastName}) LIKE ${searchTerm}`,
+          sql`LOWER(${users.email}) LIKE ${searchTerm}`,
+          sql`LOWER(${users.bio}) LIKE ${searchTerm}`
+        )
+      )
+      .orderBy(desc(users.createdAt))
+      .limit(limit);
+  }
+
+  async getFriendshipStatus(userId: string, otherUserId: string): Promise<{ status: 'none' | 'pending' | 'friends' }> {
+    // Check if they are friends
+    const [friendship] = await db
+      .select()
+      .from(friendships)
+      .where(
+        or(
+          and(eq(friendships.user1Id, userId), eq(friendships.user2Id, otherUserId)),
+          and(eq(friendships.user1Id, otherUserId), eq(friendships.user2Id, userId))
+        )
+      );
+
+    if (friendship) {
+      return { status: 'friends' };
+    }
+
+    // Check if there's a pending request
+    const [pendingRequest] = await db
+      .select()
+      .from(friendRequests)
+      .where(
+        and(
+          or(
+            and(eq(friendRequests.fromUserId, userId), eq(friendRequests.toUserId, otherUserId)),
+            and(eq(friendRequests.fromUserId, otherUserId), eq(friendRequests.toUserId, userId))
+          ),
+          eq(friendRequests.status, 'pending')
+        )
+      );
+
+    if (pendingRequest) {
+      return { status: 'pending' };
+    }
+
+    return { status: 'none' };
   }
 }
 

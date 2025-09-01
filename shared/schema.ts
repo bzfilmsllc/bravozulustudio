@@ -180,6 +180,20 @@ export const messages = pgTable("messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Activity tracking table
+export const activities = pgTable("activities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  type: varchar("type", { 
+    enum: ['script_created', 'project_created', 'member_joined', 'forum_post', 'friend_added', 'festival_submission'] 
+  }).notNull(),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  link: varchar("link"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Reports table
 export const reports = pgTable("reports", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -207,6 +221,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   forumReplies: many(forumReplies),
   sentMessages: many(messages, { relationName: "sentMessages" }),
   receivedMessages: many(messages, { relationName: "receivedMessages" }),
+  activities: many(activities),
   reports: many(reports, { relationName: "reporterReports" }),
   reportedBy: many(reports, { relationName: "reportedUserReports" }),
 }));
@@ -427,6 +442,11 @@ export const insertDesignAssetSchema = createInsertSchema(designAssets).omit({
   downloadCount: true,
 });
 
+export const insertActivitySchema = createInsertSchema(activities).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
@@ -452,3 +472,5 @@ export type FestivalSubmission = typeof festivalSubmissions.$inferSelect;
 export type InsertFestivalSubmission = z.infer<typeof insertFestivalSubmissionSchema>;
 export type DesignAsset = typeof designAssets.$inferSelect;
 export type InsertDesignAsset = z.infer<typeof insertDesignAssetSchema>;
+export type Activity = typeof activities.$inferSelect;
+export type InsertActivity = z.infer<typeof insertActivitySchema>;

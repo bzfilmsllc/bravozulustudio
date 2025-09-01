@@ -8,6 +8,8 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Navigation } from "@/components/navigation";
 import { MemberGuard } from "@/components/member-guard";
+import { MemberProfile } from "@/components/member-profile";
+import { ActivityFeed } from "@/components/activity-feed";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,6 +42,12 @@ import {
   Heart,
   Reply,
   Search,
+  Activity,
+  Filter,
+  Grid,
+  List,
+  Briefcase,
+  Award,
 } from "lucide-react";
 import type { User, ForumPost, Message } from "@shared/schema";
 
@@ -57,7 +65,10 @@ const forumPostSchema = z.object({
 export default function Community() {
   const [activeTab, setActiveTab] = useState("directory");
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [newPostOpen, setNewPostOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -72,9 +83,16 @@ export default function Community() {
     defaultValues: { title: "", content: "", categoryId: "" },
   });
 
-  // Fetch data
+  // Fetch data with search
   const { data: members = [], isLoading: membersLoading } = useQuery({
-    queryKey: ["/api/users/members"],
+    queryKey: ["/api/users/members", searchQuery],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      const response = await fetch(`/api/users/members?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch members');
+      return response.json();
+    },
     retry: false,
   });
 
@@ -247,94 +265,186 @@ export default function Community() {
                     <CardTitle className="flex items-center justify-between">
                       <span className="flex items-center">
                         <Users className="w-6 h-6 text-primary mr-3" />
-                        Member Directory
+                        Member Directory ({members.length})
                       </span>
                       <div className="flex items-center space-x-2">
                         <Input 
                           placeholder="Search members..." 
                           className="w-64"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
                           data-testid="input-search-members"
                         />
-                        <Button variant="outline" size="icon">
-                          <Search className="w-4 h-4" />
+                        <Button 
+                          variant="outline" 
+                          size="icon"
+                          onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+                          data-testid="button-toggle-view"
+                        >
+                          {viewMode === "grid" ? <List className="w-4 h-4" /> : <Grid className="w-4 h-4" />}
                         </Button>
                       </div>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
                     {membersLoading ? (
-                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className={`${viewMode === "grid" ? "grid md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-4"}`}>
                         {[...Array(6)].map((_, i) => (
                           <div key={i} className="animate-pulse">
-                            <div className="h-32 bg-muted rounded-lg"></div>
+                            <div className={`${viewMode === "grid" ? "h-48" : "h-20"} bg-muted rounded-lg`}></div>
                           </div>
                         ))}
                       </div>
                     ) : members.length === 0 ? (
                       <div className="text-center py-12">
                         <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                        <p className="text-muted-foreground">No verified members found.</p>
+                        <p className="text-muted-foreground">
+                          {searchQuery ? "No members found matching your search." : "No members found."}
+                        </p>
+                        {searchQuery && (
+                          <Button 
+                            variant="outline" 
+                            className="mt-4"
+                            onClick={() => setSearchQuery("")}
+                          >
+                            Clear Search
+                          </Button>
+                        )}
                       </div>
                     ) : (
-                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className={`${viewMode === "grid" ? "grid md:grid-cols-2 lg:grid-cols-3 gap-4" : "space-y-4"}`}>
                         {members.map((member: User) => (
-                          <Card key={member.id} className="hover:border-primary/50 transition-all" data-testid={`member-card-${member.id}`}>
-                            <CardContent className="p-6">
-                              <div className="flex items-center space-x-3 mb-4">
-                                <Avatar className="w-12 h-12">
-                                  <AvatarImage src={member.profileImageUrl} alt={member.firstName || "Member"} />
-                                  <AvatarFallback>
-                                    {member.firstName?.[0] || member.email?.[0] || "M"}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <div className="flex-1">
-                                  <h4 className="font-semibold">
-                                    {member.firstName && member.lastName 
-                                      ? `${member.firstName} ${member.lastName}`
-                                      : member.email
-                                    }
-                                  </h4>
-                                  <div className="flex items-center space-x-2">
-                                    {member.militaryBranch && (
-                                      <Badge variant="outline" className="text-xs">
-                                        {member.militaryBranch.replace("_", " ").toUpperCase()}
-                                      </Badge>
-                                    )}
-                                    {member.isVerified && (
-                                      <Shield className="w-3 h-3 text-primary" />
+                          <Card 
+                            key={member.id} 
+                            className={`hover:border-primary/50 transition-all cursor-pointer ${viewMode === "list" ? "p-4" : ""}`}
+                            onClick={() => setSelectedMember(member.id)}
+                            data-testid={`member-card-${member.id}`}
+                          >
+                            <CardContent className={`${viewMode === "grid" ? "p-6" : "p-0"}`}>
+                              {viewMode === "grid" ? (
+                                <>
+                                  <div className="flex items-center space-x-3 mb-4">
+                                    <Avatar className="w-16 h-16">
+                                      <AvatarImage src={member.profileImageUrl || undefined} alt={member.firstName || "Member"} />
+                                      <AvatarFallback className="text-lg">
+                                        {member.firstName?.[0] || member.email?.[0] || "M"}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                      <h4 className="font-semibold text-lg">
+                                        {member.firstName && member.lastName 
+                                          ? `${member.firstName} ${member.lastName}`
+                                          : member.email?.split('@')[0]
+                                        }
+                                      </h4>
+                                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                                        {member.role === "verified" && (
+                                          <Badge className="bg-green-600">
+                                            <Shield className="w-3 h-3 mr-1" />
+                                            Verified
+                                          </Badge>
+                                        )}
+                                        {member.militaryBranch && member.militaryBranch !== "civilian" && (
+                                          <Badge variant="outline" className="text-xs">
+                                            {member.militaryBranch.replace("_", " ").toUpperCase()}
+                                          </Badge>
+                                        )}
+                                        {member.relationshipType && (
+                                          <Badge variant="secondary" className="text-xs">
+                                            {member.relationshipType.replace("_", " ")}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  {member.bio && (
+                                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">{member.bio}</p>
+                                  )}
+                                  
+                                  {member.specialties && (
+                                    <div className="mb-4">
+                                      <div className="flex flex-wrap gap-1">
+                                        {member.specialties.split(',').slice(0, 3).map((specialty, index) => (
+                                          <Badge key={index} variant="outline" className="text-xs">
+                                            {specialty.trim()}
+                                          </Badge>
+                                        ))}
+                                        {member.specialties.split(',').length > 3 && (
+                                          <Badge variant="outline" className="text-xs">
+                                            +{member.specialties.split(',').length - 3} more
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                                      <Calendar className="w-3 h-3" />
+                                      <span>Joined {new Date(member.createdAt!).toLocaleDateString()}</span>
+                                    </div>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedMember(member.id);
+                                      }}
+                                    >
+                                      View Profile
+                                    </Button>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="flex items-center space-x-4">
+                                  <Avatar className="w-12 h-12">
+                                    <AvatarImage src={member.profileImageUrl || undefined} alt={member.firstName || "Member"} />
+                                    <AvatarFallback>
+                                      {member.firstName?.[0] || member.email?.[0] || "M"}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div className="flex-1">
+                                    <div className="flex items-center space-x-3">
+                                      <h4 className="font-semibold">
+                                        {member.firstName && member.lastName 
+                                          ? `${member.firstName} ${member.lastName}`
+                                          : member.email?.split('@')[0]
+                                        }
+                                      </h4>
+                                      {member.role === "verified" && (
+                                        <Badge className="bg-green-600 text-xs">
+                                          <Shield className="w-3 h-3 mr-1" />
+                                          Verified
+                                        </Badge>
+                                      )}
+                                      {member.militaryBranch && member.militaryBranch !== "civilian" && (
+                                        <Badge variant="outline" className="text-xs">
+                                          {member.militaryBranch.replace("_", " ").toUpperCase()}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    {member.bio && (
+                                      <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{member.bio}</p>
                                     )}
                                   </div>
+                                  <div className="flex items-center space-x-2">
+                                    <span className="text-xs text-muted-foreground">
+                                      {new Date(member.createdAt!).toLocaleDateString()}
+                                    </span>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedMember(member.id);
+                                      }}
+                                    >
+                                      View Profile
+                                    </Button>
+                                  </div>
                                 </div>
-                              </div>
-                              
-                              {member.specialties && (
-                                <p className="text-sm text-muted-foreground mb-4">{member.specialties}</p>
                               )}
-
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-2 text-xs text-muted-foreground">
-                                  <Calendar className="w-3 h-3" />
-                                  <span>Joined {new Date(member.createdAt!).toLocaleDateString()}</span>
-                                </div>
-                                {member.id !== user?.id && !isFriend(member.id) && (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() => handleSendFriendRequest(member.id)}
-                                    disabled={sendFriendRequestMutation.isPending}
-                                    data-testid={`button-add-friend-${member.id}`}
-                                  >
-                                    <UserPlus className="w-3 h-3 mr-1" />
-                                    Connect
-                                  </Button>
-                                )}
-                                {isFriend(member.id) && (
-                                  <Badge variant="default" className="text-xs">
-                                    <Users className="w-3 h-3 mr-1" />
-                                    Connected
-                                  </Badge>
-                                )}
-                              </div>
                             </CardContent>
                           </Card>
                         ))}
@@ -663,6 +773,15 @@ export default function Community() {
             </Card>
           </div>
         </main>
+
+        {/* Member Profile Modal */}
+        {selectedMember && (
+          <MemberProfile
+            memberId={selectedMember}
+            isOpen={!!selectedMember}
+            onClose={() => setSelectedMember(null)}
+          />
+        )}
       </div>
     </MemberGuard>
   );
