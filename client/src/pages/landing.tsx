@@ -1177,42 +1177,53 @@ export default function Landing() {
               </p>
               
               <div className="grid grid-cols-2 gap-4 mb-8">
-                <a href="#" className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:border-primary/50 transition-all duration-300 group" data-testid="link-youtube">
+                <a href="https://www.youtube.com/@bravozulufilms" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:border-primary/50 transition-all duration-300 group" data-testid="link-youtube">
                   <Youtube className="text-red-500 text-2xl group-hover:scale-110 transition-transform" />
                   <div>
                     <h4 className="font-semibold">YouTube</h4>
-                    <p className="text-sm text-muted-foreground">Film showcases & tutorials</p>
+                    <p className="text-sm text-muted-foreground">Subscribe for filmmaking content</p>
                   </div>
                 </a>
                 
-                <a href="#" className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:border-primary/50 transition-all duration-300 group" data-testid="link-instagram">
+                <a href="https://rumble.com/user/BravoZuluFilms" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:border-primary/50 transition-all duration-300 group" data-testid="link-rumble">
+                  <Play className="text-green-500 text-2xl group-hover:scale-110 transition-transform" />
+                  <div>
+                    <h4 className="font-semibold">Rumble</h4>
+                    <p className="text-sm text-muted-foreground">Follow for uncensored content</p>
+                  </div>
+                </a>
+                
+                <a href="https://www.instagram.com/bravozulufilms" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:border-primary/50 transition-all duration-300 group" data-testid="link-instagram">
                   <Instagram className="text-pink-500 text-2xl group-hover:scale-110 transition-transform" />
                   <div>
                     <h4 className="font-semibold">Instagram</h4>
-                    <p className="text-sm text-muted-foreground">Behind the scenes</p>
+                    <p className="text-sm text-muted-foreground">Follow for behind the scenes</p>
                   </div>
                 </a>
                 
-                <a href="#" className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:border-primary/50 transition-all duration-300 group" data-testid="link-twitter">
+                <a href="https://twitter.com/BravoZuluFilms" target="_blank" rel="noopener noreferrer" className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:border-primary/50 transition-all duration-300 group" data-testid="link-twitter">
                   <Twitter className="text-blue-400 text-2xl group-hover:scale-110 transition-transform" />
                   <div>
                     <h4 className="font-semibold">Twitter</h4>
-                    <p className="text-sm text-muted-foreground">Industry updates</p>
-                  </div>
-                </a>
-                
-                <a href="#" className="flex items-center space-x-3 p-4 border border-border rounded-lg hover:border-primary/50 transition-all duration-300 group" data-testid="link-linkedin">
-                  <Linkedin className="text-blue-600 text-2xl group-hover:scale-110 transition-transform" />
-                  <div>
-                    <h4 className="font-semibold">LinkedIn</h4>
-                    <p className="text-sm text-muted-foreground">Professional network</p>
+                    <p className="text-sm text-muted-foreground">Follow for industry updates</p>
                   </div>
                 </a>
               </div>
               
-              <Button data-testid="button-follow-channels">
-                Follow All Channels
-              </Button>
+              <div className="flex flex-wrap gap-3 justify-start">
+                <Button asChild className="bg-red-600 hover:bg-red-700" data-testid="button-youtube-subscribe">
+                  <a href="https://www.youtube.com/@bravozulufilms" target="_blank" rel="noopener noreferrer">
+                    <Youtube className="w-4 h-4 mr-2" />
+                    Subscribe on YouTube
+                  </a>
+                </Button>
+                <Button asChild className="bg-green-600 hover:bg-green-700" data-testid="button-rumble-follow">
+                  <a href="https://rumble.com/user/BravoZuluFilms" target="_blank" rel="noopener noreferrer">
+                    <Play className="w-4 h-4 mr-2" />
+                    Follow on Rumble
+                  </a>
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -1278,17 +1289,17 @@ export default function Landing() {
                 Professional film studio empowering military veterans to create exceptional cinematic content.
               </p>
               <div className="flex space-x-3">
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors" data-testid="footer-facebook">
-                  <Facebook className="w-5 h-5" />
+                <a href="https://www.youtube.com/@bravozulufilms" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" data-testid="footer-youtube" title="Subscribe on YouTube">
+                  <Youtube className="w-5 h-5" />
                 </a>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors" data-testid="footer-twitter">
-                  <Twitter className="w-5 h-5" />
+                <a href="https://rumble.com/user/BravoZuluFilms" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" data-testid="footer-rumble" title="Follow on Rumble">
+                  <Play className="w-5 h-5" />
                 </a>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors" data-testid="footer-instagram">
+                <a href="https://www.instagram.com/bravozulufilms" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" data-testid="footer-instagram" title="Follow on Instagram">
                   <Instagram className="w-5 h-5" />
                 </a>
-                <a href="#" className="text-muted-foreground hover:text-primary transition-colors" data-testid="footer-youtube">
-                  <Youtube className="w-5 h-5" />
+                <a href="https://twitter.com/BravoZuluFilms" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors" data-testid="footer-twitter" title="Follow on Twitter">
+                  <Twitter className="w-5 h-5" />
                 </a>
               </div>
             </div>

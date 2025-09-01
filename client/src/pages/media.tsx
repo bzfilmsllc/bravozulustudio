@@ -52,16 +52,31 @@ export default function Media() {
   const [activeTab, setActiveTab] = useState("updates");
   const [selectedPlatform, setSelectedPlatform] = useState<string | null>(null);
 
-  // Mock data for demonstration - in production this would come from social media APIs
+  // Social media platforms with real URLs and CTAs
   const socialPlatforms = [
     {
       name: "YouTube",
       icon: Youtube,
       color: "text-red-500",
-      handle: "@BravoZuluFilms",
+      handle: "@bravozulufilms",
       followers: "12.5K",
       description: "Film showcases & tutorials",
       metrics: { posts: 156, engagement: "8.2%" },
+      url: "https://www.youtube.com/@bravozulufilms",
+      cta: "Subscribe",
+      ctaAction: "Subscribe for military filmmaking content!"
+    },
+    {
+      name: "Rumble",
+      icon: Play,
+      color: "text-green-500",
+      handle: "BravoZuluFilms",
+      followers: "2.1K",
+      description: "Uncensored film content",
+      metrics: { posts: 47, engagement: "15.6%" },
+      url: "https://rumble.com/user/BravoZuluFilms",
+      cta: "Follow",
+      ctaAction: "Follow for exclusive veteran stories!"
     },
     {
       name: "Instagram", 
@@ -71,6 +86,9 @@ export default function Media() {
       followers: "8.3K",
       description: "Behind the scenes",
       metrics: { posts: 342, engagement: "12.1%" },
+      url: "https://www.instagram.com/bravozulufilms",
+      cta: "Follow",
+      ctaAction: "Follow for behind-the-scenes content!"
     },
     {
       name: "Twitter",
@@ -80,6 +98,9 @@ export default function Media() {
       followers: "5.7K",
       description: "Industry updates",
       metrics: { posts: 1205, engagement: "6.8%" },
+      url: "https://twitter.com/BravoZuluFilms",
+      cta: "Follow",
+      ctaAction: "Follow for industry updates!"
     },
     {
       name: "LinkedIn",
@@ -89,6 +110,9 @@ export default function Media() {
       followers: "3.2K",
       description: "Professional network",
       metrics: { posts: 89, engagement: "15.3%" },
+      url: "https://www.linkedin.com/company/bravo-zulu-films",
+      cta: "Connect",
+      ctaAction: "Connect for professional networking!"
     },
   ];
 
@@ -366,9 +390,16 @@ export default function Media() {
                                 <p className="text-sm text-muted-foreground">{platform.handle}</p>
                               </div>
                             </div>
-                            <Button variant="outline" size="sm" data-testid={`button-follow-${platform.name.toLowerCase()}`}>
-                              <ExternalLink className="w-4 h-4 mr-2" />
-                              Follow
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              asChild
+                              data-testid={`button-follow-${platform.name.toLowerCase()}`}
+                            >
+                              <a href={platform.url} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="w-4 h-4 mr-2" />
+                                {platform.cta}
+                              </a>
                             </Button>
                           </CardTitle>
                         </CardHeader>
@@ -388,7 +419,8 @@ export default function Media() {
                             </div>
                           </div>
                           
-                          <p className="text-sm text-muted-foreground mb-4">{platform.description}</p>
+                          <p className="text-sm text-muted-foreground mb-2">{platform.description}</p>
+                          <p className="text-sm text-primary/80 mb-4 font-medium">💡 {platform.ctaAction}</p>
                           
                           <div className="bg-secondary/30 rounded-lg p-4">
                             <h4 className="font-semibold text-sm mb-2">Recent Activity</h4>
@@ -563,21 +595,39 @@ export default function Media() {
                   {socialPlatforms.map((platform) => {
                     const Icon = platform.icon;
                     return (
-                      <div key={platform.name} className="w-12 h-12 bg-background rounded-lg flex items-center justify-center hover:scale-110 transition-transform cursor-pointer">
+                      <a 
+                        key={platform.name} 
+                        href={platform.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="w-12 h-12 bg-background rounded-lg flex items-center justify-center hover:scale-110 transition-transform cursor-pointer hover:bg-primary/10 border hover:border-primary/50"
+                        title={platform.ctaAction}
+                      >
                         <Icon className={`w-6 h-6 ${platform.color}`} />
-                      </div>
+                      </a>
                     );
                   })}
                 </div>
-                <h3 className="text-2xl font-semibold mb-4">Stay Connected</h3>
+                <h3 className="text-2xl font-semibold mb-4">Stay Connected with Bravo Zulu Films</h3>
                 <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                  Follow us across all platforms to stay updated on the latest film projects, 
-                  industry insights, and community achievements from our veteran filmmakers.
+                  🎖️ Follow us on YouTube & Rumble for exclusive veteran filmmaking content<br/>
+                  📸 Subscribe for behind-the-scenes footage and industry insights<br/>
+                  🚀 Connect with our growing community of military storytellers
                 </p>
-                <Button size="lg" data-testid="button-follow-all-platforms">
-                  <Heart className="w-5 h-5 mr-2" />
-                  Follow All Platforms
-                </Button>
+                <div className="flex flex-wrap justify-center gap-3">
+                  <Button size="lg" asChild className="bg-red-600 hover:bg-red-700" data-testid="button-youtube-subscribe">
+                    <a href="https://www.youtube.com/@bravozulufilms" target="_blank" rel="noopener noreferrer">
+                      <Youtube className="w-5 h-5 mr-2" />
+                      Subscribe on YouTube
+                    </a>
+                  </Button>
+                  <Button size="lg" asChild className="bg-green-600 hover:bg-green-700" data-testid="button-rumble-follow">
+                    <a href="https://rumble.com/user/BravoZuluFilms" target="_blank" rel="noopener noreferrer">
+                      <Play className="w-5 h-5 mr-2" />
+                      Follow on Rumble
+                    </a>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
