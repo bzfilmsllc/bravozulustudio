@@ -137,7 +137,12 @@ export default function Portfolio() {
       category: "film",
       thumbnail: "/placeholder-film.jpg",
     })),
-  ].sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime());
+  ].sort((a, b) => {
+    const dateA = a.updatedAt || a.createdAt;
+    const dateB = b.updatedAt || b.createdAt;
+    if (!dateA || !dateB) return 0;
+    return new Date(dateB).getTime() - new Date(dateA).getTime();
+  });
 
   const filteredWorks = selectedCategory === "all" 
     ? combinedWorks 
@@ -153,7 +158,7 @@ export default function Portfolio() {
           <div className="mb-8">
             <div className="flex items-center space-x-4 mb-4">
               <Avatar className="w-20 h-20">
-                <AvatarImage src={user?.profileImageUrl} />
+                <AvatarImage src={user?.profileImageUrl || undefined} />
                 <AvatarFallback className="text-2xl">
                   {user?.firstName?.[0]}{user?.lastName?.[0]}
                 </AvatarFallback>
