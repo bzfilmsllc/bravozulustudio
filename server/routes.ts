@@ -961,6 +961,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+  // Test endpoint to verify authentication
+  app.get('/api/ai/test-auth', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const user = await storage.getUser(userId);
+      res.json({ 
+        authenticated: true, 
+        userId,
+        userExists: !!user,
+        geminiConfigured: !!genAI,
+        message: 'Authentication working properly'
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: "Auth test failed: " + error.message });
+    }
+  });
+
   // AI-powered features with credit requirements
   app.post('/api/ai/generate-script', isAuthenticated, async (req: any, res) => {
     try {

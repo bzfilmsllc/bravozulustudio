@@ -109,10 +109,16 @@ export function AIScriptGenerator() {
       if (error.response?.status === 402) {
         // Credit management hook will handle this
         return;
+      } else if (error.response?.status === 401) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in again to continue using AI features",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Generation Failed",
-          description: errorData?.message || "Failed to generate script",
+          description: errorData?.message || "Failed to generate script. Please check your connection and try again.",
           variant: "destructive",
         });
       }
