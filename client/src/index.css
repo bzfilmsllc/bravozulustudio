@@ -1,0 +1,189 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: hsl(222, 84%, 4.9%);
+  --foreground: hsl(210, 40%, 98%);
+  --card: hsl(222, 84%, 4.9%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --popover: hsl(222, 84%, 4.9%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --primary: hsl(47, 96%, 53%);
+  --primary-foreground: hsl(222, 84%, 4.9%);
+  --secondary: hsl(217, 32%, 17%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217, 32%, 17%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --accent: hsl(210, 40%, 98%);
+  --accent-foreground: hsl(222, 84%, 4.9%);
+  --destructive: hsl(0, 62%, 30%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217, 32%, 17%);
+  --input: hsl(217, 32%, 17%);
+  --ring: hsl(212, 72%, 59%);
+  --chart-1: hsl(47, 96%, 53%);
+  --chart-2: hsl(159, 100%, 36%);
+  --chart-3: hsl(42, 93%, 56%);
+  --chart-4: hsl(147, 78%, 42%);
+  --chart-5: hsl(341, 75%, 51%);
+  --sidebar: hsl(222, 84%, 4.9%);
+  --sidebar-foreground: hsl(210, 40%, 98%);
+  --sidebar-primary: hsl(47, 96%, 53%);
+  --sidebar-primary-foreground: hsl(222, 84%, 4.9%);
+  --sidebar-accent: hsl(217, 32%, 17%);
+  --sidebar-accent-foreground: hsl(210, 40%, 98%);
+  --sidebar-border: hsl(217, 32%, 17%);
+  --sidebar-ring: hsl(212, 72%, 59%);
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-mono: "Fira Code", monospace;
+  --radius: 0.5rem;
+  --shadow-2xs: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00);
+  --shadow-xs: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00);
+  --shadow-sm: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00), 0px 1px 2px -1px hsl(212, 72%, 59% / 0.00);
+  --shadow: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00), 0px 1px 2px -1px hsl(212, 72%, 59% / 0.00);
+  --shadow-md: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00), 0px 2px 4px -1px hsl(212, 72%, 59% / 0.00);
+  --shadow-lg: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00), 0px 4px 6px -1px hsl(212, 72%, 59% / 0.00);
+  --shadow-xl: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00), 0px 8px 10px -1px hsl(212, 72%, 59% / 0.00);
+  --shadow-2xl: 0px 2px 0px 0px hsl(212, 72%, 59% / 0.00);
+  --tracking-normal: 0em;
+  --spacing: 0.25rem;
+}
+
+.dark {
+  --background: hsl(222, 84%, 4.9%);
+  --foreground: hsl(210, 40%, 98%);
+  --card: hsl(222, 84%, 4.9%);
+  --card-foreground: hsl(210, 40%, 98%);
+  --popover: hsl(222, 84%, 4.9%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  --primary: hsl(47, 96%, 53%);
+  --primary-foreground: hsl(222, 84%, 4.9%);
+  --secondary: hsl(217, 32%, 17%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  --muted: hsl(217, 32%, 17%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  --accent: hsl(210, 40%, 98%);
+  --accent-foreground: hsl(222, 84%, 4.9%);
+  --destructive: hsl(0, 62%, 30%);
+  --destructive-foreground: hsl(210, 40%, 98%);
+  --border: hsl(217, 32%, 17%);
+  --input: hsl(217, 32%, 17%);
+  --ring: hsl(212, 72%, 59%);
+  --chart-1: hsl(47, 96%, 53%);
+  --chart-2: hsl(159, 100%, 36%);
+  --chart-3: hsl(42, 93%, 56%);
+  --chart-4: hsl(147, 78%, 42%);
+  --chart-5: hsl(341, 75%, 51%);
+  --sidebar: hsl(222, 84%, 4.9%);
+  --sidebar-foreground: hsl(210, 40%, 98%);
+  --sidebar-primary: hsl(47, 96%, 53%);
+  --sidebar-primary-foreground: hsl(222, 84%, 4.9%);
+  --sidebar-accent: hsl(217, 32%, 17%);
+  --sidebar-accent-foreground: hsl(210, 40%, 98%);
+  --sidebar-border: hsl(217, 32%, 17%);
+  --sidebar-ring: hsl(212, 72%, 59%);
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "Playfair Display", serif;
+  --font-mono: "Fira Code", monospace;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+
+  html {
+    @apply dark;
+  }
+}
+
+/* Custom animations for cinematic feel */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Script editor styles */
+.script-editor {
+  @apply bg-card border border-border rounded-lg p-6;
+}
+
+.script-editor .ProseMirror {
+  @apply bg-background text-foreground border border-border rounded p-4 min-h-[400px] focus:outline-none focus:ring-2 focus:ring-ring;
+  font-family: 'Courier New', monospace;
+  line-height: 1.6;
+}
+
+.script-editor .ProseMirror p {
+  margin: 0.5em 0;
+}
+
+.script-editor .ProseMirror h1 {
+  @apply text-xl font-bold text-center mb-4;
+}
+
+.script-editor .ProseMirror h2 {
+  @apply text-lg font-semibold mb-2;
+}
+
+/* Character name styling */
+.script-editor .character-name {
+  @apply font-bold text-primary uppercase tracking-wider text-center mb-2;
+}
+
+/* Dialogue styling */
+.script-editor .dialogue {
+  @apply ml-8 mr-16 mb-4;
+}
+
+/* Action/scene description styling */
+.script-editor .action {
+  @apply mb-4 text-muted-foreground;
+}
+
+/* Parenthetical styling */
+.script-editor .parenthetical {
+  @apply ml-12 mr-20 text-muted-foreground italic;
+}
+
+/* Scene heading styling */
+.script-editor .scene-heading {
+  @apply font-bold uppercase mb-4 text-accent-foreground;
+}
+
+/* Transition styling */
+.script-editor .transition {
+  @apply text-right font-bold mb-4 text-primary;
+}
