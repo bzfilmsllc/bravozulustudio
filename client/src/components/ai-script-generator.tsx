@@ -11,6 +11,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCreditManagement } from "@/hooks/useCreditManagement";
+import { QuickCreditTopUp } from "@/components/quick-credit-topup";
 import { 
   Zap, 
   Wand2, 
@@ -31,6 +33,15 @@ interface UserBillingInfo {
 export function AIScriptGenerator() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const {
+    currentCredits,
+    requireCredits,
+    checkLowBalance,
+    showTopUpModal,
+    closeTopUpModal,
+    handleTopUpSuccess,
+    isSuperUser
+  } = useCreditManagement();
   
   // Form states
   const [generateForm, setGenerateForm] = useState({
@@ -54,31 +65,32 @@ export function AIScriptGenerator() {
   const [enhancedScript, setEnhancedScript] = useState('');
   const [scriptAnalysis, setScriptAnalysis] = useState('');
 
-  // Fetch user credits
-  const { data: billingInfo } = useQuery<UserBillingInfo>({
-    queryKey: ['/api/billing/credits'],
+  // Check for low balance on component mount
+  useState(() => {
+    if (!isSuperUser) {
+      setTimeout(() => checkLowBalance(25), 1000); // Check after 1 second
+    }
   });
 
   // Generate script mutation
   const generateMutation = useMutation({
-    mutationFn: (data: typeof generateForm) => apiRequest("POST", "/api/ai/generate-script", data),
-    onSuccess: async (response) => {
-      const result = await response.json();
-      setGeneratedScript(result.script);
-      queryClient.invalidateQueries({ queryKey: ['/api/billing/credits'] });
+    mutationFn: (data: typeof generateForm) => apiRequest("/api/ai/generate-script", "POST", data),
+    onSuccess: async (response: any) => {
+      setGeneratedScript(response.script);
+      queryClient.invalidateQueries({ queryKey: ["/api/billing/user-credits"] });
       toast({
         title: "Script Generated!",
-        description: `Used ${result.creditsUsed} credits. ${result.remainingCredits} credits remaining.`,
+        description: `Used ${response.creditsUsed} credits. ${response.remainingCredits} credits remaining.`,
       });
+      
+      // Check for low balance after usage
+      setTimeout(() => checkLowBalance(25), 500);
     },
     onError: async (error: any) => {
       const errorData = await error.response?.json();
       if (error.response?.status === 402) {
-        toast({
-          title: "Insufficient Credits",
-          description: `You need ${errorData.required} credits but only have ${errorData.available}. Visit Billing to purchase more.`,
-          variant: "destructive",
-        });
+        // Credit management hook will handle this
+        return;
       } else {
         toast({
           title: "Generation Failed",
@@ -91,24 +103,23 @@ export function AIScriptGenerator() {
 
   // Enhance script mutation
   const enhanceMutation = useMutation({
-    mutationFn: (data: typeof enhanceForm) => apiRequest("POST", "/api/ai/enhance-script", data),
-    onSuccess: async (response) => {
-      const result = await response.json();
-      setEnhancedScript(result.enhancedScript);
-      queryClient.invalidateQueries({ queryKey: ['/api/billing/credits'] });
+    mutationFn: (data: typeof enhanceForm) => apiRequest("/api/ai/enhance-script", "POST", data),
+    onSuccess: async (response: any) => {
+      setEnhancedScript(response.enhancedScript);
+      queryClient.invalidateQueries({ queryKey: ["/api/billing/user-credits"] });
       toast({
         title: "Script Enhanced!",
-        description: `Used ${result.creditsUsed} credits. ${result.remainingCredits} credits remaining.`,
+        description: `Used ${response.creditsUsed} credits. ${response.remainingCredits} credits remaining.`,
       });
+      
+      // Check for low balance after usage
+      setTimeout(() => checkLowBalance(25), 500);
     },
     onError: async (error: any) => {
       const errorData = await error.response?.json();
       if (error.response?.status === 402) {
-        toast({
-          title: "Insufficient Credits",
-          description: `You need ${errorData.required} credits but only have ${errorData.available}. Visit Billing to purchase more.`,
-          variant: "destructive",
-        });
+        // Credit management hook will handle this
+        return;
       } else {
         toast({
           title: "Enhancement Failed",
@@ -121,24 +132,23 @@ export function AIScriptGenerator() {
 
   // Analyze script mutation
   const analyzeMutation = useMutation({
-    mutationFn: (data: typeof analyzeForm) => apiRequest("POST", "/api/ai/analyze-script", data),
-    onSuccess: async (response) => {
-      const result = await response.json();
-      setScriptAnalysis(result.analysis);
-      queryClient.invalidateQueries({ queryKey: ['/api/billing/credits'] });
+    mutationFn: (data: typeof analyzeForm) => apiRequest("/api/ai/analyze-script", "POST", data),
+    onSuccess: async (response: any) => {
+      setScriptAnalysis(response.analysis);
+      queryClient.invalidateQueries({ queryKey: ["/api/billing/user-credits"] });
       toast({
         title: "Script Analyzed!",
-        description: `Used ${result.creditsUsed} credits. ${result.remainingCredits} credits remaining.`,
+        description: `Used ${response.creditsUsed} credits. ${response.remainingCredits} credits remaining.`,
       });
+      
+      // Check for low balance after usage
+      setTimeout(() => checkLowBalance(25), 500);
     },
     onError: async (error: any) => {
       const errorData = await error.response?.json();
       if (error.response?.status === 402) {
-        toast({
-          title: "Insufficient Credits",
-          description: `You need ${errorData.required} credits but only have ${errorData.available}. Visit Billing to purchase more.`,
-          variant: "destructive",
-        });
+        // Credit management hook will handle this
+        return;
       } else {
         toast({
           title: "Analysis Failed",
@@ -159,6 +169,12 @@ export function AIScriptGenerator() {
       });
       return;
     }
+    
+    // Check credits before generation
+    if (!requireCredits(10, "Script Generation")) {
+      return;
+    }
+    
     generateMutation.mutate(generateForm);
   };
 
@@ -172,6 +188,12 @@ export function AIScriptGenerator() {
       });
       return;
     }
+    
+    // Check credits before enhancement
+    if (!requireCredits(15, "Script Enhancement")) {
+      return;
+    }
+    
     enhanceMutation.mutate(enhanceForm);
   };
 
@@ -185,6 +207,12 @@ export function AIScriptGenerator() {
       });
       return;
     }
+    
+    // Check credits before analysis
+    if (!requireCredits(8, "Script Analysis")) {
+      return;
+    }
+    
     analyzeMutation.mutate(analyzeForm);
   };
 
@@ -204,9 +232,15 @@ export function AIScriptGenerator() {
           <div className="flex items-center justify-center gap-4 mt-4">
             <Badge className="bg-yellow-600/20 text-yellow-400 border-yellow-600/50 text-lg px-4 py-2">
               <Zap className="w-5 h-5 mr-2" />
-              {billingInfo?.credits || 0} Credits Available
+              {isSuperUser ? '∞' : currentCredits} Credits Available
             </Badge>
-            <Button variant="outline" size="sm" className="border-yellow-600/50 text-yellow-400 hover:bg-yellow-600/10">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="border-yellow-600/50 text-yellow-400 hover:bg-yellow-600/10"
+              onClick={() => window.location.href = '/billing'}
+              data-testid="button-get-credits"
+            >
               <CreditCard className="w-4 h-4 mr-2" />
               Get More Credits
             </Button>
@@ -312,7 +346,7 @@ export function AIScriptGenerator() {
                   
                   <Button 
                     type="submit" 
-                    disabled={generateMutation.isPending || !billingInfo || billingInfo.credits < 10}
+                    disabled={generateMutation.isPending || (!isSuperUser && currentCredits < 10)}
                     className="w-full bg-gradient-to-r from-yellow-600 to-amber-500 hover:from-yellow-500 hover:to-amber-400 text-black font-bold"
                     data-testid="button-generate-script"
                   >
@@ -366,7 +400,7 @@ export function AIScriptGenerator() {
                 </CardDescription>
                 <Badge className="bg-orange-900/50 text-orange-300 border-orange-600/50 w-fit">
                   <AlertTriangle className="w-3 h-3 mr-1" />
-                  5 Credits Required
+                  15 Credits Required
                 </Badge>
               </CardHeader>
               <CardContent>
@@ -399,7 +433,7 @@ export function AIScriptGenerator() {
                   
                   <Button 
                     type="submit" 
-                    disabled={enhanceMutation.isPending || !billingInfo || billingInfo.credits < 5}
+                    disabled={enhanceMutation.isPending || (!isSuperUser && currentCredits < 15)}
                     className="w-full bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-black font-bold"
                     data-testid="button-enhance-script"
                   >
@@ -411,7 +445,7 @@ export function AIScriptGenerator() {
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4 mr-2" />
-                        Enhance Script (5 Credits)
+                        Enhance Script (15 Credits)
                       </>
                     )}
                   </Button>
@@ -453,7 +487,7 @@ export function AIScriptGenerator() {
                 </CardDescription>
                 <Badge className="bg-blue-900/50 text-blue-300 border-blue-600/50 w-fit">
                   <AlertTriangle className="w-3 h-3 mr-1" />
-                  3 Credits Required
+                  8 Credits Required
                 </Badge>
               </CardHeader>
               <CardContent>
@@ -473,7 +507,7 @@ export function AIScriptGenerator() {
                   
                   <Button 
                     type="submit" 
-                    disabled={analyzeMutation.isPending || !billingInfo || billingInfo.credits < 3}
+                    disabled={analyzeMutation.isPending || (!isSuperUser && currentCredits < 8)}
                     className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-black font-bold"
                     data-testid="button-analyze-script"
                   >
@@ -485,7 +519,7 @@ export function AIScriptGenerator() {
                     ) : (
                       <>
                         <Search className="w-4 h-4 mr-2" />
-                        Analyze Script (3 Credits)
+                        Analyze Script (8 Credits)
                       </>
                     )}
                   </Button>
@@ -513,6 +547,14 @@ export function AIScriptGenerator() {
           </div>
         </TabsContent>
       </Tabs>
+      
+      {/* Quick Credit Top-Up Modal */}
+      <QuickCreditTopUp
+        isOpen={showTopUpModal}
+        onClose={closeTopUpModal}
+        currentCredits={currentCredits}
+        onSuccess={handleTopUpSuccess}
+      />
     </div>
   );
 }

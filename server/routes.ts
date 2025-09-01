@@ -908,13 +908,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { scriptContent, enhancement } = req.body;
       
       let userCredits = 0;
-      const requiredCredits = 5;
+      const requiredCredits = 15;
       
       // Super users bypass credit checks
       if (user?.email && isSuperUser(user.email)) {
         userCredits = 999999; // Unlimited for super users
       } else {
-        // Check if user has enough credits (5 credits for script enhancement)
+        // Check if user has enough credits (15 credits for script enhancement)
         userCredits = await storage.getUserCredits(userId);
         
         if (userCredits < requiredCredits) {
@@ -1003,13 +1003,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { scriptContent } = req.body;
       
       let userCredits = 0;
-      const requiredCredits = 3;
+      const requiredCredits = 8;
       
       // Super users bypass credit checks
       if (user?.email && isSuperUser(user.email)) {
         userCredits = 999999; // Unlimited for super users
       } else {
-        // Check if user has enough credits (3 credits for script analysis)
+        // Check if user has enough credits (8 credits for script analysis)
         userCredits = await storage.getUserCredits(userId);
         
         if (userCredits < requiredCredits) {
@@ -1104,6 +1104,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const credits = await storage.getUserCredits(userId);
       res.json({ credits });
+    } catch (error) {
+      console.error("Error fetching user credits:", error);
+      res.status(500).json({ message: "Failed to fetch credits" });
+    }
+  });
+
+  // Alias route for direct credit number access
+  app.get('/api/billing/user-credits', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const user = await storage.getUser(userId);
+      
+      // Super users get unlimited credits
+      if (user?.email && isSuperUser(user.email)) {
+        res.json(999999); // Return raw number for unlimited credits
+        return;
+      }
+      
+      const credits = await storage.getUserCredits(userId);
+      res.json(credits); // Return raw number
     } catch (error) {
       console.error("Error fetching user credits:", error);
       res.status(500).json({ message: "Failed to fetch credits" });
