@@ -330,12 +330,12 @@ export function FestivalTracker() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="projectId">Link to Project (Optional)</Label>
-                  <Select value={form.watch("projectId") || ""} onValueChange={(value) => form.setValue("projectId", value || undefined)}>
+                  <Select value={form.watch("projectId") || "none"} onValueChange={(value) => form.setValue("projectId", value === "none" ? undefined : value)}>
                     <SelectTrigger data-testid="select-project">
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No project</SelectItem>
+                      <SelectItem value="none">No project</SelectItem>
                       {projects.map((project: Project) => (
                         <SelectItem key={project.id} value={project.id}>
                           {project.title}
@@ -346,12 +346,12 @@ export function FestivalTracker() {
                 </div>
                 <div>
                   <Label htmlFor="scriptId">Link to Script (Optional)</Label>
-                  <Select value={form.watch("scriptId") || ""} onValueChange={(value) => form.setValue("scriptId", value || undefined)}>
+                  <Select value={form.watch("scriptId") || "none"} onValueChange={(value) => form.setValue("scriptId", value === "none" ? undefined : value)}>
                     <SelectTrigger data-testid="select-script">
                       <SelectValue placeholder="Select script" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No script</SelectItem>
+                      <SelectItem value="none">No script</SelectItem>
                       {scripts.map((script: Script) => (
                         <SelectItem key={script.id} value={script.id}>
                           {script.title}
