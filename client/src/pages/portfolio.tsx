@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
+import { MemberGuard } from "@/components/member-guard";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -151,6 +152,7 @@ export default function Portfolio() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
+      <MemberGuard>
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
@@ -594,6 +596,7 @@ export default function Portfolio() {
             </TabsContent>
           </Tabs>
         </div>
+      </MemberGuard>
     </div>
   );
 }

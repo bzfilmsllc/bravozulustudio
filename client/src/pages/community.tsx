@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Navigation } from "@/components/navigation";
+import { MemberGuard } from "@/components/member-guard";
 import { BannerAd, SidebarAd } from "@/components/google-ads";
 import { MemberProfile } from "@/components/member-profile";
 import { ActivityFeed } from "@/components/activity-feed";
@@ -129,8 +130,7 @@ export default function Community() {
       });
     },
     onError: (error) => {
-      // DISABLED FOR TESTING: Skip unauthorized error handling for Facebook launch
-      if (false && isUnauthorizedError(error)) {
+      if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",
@@ -163,8 +163,7 @@ export default function Community() {
       });
     },
     onError: (error) => {
-      // DISABLED FOR TESTING: Skip unauthorized error handling for Facebook launch
-      if (false && isUnauthorizedError(error)) {
+      if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",
@@ -198,8 +197,7 @@ export default function Community() {
       });
     },
     onError: (error) => {
-      // DISABLED FOR TESTING: Skip unauthorized error handling for Facebook launch
-      if (false && isUnauthorizedError(error)) {
+      if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",

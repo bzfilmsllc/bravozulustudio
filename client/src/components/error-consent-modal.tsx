@@ -63,10 +63,13 @@ export function ErrorConsentModal() {
     }
   }, [currentPreferences]);
 
-  // DISABLED FOR TESTING - No automatic popup during Facebook launch
+  // Check if this is first time user - show modal automatically
   useEffect(() => {
-    // Auto-popup disabled to prevent barriers during launch
-    return;
+    const hasSeenErrorConsent = localStorage.getItem("error-consent-seen");
+    if (!hasSeenErrorConsent && !isLoading && currentPreferences) {
+      setIsOpen(true);
+      localStorage.setItem("error-consent-seen", "true");
+    }
   }, [currentPreferences, isLoading]);
 
   const handleSave = () => {

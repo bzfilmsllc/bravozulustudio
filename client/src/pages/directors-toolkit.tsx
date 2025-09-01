@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Navigation } from "@/components/navigation";
+import { MemberGuard } from "@/components/member-guard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -222,6 +223,7 @@ export default function DirectorsToolkit() {
     <div className="min-h-screen bg-background">
       <Navigation />
       
+      <MemberGuard requiredRole="verified">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">
@@ -510,6 +512,7 @@ export default function DirectorsToolkit() {
             </Tabs>
           )}
         </div>
+      </MemberGuard>
     </div>
   );
 }

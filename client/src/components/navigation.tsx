@@ -144,6 +144,14 @@ export function Navigation() {
                       Profile
                     </Link>
                   </DropdownMenuItem>
+                  {user?.role !== "verified" && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/verification" data-testid="menu-verification">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Get Verified
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild>
                     <Link href="/settings" data-testid="menu-settings">
                       <User className="w-4 h-4 mr-2" />

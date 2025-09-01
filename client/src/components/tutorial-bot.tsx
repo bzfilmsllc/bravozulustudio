@@ -221,8 +221,10 @@ function PaymentForm({ onSuccess, onCancel }: { onSuccess: () => void; onCancel:
 }
 
 export function TutorialBot({ onComplete }: TutorialBotProps) {
-  // DISABLED FOR TESTING - No tutorial popups during Facebook launch
-  return null;
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [showPayment, setShowPayment] = useState(false);
+  const { toast } = useToast();
 
   // Get user data and tutorial progress
   const { data: user } = useQuery({

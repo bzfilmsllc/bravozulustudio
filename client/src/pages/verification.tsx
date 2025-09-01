@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -57,22 +57,9 @@ type VerificationFormData = z.infer<typeof verificationSchema>;
 export default function Verification() {
   const [currentStep, setCurrentStep] = useState(1);
   const [showEmailPassword, setShowEmailPassword] = useState(false);
-  const { user, isLoading } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Debug logging
-  console.log('Verification page - user:', user);
-  console.log('Verification page - user role:', user?.role);
-  console.log('Verification page - isLoading:', isLoading);
-
-  // Temporary fix: Check if we can fetch user data directly
-  const [userRole, setUserRole] = useState<string | null>(null);
-  
-  useEffect(() => {
-    // For testing: redirect all users away from verification page
-    window.location.href = '/tools';
-  }, []);
 
   const form = useForm<VerificationFormData>({
     resolver: zodResolver(verificationSchema),
@@ -112,8 +99,7 @@ export default function Verification() {
       setCurrentStep(4);
     },
     onError: (error) => {
-      // DISABLED FOR TESTING: Skip unauthorized error handling for Facebook launch
-      if (false && isUnauthorizedError(error)) {
+      if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",
@@ -191,20 +177,7 @@ export default function Verification() {
     },
   ];
 
-  // Show loading while user data is being fetched
-  if (isLoading || userRole === null) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  // Use direct fetch result if available, fallback to useAuth
-  const effectiveRole = userRole || user?.role;
-  console.log('Effective role:', effectiveRole);
-
-  if (effectiveRole === "verified") {
+  if (user?.role === "verified") {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
@@ -240,7 +213,7 @@ export default function Verification() {
     );
   }
 
-  if (effectiveRole === "pending") {
+  if (user?.role === "pending") {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
@@ -286,6 +259,7 @@ export default function Verification() {
   }
 
   return (
+    <MemberGuard>
       <div className="min-h-screen bg-background">
         <Navigation />
         
@@ -794,5 +768,6 @@ export default function Verification() {
           </div>
         </main>
       </div>
+    </MemberGuard>
   );
 }

@@ -1,9 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import path from "path";
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
@@ -17,9 +14,8 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Initialize Google Gemini client - TEMPORARILY DISABLED FOR TESTING
-// const genAI = process.env.GOOGLE_GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY) : null;
-const genAI = null; // Force disable to test if this is causing verification popup issues
+// Initialize Google Gemini client
+const genAI = process.env.GOOGLE_GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GOOGLE_GEMINI_API_KEY) : null;
 
 // API usage limits and reset logic
 const PLATFORM_DAILY_LIMIT = 950; // Leave buffer from 1000 limit
@@ -197,851 +193,6 @@ function isSuperUser(email: string): boolean {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // 🚨 DEPLOYMENT-PROOF NUCLEAR OPTION: Override ROOT route FIRST - before any middleware!
-  console.log('🚨 DEPLOYMENT-PROOF NUCLEAR VERIFICATION BYPASS: Installing root route override');
-  
-  // Block ALL verification endpoints immediately
-  app.all('*verification*', (req, res) => {
-    console.log('🚫 BLOCKED VERIFICATION ENDPOINT:', req.path);
-    res.json({ success: true, bypass: true, verification: 'disabled' });
-  });
-  
-  app.all('/api/users/verification*', (req, res) => {
-    console.log('🚫 BLOCKED USER VERIFICATION API:', req.path);
-    res.json({ success: true, bypass: true, verification: 'disabled' });
-  });
-  
-  app.get('/', (req, res) => {
-    console.log('🚨 NUCLEAR ROOT OVERRIDE: Completely bypassing ALL verification!');
-    res.setHeader('Content-Type', 'text/html');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎬 Bravo Zulu Films - VERIFICATION ELIMINATED!</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: white; min-height: 100vh; display: flex; align-items: center;
-            justify-content: center; text-align: center; overflow-x: hidden;
-        }
-        .container { max-width: 800px; padding: 2rem; }
-        h1 { 
-            font-size: 4rem; margin-bottom: 1rem; 
-            background: linear-gradient(45deg, #4ecdc4, #44a08d, #f38ba8, #fab387);
-            background-size: 400% 400%; background-clip: text;
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: rainbow 3s ease-in-out infinite alternate;
-        }
-        @keyframes rainbow {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-        .nuclear { 
-            background: linear-gradient(45deg, #ff0080, #ff4040);
-            padding: 2rem; border-radius: 15px; margin: 2rem 0;
-            box-shadow: 0 20px 40px rgba(255, 0, 128, 0.3);
-            animation: pulse 2s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-        .btn { 
-            background: linear-gradient(45deg, #4ecdc4, #44a08d);
-            color: white; border: none; padding: 1.5rem 3rem;
-            border-radius: 50px; font-size: 1.5rem; cursor: pointer;
-            margin: 1rem; transition: all 0.3s ease; text-transform: uppercase;
-            letter-spacing: 2px; font-weight: bold;
-        }
-        .btn:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(78, 205, 196, 0.4); }
-        .features { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 2rem 0; }
-        .feature { background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 10px; }
-        @media (max-width: 768px) { h1 { font-size: 2.5rem; } }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🎬 BRAVO ZULU FILMS</h1>
-        <div class="nuclear">
-            <h2>🚨 NUCLEAR OPTION ACTIVATED! 🚨</h2>
-            <h3>VERIFICATION POPUP COMPLETELY ELIMINATED!</h3>
-            <p style="font-size: 1.3rem; margin-top: 1rem;">
-                <strong>All verification systems have been permanently disabled!</strong><br>
-                Your platform is now 100% accessible to everyone!
-            </p>
-        </div>
-        
-        <div class="features">
-            <div class="feature">
-                <h3>🚨 Zero Barriers</h3>
-                <p>Nuclear override active</p>
-            </div>
-            <div class="feature">
-                <h3>🚀 Facebook Ready</h3>
-                <p>Launch announcement ready</p>
-            </div>
-            <div class="feature">
-                <h3>🎬 Full Platform</h3>
-                <p>All features unlocked</p>
-            </div>
-            <div class="feature">
-                <h3>⚡ Instant Access</h3>
-                <p>No verification required</p>
-            </div>
-        </div>
-        
-        <button class="btn" onclick="showPlatform()">🚀 ENTER PLATFORM NOW</button>
-        
-        <script>
-            console.log('🚨 NUCLEAR OPTION: Verification completely eliminated!');
-            console.log('✅ Platform ready for Facebook launch!');
-            
-            function showPlatform() {
-                document.body.innerHTML = \`
-                <div style="background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); min-height: 100vh; padding: 2rem; color: white;">
-                    <nav style="background: rgba(0,0,0,0.8); padding: 1rem 2rem; border-radius: 15px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
-                        <h2 style="color: #4ecdc4;">🎬 Bravo Zulu Films</h2>
-                        <div>
-                            <span style="background: rgba(78, 205, 196, 0.2); padding: 0.5rem 1rem; border-radius: 20px; color: #4ecdc4; font-weight: bold;">🚨 NO VERIFICATION REQUIRED</span>
-                        </div>
-                    </nav>
-                    
-                    <div style="text-align: center; margin-bottom: 3rem;">
-                        <h1 style="font-size: 3rem; color: #4ecdc4; margin-bottom: 1rem;">Professional Filmmaking Platform</h1>
-                        <p style="font-size: 1.3rem; max-width: 600px; margin: 0 auto;">Create scripts, build community, and showcase your work - with zero barriers!</p>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto;">
-                        <div style="background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 15px; text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">🎬</div>
-                            <h3 style="color: #4ecdc4; margin-bottom: 1rem; font-size: 1.5rem;">Script Generator</h3>
-                            <p style="margin-bottom: 1.5rem;">AI-powered scriptwriting tools for military stories and professional filmmaking. Create compelling narratives with industry-standard formatting.</p>
-                            <button style="background: linear-gradient(45deg, #4ecdc4, #44a08d); color: white; border: none; padding: 1rem 2rem; border-radius: 25px; font-size: 1rem; cursor: pointer; font-weight: bold;">✨ Create Script</button>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 15px; text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">👥</div>
-                            <h3 style="color: #4ecdc4; margin-bottom: 1rem; font-size: 1.5rem;">Community Hub</h3>
-                            <p style="margin-bottom: 1.5rem;">Connect with fellow veterans and filmmakers. Share experiences, collaborate on projects, and build lasting professional relationships.</p>
-                            <button style="background: linear-gradient(45deg, #f38ba8, #f06292); color: white; border: none; padding: 1rem 2rem; border-radius: 25px; font-size: 1rem; cursor: pointer; font-weight: bold;">🤝 Join Community</button>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.1); padding: 2rem; border-radius: 15px; text-align: center;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">📁</div>
-                            <h3 style="color: #4ecdc4; margin-bottom: 1rem; font-size: 1.5rem;">Portfolio Showcase</h3>
-                            <p style="margin-bottom: 1.5rem;">Display your films, scripts, and creative projects to the world. Build your professional presence and attract collaborators.</p>
-                            <button style="background: linear-gradient(45deg, #fab387, #faa56a); color: white; border: none; padding: 1rem 2rem; border-radius: 25px; font-size: 1rem; cursor: pointer; font-weight: bold;">📂 View Portfolio</button>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 4rem; padding: 2rem; background: rgba(78, 205, 196, 0.1); border-radius: 15px; text-align: center; border: 2px solid #4ecdc4;">
-                        <h2 style="color: #4ecdc4; margin-bottom: 1rem;">🎉 PLATFORM STATUS: FULLY OPERATIONAL</h2>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
-                            <div style="padding: 1rem;">
-                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">✅</div>
-                                <strong>No Verification</strong><br>Instant access for everyone
-                            </div>
-                            <div style="padding: 1rem;">
-                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🚀</div>
-                                <strong>Facebook Ready</strong><br>Perfect for announcements
-                            </div>
-                            <div style="padding: 1rem;">
-                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🎬</div>
-                                <strong>Professional Tools</strong><br>Industry-grade features
-                            </div>
-                            <div style="padding: 1rem;">
-                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🛡️</div>
-                                <strong>Veteran Focused</strong><br>Military story specialists
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                \`;
-            }
-        </script>
-    </div>
-</body>
-</html>`);
-  });
-
-  // EMERGENCY: Block all verification routes and serve emergency page
-  app.get('/verification*', (req, res) => {
-    console.log('🚫 BLOCKED VERIFICATION ROUTE - SERVING EMERGENCY PAGE');
-    res.sendFile(path.resolve(process.cwd(), 'client/public/emergency.html'));
-  });
-  
-  app.get('/emergency', (req, res) => {
-    console.log('🚀 SERVING EMERGENCY ACCESS PAGE');
-    res.sendFile(path.resolve(process.cwd(), 'client/public/emergency.html'));
-  });
-  
-  app.get('/fresh', (req, res) => {
-    console.log('🚀 SERVING FRESH CLEAN BUILD - DIRECT HTML');
-    res.setHeader('Content-Type', 'text/html');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bravo Zulu Films - Fresh Start</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            text-align: center;
-            padding: 2rem;
-        }
-        
-        h1 {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(45deg, #00ff00, #00ccff);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
-        }
-        
-        h2 {
-            font-size: 2rem;
-            margin-bottom: 2rem;
-            color: #ffff00;
-            text-shadow: 0 0 20px rgba(255, 255, 0, 0.5);
-        }
-        
-        .message {
-            font-size: 1.5rem;
-            margin-bottom: 3rem;
-            max-width: 800px;
-            line-height: 1.6;
-            color: #cccccc;
-        }
-        
-        .buttons {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 3rem;
-        }
-        
-        button {
-            border: none;
-            padding: 1.5rem 3rem;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: white;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(45deg, #00ff00, #00cc00);
-            color: black;
-            box-shadow: 0 10px 30px rgba(0, 255, 0, 0.3);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(45deg, #00ccff, #0099cc);
-            box-shadow: 0 10px 30px rgba(0, 204, 255, 0.3);
-        }
-        
-        .btn-tertiary {
-            background: linear-gradient(45deg, #ff6600, #cc5500);
-            box-shadow: 0 10px 30px rgba(255, 102, 0, 0.3);
-        }
-        
-        button:hover {
-            transform: translateY(-5px);
-            filter: brightness(1.1);
-        }
-        
-        .status {
-            margin-top: 2rem;
-            padding: 2rem;
-            background: rgba(0, 255, 0, 0.1);
-            border-radius: 15px;
-            border: 2px solid rgba(0, 255, 0, 0.3);
-            max-width: 600px;
-        }
-        
-        .status h3 {
-            color: #00ff00;
-            margin-bottom: 1rem;
-        }
-        
-        .status-list {
-            font-size: 1rem;
-            line-height: 1.8;
-            text-align: left;
-        }
-        
-        .success {
-            color: #00ff00;
-            font-weight: bold;
-        }
-    </style>
-</head>
-<body>
-    <h1>🚀 BRAVO ZULU FILMS</h1>
-    <h2>✨ FRESH START - ZERO BARRIERS ✨</h2>
-    
-    <div class="message">
-        Welcome to the <span class="success">completely rebuilt</span> Bravo Zulu Films platform! 
-        Built from the ground up with <strong style="color: #00ff00;">NO verification requirements</strong>, 
-        <strong style="color: #00ccff;">NO popup barriers</strong>, and 
-        <strong style="color: #ffff00;">FULL public access</strong>.
-        <br><br>
-        <span class="success">🎉 This is a FRESH INSTALL - NO legacy popup code! 🎉</span>
-    </div>
-    
-    <div class="buttons">
-        <button class="btn-primary" onclick="navigateToStudio()">
-            🎬 Access Studio Tools
-        </button>
-        
-        <button class="btn-secondary" onclick="navigateToCommunity()">
-            👥 Join Community
-        </button>
-        
-        <button class="btn-tertiary" onclick="navigateToPortfolio()">
-            📁 View Portfolio
-        </button>
-    </div>
-    
-    <div class="status">
-        <h3>🎉 Platform Status: OPERATIONAL</h3>
-        <div class="status-list">
-            ✅ No verification barriers<br/>
-            ✅ No popup interruptions<br/>
-            ✅ Full public access enabled<br/>
-            ✅ Ready for Facebook launch<br/>
-            ✅ Fresh, clean codebase<br/>
-            ✅ <span class="success">COMPLETELY NEW BUILD</span>
-        </div>
-    </div>
-
-    <script>
-        console.log('🚀 FRESH BRAVO ZULU FILMS - CLEAN START!');
-        console.log('✅ NO VERIFICATION BARRIERS FROM DAY ONE!');
-        console.log('🧹 NO LEGACY CODE - COMPLETELY FRESH BUILD!');
-        
-        function navigateToStudio() {
-            alert('🎬 Studio Tools - Coming Soon!\\n\\nThis fresh build is ready for your content.');
-        }
-        
-        function navigateToCommunity() {
-            alert('👥 Community - Coming Soon!\\n\\nNo verification required - join immediately!');
-        }
-        
-        function navigateToPortfolio() {
-            alert('📁 Portfolio - Coming Soon!\\n\\nShowcase your work without barriers!');
-        }
-        
-        // No popup blocking needed - this is a fresh start!
-        console.log('🛡️ No verification popups possible - fresh codebase!');
-    </script>
-</body>
-</html>`);
-  });
-
-  app.get('/launch', (req, res) => {
-    console.log('🚀 SERVING LAUNCH PAGE - BRAND NEW ROUTE');
-    res.setHeader('Content-Type', 'text/html');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 Bravo Zulu Films - LAUNCH READY!</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            text-align: center;
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .stars {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(2px 2px at 20px 30px, #fff, transparent),
-                        radial-gradient(2px 2px at 40px 70px, #fff, transparent),
-                        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
-                        radial-gradient(1px 1px at 130px 80px, #fff, transparent),
-                        radial-gradient(2px 2px at 160px 30px, #fff, transparent);
-            background-repeat: repeat;
-            background-size: 200px 100px;
-            animation: sparkle 3s linear infinite;
-            opacity: 0.6;
-        }
-        
-        @keyframes sparkle {
-            from { transform: translateY(0px) }
-            to { transform: translateY(-100px) }
-        }
-        
-        h1 {
-            font-size: 4.5rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #ffeaa7);
-            background-size: 400% 400%;
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: rainbow 2s ease-in-out infinite alternate;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
-            z-index: 10;
-            position: relative;
-        }
-        
-        @keyframes rainbow {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-        
-        h2 {
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
-            color: #4ecdc4;
-            text-shadow: 0 0 20px rgba(78, 205, 196, 0.8);
-            animation: glow 2s ease-in-out infinite alternate;
-            z-index: 10;
-            position: relative;
-        }
-        
-        @keyframes glow {
-            from { text-shadow: 0 0 20px rgba(78, 205, 196, 0.8), 0 0 30px rgba(78, 205, 196, 0.8); }
-            to { text-shadow: 0 0 30px rgba(78, 205, 196, 1), 0 0 40px rgba(78, 205, 196, 1); }
-        }
-        
-        .launch-message {
-            font-size: 1.8rem;
-            margin-bottom: 3rem;
-            max-width: 900px;
-            line-height: 1.8;
-            color: #e8e8e8;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 2rem;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 10;
-            position: relative;
-        }
-        
-        .success-badge {
-            color: #4ecdc4;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(78, 205, 196, 0.8);
-        }
-        
-        .buttons {
-            display: flex;
-            gap: 2rem;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin: 3rem 0;
-            z-index: 10;
-            position: relative;
-        }
-        
-        .launch-btn {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            color: white;
-            border: none;
-            padding: 2rem 4rem;
-            font-size: 1.4rem;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .launch-btn:hover {
-            transform: translateY(-8px) scale(1.05);
-            box-shadow: 0 25px 50px rgba(255, 107, 107, 0.6);
-            background: linear-gradient(45deg, #4ecdc4, #ff6b6b);
-        }
-        
-        .launch-btn:before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-        
-        .launch-btn:hover:before {
-            left: 100%;
-        }
-        
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-top: 3rem;
-            max-width: 1000px;
-            z-index: 10;
-            position: relative;
-        }
-        
-        .status-card {
-            background: rgba(78, 205, 196, 0.1);
-            padding: 1.5rem;
-            border-radius: 15px;
-            border: 2px solid rgba(78, 205, 196, 0.3);
-            backdrop-filter: blur(10px);
-        }
-        
-        .status-card h3 {
-            color: #4ecdc4;
-            margin-bottom: 1rem;
-            font-size: 1.2rem;
-        }
-        
-        .status-list {
-            font-size: 1rem;
-            line-height: 1.6;
-            text-align: left;
-        }
-    </style>
-</head>
-<body>
-    <div class="stars"></div>
-    
-    <h1>🚀 BRAVO ZULU FILMS</h1>
-    <h2>✨ FACEBOOK LAUNCH READY! ✨</h2>
-    
-    <div class="launch-message">
-        🎉 <span class="success-badge">MISSION ACCOMPLISHED!</span> 🎉
-        <br><br>
-        The platform is <strong>100% operational</strong> with <strong>ZERO verification barriers</strong>!
-        <br>
-        Ready for your <span class="success-badge">Facebook announcement</span> right now!
-    </div>
-    
-    <div class="buttons">
-        <button class="launch-btn" onclick="launchStudio()">
-            🎬 LAUNCH STUDIO
-        </button>
-        
-        <button class="launch-btn" onclick="launchCommunity()">
-            👥 JOIN COMMUNITY
-        </button>
-        
-        <button class="launch-btn" onclick="launchPortfolio()">
-            📁 VIEW WORK
-        </button>
-    </div>
-    
-    <div class="status-grid">
-        <div class="status-card">
-            <h3>🛡️ Security Status</h3>
-            <div class="status-list">
-                ✅ No verification barriers<br/>
-                ✅ No popup interruptions<br/>
-                ✅ Public access enabled<br/>
-                ✅ Clean, fresh codebase
-            </div>
-        </div>
-        
-        <div class="status-card">
-            <h3>🚀 Launch Status</h3>
-            <div class="status-list">
-                ✅ Facebook ready<br/>
-                ✅ Professional design<br/>
-                ✅ Fast performance<br/>
-                ✅ Mobile optimized
-            </div>
-        </div>
-        
-        <div class="status-card">
-            <h3>💼 Platform Features</h3>
-            <div class="status-list">
-                ✅ Script writing tools<br/>
-                ✅ Community forums<br/>
-                ✅ Portfolio showcase<br/>
-                ✅ Veteran network
-            </div>
-        </div>
-    </div>
-
-    <script>
-        console.log('🚀 BRAVO ZULU FILMS - FACEBOOK LAUNCH READY!');
-        console.log('✅ ZERO BARRIERS - MAXIMUM ACCESS!');
-        console.log('🎯 FRESH BUILD - NO LEGACY ISSUES!');
-        
-        function launchStudio() {
-            alert('🎬 Studio Tools Ready!\\n\\nProfessional filmmaking tools at your fingertips!');
-        }
-        
-        function launchCommunity() {
-            alert('👥 Community Active!\\n\\nConnect with fellow veterans and filmmakers instantly!');
-        }
-        
-        function launchPortfolio() {
-            alert('📁 Portfolio Ready!\\n\\nShowcase your work to the world!');
-        }
-        
-        // Add some interactive sparkle effects
-        document.addEventListener('mousemove', function(e) {
-            if (Math.random() > 0.9) {
-                const sparkle = document.createElement('div');
-                sparkle.style.position = 'fixed';
-                sparkle.style.left = e.clientX + 'px';
-                sparkle.style.top = e.clientY + 'px';
-                sparkle.style.width = '4px';
-                sparkle.style.height = '4px';
-                sparkle.style.background = '#4ecdc4';
-                sparkle.style.borderRadius = '50%';
-                sparkle.style.pointerEvents = 'none';
-                sparkle.style.animation = 'sparkle-fade 1s ease-out forwards';
-                document.body.appendChild(sparkle);
-                
-                setTimeout(() => sparkle.remove(), 1000);
-            }
-        });
-        
-        const style = document.createElement('style');
-        style.textContent = \`
-            @keyframes sparkle-fade {
-                0% { opacity: 1; transform: scale(1); }
-                100% { opacity: 0; transform: scale(0) translateY(-50px); }
-            }
-        \`;
-        document.head.appendChild(style);
-    </script>
-</body>
-</html>`);
-  });
-
-  app.get('/fresh', (req, res) => {
-    console.log('🚀 SERVING FRESH REBUILD - COMPLETELY CLEAN!');
-    res.redirect('/');
-  });
-
-  app.get('/victory', (req, res) => {
-    console.log('🏆 SERVING VICTORY PAGE - DIRECT ROUTE');
-    res.setHeader('Content-Type', 'text/html');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏆 BRAVO ZULU FILMS - VICTORY!</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            text-align: center;
-            padding: 2rem;
-            animation: bg-shift 5s ease-in-out infinite alternate;
-        }
-        
-        @keyframes bg-shift {
-            0% { background: linear-gradient(45deg, #667eea 0%, #764ba2 100%); }
-            100% { background: linear-gradient(45deg, #764ba2 0%, #667eea 100%); }
-        }
-        
-        h1 {
-            font-size: 5rem;
-            margin-bottom: 2rem;
-            text-shadow: 0 0 30px rgba(255, 255, 255, 0.8);
-            animation: bounce 2s ease-in-out infinite;
-        }
-        
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-20px); }
-            60% { transform: translateY(-10px); }
-        }
-        
-        .victory-message {
-            font-size: 2rem;
-            margin-bottom: 3rem;
-            max-width: 800px;
-            line-height: 1.8;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2rem;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .success {
-            color: #00ff88;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
-        }
-        
-        .cta-button {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
-            color: white;
-            border: none;
-            padding: 2rem 4rem;
-            font-size: 1.5rem;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 15px 35px rgba(255, 107, 107, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 15px 35px rgba(255, 107, 107, 0.4); }
-            50% { transform: scale(1.05); box-shadow: 0 25px 50px rgba(255, 107, 107, 0.6); }
-            100% { transform: scale(1); box-shadow: 0 15px 35px rgba(255, 107, 107, 0.4); }
-        }
-        
-        .status-banner {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 255, 136, 0.2);
-            padding: 1rem 2rem;
-            border-radius: 25px;
-            border: 2px solid #00ff88;
-            font-weight: bold;
-            animation: flash 1s ease-in-out infinite alternate;
-        }
-        
-        @keyframes flash {
-            0% { opacity: 0.8; }
-            100% { opacity: 1; }
-        }
-    </style>
-</head>
-<body>
-    <div class="status-banner">
-        🎉 GEMINI API ISSUE SOLVED! 🎉
-    </div>
-    
-    <h1>🏆 WE DID IT! 🏆</h1>
-    
-    <div class="victory-message">
-        <span class="success">PROBLEM SOLVED!</span>
-        <br><br>
-        The verification popup was caused by the <strong>Google Gemini API integration</strong>!
-        <br><br>
-        Bravo Zulu Films is now <span class="success">100% operational</span> and ready for your 
-        <strong>Facebook launch announcement</strong>!
-    </div>
-    
-    <button class="cta-button" onclick="celebrate()">
-        🚀 FACEBOOK LAUNCH READY!
-    </button>
-
-    <script>
-        console.log('🏆 VICTORY! GEMINI API ISSUE SOLVED!');
-        console.log('✅ VERIFICATION POPUP ELIMINATED!');
-        console.log('🚀 FACEBOOK LAUNCH READY!');
-        
-        function celebrate() {
-            alert('🎉 MISSION ACCOMPLISHED! 🎉\\n\\n✅ Found the root cause: Google Gemini API integration\\n✅ Verification popup eliminated\\n✅ Platform fully operational\\n\\nBravo Zulu Films is ready for your Facebook announcement!');
-        }
-        
-        // Victory confetti effect
-        function createConfetti() {
-            const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7'];
-            for (let i = 0; i < 8; i++) {
-                setTimeout(() => {
-                    const confetti = document.createElement('div');
-                    confetti.style.position = 'fixed';
-                    confetti.style.left = Math.random() * 100 + 'vw';
-                    confetti.style.top = '-10px';
-                    confetti.style.width = '12px';
-                    confetti.style.height = '12px';
-                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.borderRadius = '50%';
-                    confetti.style.pointerEvents = 'none';
-                    confetti.style.animation = 'fall 4s linear forwards';
-                    document.body.appendChild(confetti);
-                    
-                    setTimeout(() => confetti.remove(), 4000);
-                }, i * 150);
-            }
-        }
-        
-        const style = document.createElement('style');
-        style.textContent = \`
-            @keyframes fall {
-                to { 
-                    transform: translateY(100vh) rotate(720deg);
-                    opacity: 0;
-                }
-            }
-        \`;
-        document.head.appendChild(style);
-        
-        // Create confetti every 3 seconds
-        setInterval(createConfetti, 3000);
-        createConfetti(); // Initial confetti
-    </script>
-</body>
-</html>`);
-  });
-  
-  app.post('/api/users/verification*', (req, res) => {
-    console.log('🚫 BLOCKED VERIFICATION API - RETURNING SUCCESS');
-    res.json({ success: true, message: 'Verification disabled for public access' });
-  });
-  
-  app.put('/api/users/verification*', (req, res) => {
-    console.log('🚫 BLOCKED VERIFICATION API - RETURNING SUCCESS');
-    res.json({ success: true, message: 'Verification disabled for public access' });
-  });
-
   // Auth middleware
   await setupAuth(app);
 
@@ -1252,10 +403,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const scriptData = insertScriptSchema.parse({ ...req.body, authorId: userId });
       const script = await storage.createScript(scriptData);
@@ -1281,10 +431,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const scripts = await storage.getUserScripts(userId);
       res.json(scripts);
@@ -1299,10 +448,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const script = await storage.getScript(req.params.id);
       
@@ -1327,10 +475,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const script = await storage.getScript(req.params.id);
       
@@ -1352,10 +499,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const script = await storage.getScript(req.params.id);
       
@@ -1377,10 +523,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const projectData = insertProjectSchema.parse({ ...req.body, creatorId: userId });
       const project = await storage.createProject(projectData);
@@ -1406,10 +551,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const projects = await storage.getPublicProjects(20);
       res.json(projects);
@@ -1424,10 +568,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const projects = await storage.getUserProjects(userId);
       res.json(projects);
@@ -1442,10 +585,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const { role } = req.body;
       const collaborator = await storage.joinProject(req.params.id, userId, role);
@@ -1516,10 +658,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const replyData = insertForumReplySchema.parse({ ...req.body, authorId: userId });
       const reply = await storage.createForumReply(replyData);
@@ -1536,10 +677,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const senderId = req.user.claims.sub;
       const user = await storage.getUser(senderId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const messageData = insertMessageSchema.parse({ ...req.body, senderId });
       const message = await storage.sendMessage(messageData);
@@ -1555,10 +695,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = (req.user as any).claims.sub;
       const user = await storage.getUser(userId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const conversations = await storage.getUserConversations(userId);
       res.json(conversations);
@@ -1573,10 +712,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentUserId = req.user.claims.sub;
       const user = await storage.getUser(currentUserId);
       
-      // DISABLED FOR TESTING: Verification check temporarily removed for Facebook launch
-      // if (!user || user.role !== 'verified') {
-      //   return res.status(403).json({ message: "Verified membership required" });
-      // }
+      if (!user || user.role !== 'verified') {
+        return res.status(403).json({ message: "Verified membership required" });
+      }
 
       const { userId } = req.params;
       const conversation = await storage.getConversation(currentUserId, userId);
@@ -1840,10 +978,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // AI-powered features with credit requirements  
+  // AI-powered features with credit requirements
   app.post('/api/ai/generate-script', isAuthenticated, async (req: any, res) => {
     try {
-      // Require authenticated user - no fallback for public access
       const userId = (req.user as any).claims.sub;
       const { prompt, genre, tone, length } = req.body;
 
@@ -3724,7 +2861,6 @@ Keep responses conversational, helpful, and encouraging. If asked to make specif
   app.get("/api/user/tier", isAuthenticated, async (req: any, res) => {
     try {
       const userId = (req.user as any).claims.sub;
-      
       const spending = await storage.getUserSpending(userId);
       const currentTier = await storage.getUserCurrentTier(userId);
       
@@ -4206,83 +3342,6 @@ Keep responses conversational, helpful, and encouraging. If asked to make specif
       console.error("Error updating auto-moderation rule:", error);
       res.status(500).json({ message: "Failed to update auto-moderation rule" });
     }
-  });
-
-  // 🚨 EMERGENCY ROOT ROUTE OVERRIDE - Serve fresh rebuild as main page
-  app.get('/', (req, res) => {
-    console.log('🚨 EMERGENCY OVERRIDE: Serving fresh rebuild as main page!');
-    res.setHeader('Content-Type', 'text/html');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.send(`<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎬 Bravo Zulu Films - Emergency Bypass</title>
-    <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            margin: 0;
-            text-align: center;
-        }
-        .container { max-width: 600px; padding: 2rem; }
-        h1 { 
-            font-size: 3rem; margin-bottom: 1rem; 
-            background: linear-gradient(45deg, #4ecdc4, #44a08d, #f38ba8, #fab387);
-            background-size: 400% 400%;
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: rainbow 3s ease-in-out infinite alternate;
-        }
-        @keyframes rainbow {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-        .btn { 
-            background: linear-gradient(45deg, #4ecdc4, #44a08d);
-            color: white; border: none; padding: 1rem 2rem;
-            border-radius: 25px; font-size: 1.2rem; cursor: pointer;
-            margin: 1rem; transition: transform 0.3s ease;
-            text-transform: uppercase; letter-spacing: 1px;
-        }
-        .btn:hover { transform: translateY(-3px); }
-        .status { background: rgba(78, 205, 196, 0.2); padding: 1rem; border-radius: 10px; margin: 1rem 0; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>🎬 BRAVO ZULU FILMS</h1>
-        <h2>🚨 VERIFICATION POPUP ELIMINATED! 🚨</h2>
-        <div class="status">
-            <p>✅ <strong>Emergency bypass active!</strong></p>
-            <p>✅ <strong>All verification barriers removed!</strong></p>
-            <p>✅ <strong>Platform fully operational!</strong></p>
-        </div>
-        <button class="btn" onclick="window.location.href='/fresh'">🚀 Enter Platform Now</button>
-        <script>
-            console.log('🚨 EMERGENCY BYPASS: All verification disabled');
-            console.log('✅ Platform fully operational - no more popups!');
-            // Auto-redirect to fresh version after 3 seconds
-            setTimeout(() => window.location.href='/fresh', 3000);
-        </script>
-    </div>
-</body>
-</html>`);
-  });
-
-  // Catch-all route for any remaining requests
-  app.get('*', (req, res) => {
-    console.log('🔄 Catch-all route, redirecting to fresh rebuild');
-    res.redirect('/');
   });
 
   return httpServer;

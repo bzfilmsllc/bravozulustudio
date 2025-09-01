@@ -105,8 +105,7 @@ export function ProjectManager() {
       });
     },
     onError: (error) => {
-      // DISABLED FOR TESTING: Skip unauthorized error handling for Facebook launch
-      if (false && isUnauthorizedError(error)) {
+      if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
           description: "You are logged out. Logging in again...",
