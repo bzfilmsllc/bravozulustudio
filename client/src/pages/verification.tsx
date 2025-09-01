@@ -39,13 +39,14 @@ import {
 } from "lucide-react";
 
 const verificationSchema = z.object({
-  militaryEmail: z.string().email("Please enter a valid email address"),
-  militaryBranch: z.enum(["army", "navy", "air_force", "marines", "coast_guard", "space_force"]),
-  yearsOfService: z.string().min(1, "Years of service is required"),
+  contactEmail: z.string().email("Please enter a valid email address"),
+  relationshipType: z.enum(["veteran", "active_duty", "family_member", "friend", "supporter"]),
+  militaryBranch: z.enum(["army", "navy", "air_force", "marines", "coast_guard", "space_force", "civilian", "not_applicable"]).optional(),
+  yearsOfService: z.string().optional(),
   rank: z.string().optional(),
   specialty: z.string().optional(),
   deployments: z.string().optional(),
-  bio: z.string().min(50, "Please provide at least 50 characters about your background"),
+  bio: z.string().min(50, "Please provide at least 50 characters about your background and connection to the military community"),
   linkedinProfile: z.string().url().optional().or(z.literal("")),
   agreeToTerms: z.boolean().refine((val) => val === true, "You must agree to the terms"),
   agreeToVerification: z.boolean().refine((val) => val === true, "You must consent to verification"),
@@ -63,7 +64,8 @@ export default function Verification() {
   const form = useForm<VerificationFormData>({
     resolver: zodResolver(verificationSchema),
     defaultValues: {
-      militaryEmail: "",
+      contactEmail: "",
+      relationshipType: undefined,
       militaryBranch: undefined,
       yearsOfService: "",
       rank: "",
@@ -79,9 +81,10 @@ export default function Verification() {
   const verificationMutation = useMutation({
     mutationFn: async (data: VerificationFormData) => {
       const response = await apiRequest("PUT", "/api/users/verification", {
+        contactEmail: data.contactEmail,
+        relationshipType: data.relationshipType,
         militaryBranch: data.militaryBranch,
         yearsOfService: data.yearsOfService,
-        militaryEmail: data.militaryEmail,
         bio: data.bio,
         specialties: data.specialty,
       });
@@ -126,10 +129,18 @@ export default function Verification() {
   };
 
   const steps = [
-    { number: 1, title: "Military Information", description: "Verify your military service" },
+    { number: 1, title: "Contact Information", description: "Your details and connection" },
     { number: 2, title: "Professional Background", description: "Share your experience" },
     { number:3, title: "Verification Consent", description: "Agree to verification process" },
     { number: 4, title: "Review & Submit", description: "Complete your application" },
+  ];
+
+  const relationshipTypes = [
+    { value: "veteran", label: "Military Veteran" },
+    { value: "active_duty", label: "Active Duty Service Member" },
+    { value: "family_member", label: "Military Family Member" },
+    { value: "friend", label: "Friend of Military Community" },
+    { value: "supporter", label: "Military Supporter" },
   ];
 
   const militaryBranches = [
@@ -139,6 +150,8 @@ export default function Verification() {
     { value: "marines", label: "Marines" },
     { value: "coast_guard", label: "Coast Guard" },
     { value: "space_force", label: "Space Force" },
+    { value: "civilian", label: "N/A - Civilian" },
+    { value: "not_applicable", label: "Not Applicable" },
   ];
 
   const benefits = [
@@ -254,9 +267,9 @@ export default function Verification() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header */}
             <div className="text-center mb-12">
-              <h1 className="text-4xl font-serif font-bold mb-4">Military Verification</h1>
+              <h1 className="text-4xl font-serif font-bold mb-4">Community Verification</h1>
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                Join our verified community of military veteran filmmakers and gain access to professional studio tools
+                Join our inclusive community of military veterans, their families, friends, and supporters in the film industry
               </p>
             </div>
 
@@ -267,7 +280,7 @@ export default function Verification() {
                   <CardHeader>
                     <CardTitle className="flex items-center">
                       <Star className="w-6 h-6 text-primary mr-3" />
-                      Verification Benefits
+                      Community Benefits
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -352,45 +365,60 @@ export default function Verification() {
                   
                   <CardContent>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                      {/* Step 1: Military Information */}
+                      {/* Step 1: Contact Information */}
                       {currentStep === 1 && (
-                        <div className="space-y-6" data-testid="step-military-info">
+                        <div className="space-y-6" data-testid="step-contact-info">
                           <div className="grid md:grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="militaryEmail">Military Email Address *</Label>
+                              <Label htmlFor="contactEmail">Email Address *</Label>
                               <div className="relative">
                                 <Input
-                                  id="militaryEmail"
-                                  type={showEmailPassword ? "text" : "email"}
-                                  {...form.register("militaryEmail")}
-                                  placeholder="your.name@military.mil"
-                                  data-testid="input-military-email"
+                                  id="contactEmail"
+                                  type="email"
+                                  {...form.register("contactEmail")}
+                                  placeholder="your.email@example.com"
+                                  data-testid="input-contact-email"
                                 />
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="absolute right-0 top-0 h-full px-3"
-                                  onClick={() => setShowEmailPassword(!showEmailPassword)}
-                                >
-                                  {showEmailPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                </Button>
                               </div>
-                              {form.formState.errors.militaryEmail && (
+                              {form.formState.errors.contactEmail && (
                                 <p className="text-sm text-destructive mt-1">
-                                  {form.formState.errors.militaryEmail.message}
+                                  {form.formState.errors.contactEmail.message}
                                 </p>
                               )}
                             </div>
 
                             <div>
-                              <Label htmlFor="militaryBranch">Service Branch *</Label>
+                              <Label htmlFor="relationshipType">Connection to Military Community *</Label>
+                              <Select value={form.watch("relationshipType")} onValueChange={(value) => form.setValue("relationshipType", value as any)}>
+                                <SelectTrigger data-testid="select-relationship-type">
+                                  <SelectValue placeholder="Select your connection" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {relationshipTypes.map((type) => (
+                                    <SelectItem key={type.value} value={type.value}>
+                                      {type.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              {form.formState.errors.relationshipType && (
+                                <p className="text-sm text-destructive mt-1">
+                                  {form.formState.errors.relationshipType.message}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+
+                          {(form.watch("relationshipType") === "veteran" || form.watch("relationshipType") === "active_duty") && (
+                            <div>
+
+                              <Label htmlFor="militaryBranch">Service Branch</Label>
                               <Select value={form.watch("militaryBranch")} onValueChange={(value) => form.setValue("militaryBranch", value as any)}>
                                 <SelectTrigger data-testid="select-military-branch">
                                   <SelectValue placeholder="Select your service branch" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {militaryBranches.map((branch) => (
+                                  {militaryBranches.slice(0, -2).map((branch) => (
                                     <SelectItem key={branch.value} value={branch.value}>
                                       {branch.label}
                                     </SelectItem>
@@ -403,34 +431,54 @@ export default function Verification() {
                                 </p>
                               )}
                             </div>
-                          </div>
+                          )}
 
-                          <div className="grid md:grid-cols-2 gap-4">
+                          {(form.watch("relationshipType") === "family_member" || form.watch("relationshipType") === "friend" || form.watch("relationshipType") === "supporter") && (
                             <div>
-                              <Label htmlFor="yearsOfService">Years of Service *</Label>
-                              <Input
-                                id="yearsOfService"
-                                {...form.register("yearsOfService")}
-                                placeholder="e.g., 4, 8, 20"
-                                data-testid="input-years-service"
-                              />
-                              {form.formState.errors.yearsOfService && (
-                                <p className="text-sm text-destructive mt-1">
-                                  {form.formState.errors.yearsOfService.message}
-                                </p>
-                              )}
+                              <Label htmlFor="militaryBranch">Associated Service Branch (Optional)</Label>
+                              <Select value={form.watch("militaryBranch")} onValueChange={(value) => form.setValue("militaryBranch", value as any)}>
+                                <SelectTrigger data-testid="select-military-branch-optional">
+                                  <SelectValue placeholder="Select associated branch (if applicable)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {militaryBranches.map((branch) => (
+                                    <SelectItem key={branch.value} value={branch.value}>
+                                      {branch.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
+                          )}
 
-                            <div>
-                              <Label htmlFor="rank">Final Rank (Optional)</Label>
-                              <Input
-                                id="rank"
-                                {...form.register("rank")}
-                                placeholder="e.g., Staff Sergeant, Lieutenant, etc."
-                                data-testid="input-rank"
-                              />
+                          {(form.watch("relationshipType") === "veteran" || form.watch("relationshipType") === "active_duty") && (
+                            <div className="grid md:grid-cols-2 gap-4">
+                              <div>
+                                <Label htmlFor="yearsOfService">Years of Service</Label>
+                                <Input
+                                  id="yearsOfService"
+                                  {...form.register("yearsOfService")}
+                                  placeholder="e.g., 4, 8, 20"
+                                  data-testid="input-years-service"
+                                />
+                                {form.formState.errors.yearsOfService && (
+                                  <p className="text-sm text-destructive mt-1">
+                                    {form.formState.errors.yearsOfService.message}
+                                  </p>
+                                )}
+                              </div>
+
+                              <div>
+                                <Label htmlFor="rank">Final Rank (Optional)</Label>
+                                <Input
+                                  id="rank"
+                                  {...form.register("rank")}
+                                  placeholder="e.g., Staff Sergeant, Lieutenant, etc."
+                                  data-testid="input-rank"
+                                />
+                              </div>
                             </div>
-                          </div>
+                          )}
 
                           <div>
                             <Label htmlFor="specialty">Military Specialty/MOS (Optional)</Label>

@@ -39,7 +39,14 @@ export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUserRole(id: string, role: 'public' | 'pending' | 'verified'): Promise<User | undefined>;
-  updateUserVerification(id: string, isVerified: boolean, militaryBranch?: string, yearsOfService?: string): Promise<User | undefined>;
+  updateUserVerification(id: string, verificationData: {
+    contactEmail?: string;
+    relationshipType?: string;
+    militaryBranch?: string;
+    yearsOfService?: string;
+    bio?: string;
+    specialties?: string;
+  }): Promise<User | undefined>;
   getVerifiedMembers(limit?: number): Promise<User[]>;
   
   // Friend operations
@@ -112,10 +119,22 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async updateUserVerification(id: string, isVerified: boolean, militaryBranch?: string, yearsOfService?: string): Promise<User | undefined> {
-    const updateData: any = { isVerified, updatedAt: new Date() };
-    if (militaryBranch) updateData.militaryBranch = militaryBranch;
-    if (yearsOfService) updateData.yearsOfService = yearsOfService;
+  async updateUserVerification(id: string, verificationData: {
+    contactEmail?: string;
+    relationshipType?: string;
+    militaryBranch?: string;
+    yearsOfService?: string;
+    bio?: string;
+    specialties?: string;
+  }): Promise<User | undefined> {
+    const updateData: any = { updatedAt: new Date() };
+    
+    if (verificationData.contactEmail) updateData.contactEmail = verificationData.contactEmail;
+    if (verificationData.relationshipType) updateData.relationshipType = verificationData.relationshipType;
+    if (verificationData.militaryBranch) updateData.militaryBranch = verificationData.militaryBranch;
+    if (verificationData.yearsOfService) updateData.yearsOfService = verificationData.yearsOfService;
+    if (verificationData.bio) updateData.bio = verificationData.bio;
+    if (verificationData.specialties) updateData.specialties = verificationData.specialties;
     
     const [user] = await db
       .update(users)

@@ -42,12 +42,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/users/verification', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;
-      const { militaryBranch, yearsOfService, militaryEmail } = req.body;
+      const { contactEmail, relationshipType, militaryBranch, yearsOfService, bio, specialties } = req.body;
 
       // In a real app, this would trigger a verification process
       // For now, we'll just update the user with pending status
       await storage.updateUserRole(userId, 'pending');
-      const user = await storage.updateUserVerification(userId, false, militaryBranch, yearsOfService);
+      const user = await storage.updateUserVerification(userId, {
+        contactEmail,
+        relationshipType,
+        militaryBranch,
+        yearsOfService,
+        bio,
+        specialties
+      });
       
       res.json(user);
     } catch (error) {

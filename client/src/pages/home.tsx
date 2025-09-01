@@ -17,6 +17,7 @@ import {
   Award,
   Rocket,
   BarChart3,
+  Plus,
 } from "lucide-react";
 import { Link } from "wouter";
 

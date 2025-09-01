@@ -29,7 +29,12 @@ export const userRoleEnum = pgEnum('user_role', ['public', 'pending', 'verified'
 
 // Military branch enum
 export const militaryBranchEnum = pgEnum('military_branch', [
-  'army', 'navy', 'air_force', 'marines', 'coast_guard', 'space_force'
+  'army', 'navy', 'air_force', 'marines', 'coast_guard', 'space_force', 'civilian', 'not_applicable'
+]);
+
+// Relationship to military community enum
+export const relationshipTypeEnum = pgEnum('relationship_type', [
+  'veteran', 'active_duty', 'family_member', 'friend', 'supporter'
 ]);
 
 // User storage table
@@ -40,9 +45,10 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
   role: userRoleEnum("role").default('public').notNull(),
+  relationshipType: relationshipTypeEnum("relationship_type"),
   militaryBranch: militaryBranchEnum("military_branch"),
   yearsOfService: varchar("years_of_service"),
-  militaryEmail: varchar("military_email"),
+  contactEmail: varchar("contact_email"),
   isVerified: boolean("is_verified").default(false).notNull(),
   bio: text("bio"),
   specialties: text("specialties"),
