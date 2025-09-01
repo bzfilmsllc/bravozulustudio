@@ -29,6 +29,9 @@ function Router() {
 
   return (
     <Switch>
+      {/* Verification page is always accessible */}
+      <Route path="/verification" component={Verification} />
+      
       {isLoading || !isAuthenticated ? (
         <Route path="/" component={Landing} />
       ) : (
@@ -38,7 +41,6 @@ function Router() {
           <Route path="/portfolio" component={Portfolio} />
           <Route path="/community" component={Community} />
           <Route path="/media" component={Media} />
-          <Route path="/verification" component={Verification} />
           <Route path="/billing" component={Billing} />
           <Route path="/directors-toolkit" component={DirectorsToolkit} />
           <Route path="/editors-toolkit" component={EditorsToolkit} />
