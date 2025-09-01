@@ -44,6 +44,7 @@ import {
   Bot,
   Menu,
   X,
+  Plus,
 } from "lucide-react";
 
 export default function Landing() {
