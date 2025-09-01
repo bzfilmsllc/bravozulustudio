@@ -3,7 +3,10 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
-import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema } from "@shared/schema";
+import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema, insertDesignAssetSchema } from "@shared/schema";
+import OpenAI from "openai";
+
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -549,6 +552,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting festival submission:", error);
       res.status(500).json({ message: "Failed to delete festival submission" });
+    }
+  });
+
+  // Design asset routes
+  app.post('/api/design-assets/generate', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { prompt, title, assetType, category, projectId, tags = [] } = req.body;
+
+      if (!prompt || !title || !assetType) {
+        return res.status(400).json({ message: "Prompt, title, and asset type are required" });
+      }
+
+      // Generate image using OpenAI DALL-E
+      const response = await openai.images.generate({
+        model: "dall-e-3",
+        prompt: prompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "standard",
+      });
+
+      const imageUrl = response.data[0].url!;
+
+      // Create design asset record
+      const asset = await storage.createDesignAsset({
+        creatorId: userId,
+        projectId: projectId || null,
+        title,
+        description: prompt,
+        assetType,
+        category: category || null,
+        imageUrl,
+        prompt,
+        dimensions: "1024x1024",
+        tags,
+        isPublic: false,
+      });
+
+      res.json(asset);
+    } catch (error) {
+      console.error("Error generating design asset:", error);
+      res.status(500).json({ message: "Failed to generate design asset" });
+    }
+  });
+
+  app.get('/api/design-assets', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const assets = await storage.getUserDesignAssets(userId);
+      res.json(assets);
+    } catch (error) {
+      console.error("Error fetching design assets:", error);
+      res.status(500).json({ message: "Failed to fetch design assets" });
+    }
+  });
+
+  app.get('/api/design-assets/public', async (req, res) => {
+    try {
+      const limit = parseInt(req.query.limit as string) || 50;
+      const assets = await storage.getPublicDesignAssets(limit);
+      res.json(assets);
+    } catch (error) {
+      console.error("Error fetching public design assets:", error);
+      res.status(500).json({ message: "Failed to fetch public design assets" });
+    }
+  });
+
+  app.get('/api/design-assets/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const asset = await storage.getDesignAsset(id);
+      
+      if (!asset) {
+        return res.status(404).json({ message: "Design asset not found" });
+      }
+
+      res.json(asset);
+    } catch (error) {
+      console.error("Error fetching design asset:", error);
+      res.status(500).json({ message: "Failed to fetch design asset" });
+    }
+  });
+
+  app.put('/api/design-assets/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+
+      // Check if user owns this asset
+      const existingAsset = await storage.getDesignAsset(id);
+      if (!existingAsset || existingAsset.creatorId !== userId) {
+        return res.status(404).json({ message: "Design asset not found" });
+      }
+
+      const updateData = insertDesignAssetSchema.partial().parse(req.body);
+      const asset = await storage.updateDesignAsset(id, updateData);
+      res.json(asset);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid asset data", errors: error.errors });
+      }
+      console.error("Error updating design asset:", error);
+      res.status(500).json({ message: "Failed to update design asset" });
+    }
+  });
+
+  app.delete('/api/design-assets/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+
+      // Check if user owns this asset
+      const existingAsset = await storage.getDesignAsset(id);
+      if (!existingAsset || existingAsset.creatorId !== userId) {
+        return res.status(404).json({ message: "Design asset not found" });
+      }
+
+      await storage.deleteDesignAsset(id);
+      res.json({ message: "Design asset deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting design asset:", error);
+      res.status(500).json({ message: "Failed to delete design asset" });
+    }
+  });
+
+  app.post('/api/design-assets/:id/download', async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.incrementDownloadCount(id);
+      res.json({ message: "Download recorded successfully" });
+    } catch (error) {
+      console.error("Error recording download:", error);
+      res.status(500).json({ message: "Failed to record download" });
     }
   });
 

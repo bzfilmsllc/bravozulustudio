@@ -11,6 +11,7 @@ import {
   messages,
   reports,
   festivalSubmissions,
+  designAssets,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -33,6 +34,8 @@ import {
   type InsertReport,
   type FestivalSubmission,
   type InsertFestivalSubmission,
+  type DesignAsset,
+  type InsertDesignAsset,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, sql } from "drizzle-orm";
@@ -96,6 +99,15 @@ export interface IStorage {
   getFestivalSubmission(id: string): Promise<(FestivalSubmission & { project?: Project; script?: Script; submitter: User }) | undefined>;
   updateFestivalSubmission(id: string, updates: Partial<InsertFestivalSubmission>): Promise<FestivalSubmission | undefined>;
   deleteFestivalSubmission(id: string): Promise<void>;
+  
+  // Design asset operations
+  createDesignAsset(asset: InsertDesignAsset): Promise<DesignAsset>;
+  getUserDesignAssets(userId: string): Promise<(DesignAsset & { project?: Project })[]>;
+  getPublicDesignAssets(limit?: number): Promise<(DesignAsset & { creator: User })[]>;
+  getDesignAsset(id: string): Promise<(DesignAsset & { creator: User; project?: Project }) | undefined>;
+  updateDesignAsset(id: string, updates: Partial<InsertDesignAsset>): Promise<DesignAsset | undefined>;
+  deleteDesignAsset(id: string): Promise<void>;
+  incrementDownloadCount(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -652,6 +664,132 @@ export class DatabaseStorage implements IStorage {
 
   async deleteFestivalSubmission(id: string): Promise<void> {
     await db.delete(festivalSubmissions).where(eq(festivalSubmissions.id, id));
+  }
+
+  // Design asset operations
+  async createDesignAsset(asset: InsertDesignAsset): Promise<DesignAsset> {
+    const [designAsset] = await db
+      .insert(designAssets)
+      .values(asset)
+      .returning();
+    return designAsset;
+  }
+
+  async getUserDesignAssets(userId: string): Promise<(DesignAsset & { project?: Project })[]> {
+    const assets = await db
+      .select({
+        id: designAssets.id,
+        creatorId: designAssets.creatorId,
+        projectId: designAssets.projectId,
+        title: designAssets.title,
+        description: designAssets.description,
+        assetType: designAssets.assetType,
+        category: designAssets.category,
+        imageUrl: designAssets.imageUrl,
+        prompt: designAssets.prompt,
+        dimensions: designAssets.dimensions,
+        tags: designAssets.tags,
+        isPublic: designAssets.isPublic,
+        downloadCount: designAssets.downloadCount,
+        createdAt: designAssets.createdAt,
+        updatedAt: designAssets.updatedAt,
+        project: projects,
+      })
+      .from(designAssets)
+      .leftJoin(projects, eq(designAssets.projectId, projects.id))
+      .where(eq(designAssets.creatorId, userId))
+      .orderBy(desc(designAssets.createdAt));
+
+    return assets.map(asset => ({
+      ...asset,
+      project: asset.project || undefined,
+    }));
+  }
+
+  async getPublicDesignAssets(limit: number = 50): Promise<(DesignAsset & { creator: User })[]> {
+    const assets = await db
+      .select({
+        id: designAssets.id,
+        creatorId: designAssets.creatorId,
+        projectId: designAssets.projectId,
+        title: designAssets.title,
+        description: designAssets.description,
+        assetType: designAssets.assetType,
+        category: designAssets.category,
+        imageUrl: designAssets.imageUrl,
+        prompt: designAssets.prompt,
+        dimensions: designAssets.dimensions,
+        tags: designAssets.tags,
+        isPublic: designAssets.isPublic,
+        downloadCount: designAssets.downloadCount,
+        createdAt: designAssets.createdAt,
+        updatedAt: designAssets.updatedAt,
+        creator: users,
+      })
+      .from(designAssets)
+      .innerJoin(users, eq(designAssets.creatorId, users.id))
+      .where(eq(designAssets.isPublic, true))
+      .orderBy(desc(designAssets.createdAt))
+      .limit(limit);
+
+    return assets;
+  }
+
+  async getDesignAsset(id: string): Promise<(DesignAsset & { creator: User; project?: Project }) | undefined> {
+    const [asset] = await db
+      .select({
+        id: designAssets.id,
+        creatorId: designAssets.creatorId,
+        projectId: designAssets.projectId,
+        title: designAssets.title,
+        description: designAssets.description,
+        assetType: designAssets.assetType,
+        category: designAssets.category,
+        imageUrl: designAssets.imageUrl,
+        prompt: designAssets.prompt,
+        dimensions: designAssets.dimensions,
+        tags: designAssets.tags,
+        isPublic: designAssets.isPublic,
+        downloadCount: designAssets.downloadCount,
+        createdAt: designAssets.createdAt,
+        updatedAt: designAssets.updatedAt,
+        creator: users,
+        project: projects,
+      })
+      .from(designAssets)
+      .innerJoin(users, eq(designAssets.creatorId, users.id))
+      .leftJoin(projects, eq(designAssets.projectId, projects.id))
+      .where(eq(designAssets.id, id));
+
+    if (!asset) return undefined;
+
+    return {
+      ...asset,
+      project: asset.project || undefined,
+    };
+  }
+
+  async updateDesignAsset(id: string, updates: Partial<InsertDesignAsset>): Promise<DesignAsset | undefined> {
+    const [asset] = await db
+      .update(designAssets)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(designAssets.id, id))
+      .returning();
+    return asset;
+  }
+
+  async deleteDesignAsset(id: string): Promise<void> {
+    await db.delete(designAssets).where(eq(designAssets.id, id));
+  }
+
+  async incrementDownloadCount(id: string): Promise<void> {
+    await db
+      .update(designAssets)
+      .set({ 
+        downloadCount: sql`${designAssets.downloadCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(eq(designAssets.id, id));
   }
 }
 

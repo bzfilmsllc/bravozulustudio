@@ -7,6 +7,7 @@ import {
   varchar,
   text,
   boolean,
+  integer,
   pgEnum,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
@@ -309,6 +310,24 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
+export const designAssets = pgTable("design_assets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  creatorId: varchar("creator_id").notNull().references(() => users.id),
+  projectId: varchar("project_id").references(() => projects.id),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  assetType: varchar("asset_type").notNull(), // logo, poster, banner, thumbnail, social_media
+  category: varchar("category"), // production_company, film_title, character, etc.
+  imageUrl: varchar("image_url").notNull(),
+  prompt: text("prompt"), // Original AI prompt used
+  dimensions: varchar("dimensions"), // e.g., "1024x1024"
+  tags: text("tags").array(),
+  isPublic: boolean("is_public").default(false),
+  downloadCount: integer("download_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 export const festivalSubmissionsRelations = relations(festivalSubmissions, ({ one }) => ({
   project: one(projects, {
     fields: [festivalSubmissions.projectId],
@@ -322,6 +341,18 @@ export const festivalSubmissionsRelations = relations(festivalSubmissions, ({ on
     fields: [festivalSubmissions.submitterId],
     references: [users.id],
     relationName: "festivalSubmissions",
+  }),
+}));
+
+export const designAssetsRelations = relations(designAssets, ({ one }) => ({
+  creator: one(users, {
+    fields: [designAssets.creatorId],
+    references: [users.id],
+    relationName: "designAssets",
+  }),
+  project: one(projects, {
+    fields: [designAssets.projectId],
+    references: [projects.id],
   }),
 }));
 
@@ -389,6 +420,13 @@ export const insertFestivalSubmissionSchema = createInsertSchema(festivalSubmiss
   updatedAt: true,
 });
 
+export const insertDesignAssetSchema = createInsertSchema(designAssets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  downloadCount: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
@@ -412,3 +450,5 @@ export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
 export type FestivalSubmission = typeof festivalSubmissions.$inferSelect;
 export type InsertFestivalSubmission = z.infer<typeof insertFestivalSubmissionSchema>;
+export type DesignAsset = typeof designAssets.$inferSelect;
+export type InsertDesignAsset = z.infer<typeof insertDesignAssetSchema>;

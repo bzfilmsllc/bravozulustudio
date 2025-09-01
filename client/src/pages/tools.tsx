@@ -4,6 +4,7 @@ import { MemberGuard } from "@/components/member-guard";
 import { ScriptEditor } from "@/components/script-editor";
 import { ProjectManager } from "@/components/project-manager";
 import { FestivalTracker } from "@/components/festival-tracker";
+import { DesignStudio } from "@/components/design-studio";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -146,56 +147,7 @@ export default function Tools() {
 
               {/* Design Studio */}
               <TabsContent value="design" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Palette className="w-6 h-6 text-primary mr-3" />
-                      Design Studio
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      <Card className="hover:border-primary/50 transition-all duration-300" data-testid="card-logo-generator">
-                        <CardContent className="p-6 text-center">
-                          <Palette className="w-12 h-12 text-primary mx-auto mb-4" />
-                          <h3 className="font-semibold mb-2">Logo Generator</h3>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            AI-powered logo creation for your productions
-                          </p>
-                          <Button className="w-full" data-testid="button-logo-generator">
-                            Generate Logo
-                          </Button>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:border-primary/50 transition-all duration-300" data-testid="card-poster-designer">
-                        <CardContent className="p-6 text-center">
-                          <WandSparkles className="w-12 h-12 text-primary mx-auto mb-4" />
-                          <h3 className="font-semibold mb-2">Poster Designer</h3>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            Professional movie poster templates and tools
-                          </p>
-                          <Button className="w-full" data-testid="button-poster-designer">
-                            Design Poster
-                          </Button>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="hover:border-primary/50 transition-all duration-300" data-testid="card-asset-library">
-                        <CardContent className="p-6 text-center">
-                          <Upload className="w-12 h-12 text-primary mx-auto mb-4" />
-                          <h3 className="font-semibold mb-2">Asset Library</h3>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            Store and organize your creative assets
-                          </p>
-                          <Button className="w-full" data-testid="button-asset-library">
-                            Manage Assets
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CardContent>
-                </Card>
+                <DesignStudio />
               </TabsContent>
 
               {/* Festival Tracker */}
@@ -267,7 +219,7 @@ export default function Tools() {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {tools.map((tool) => {
                   const Icon = tool.icon;
-                  const isActive = tool.id === "scripts" || tool.id === "projects" || tool.id === "festival"; // Active tools
+                  const isActive = tool.id === "scripts" || tool.id === "projects" || tool.id === "festival" || tool.id === "design"; // Active tools
                   
                   return (
                     <Card 
