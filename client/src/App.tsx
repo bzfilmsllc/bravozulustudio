@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Tools from "@/pages/tools";
+import Portfolio from "@/pages/portfolio";
 import Community from "@/pages/community";
 import Media from "@/pages/media";
 import Verification from "@/pages/verification";
@@ -23,6 +24,7 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/tools" component={Tools} />
+          <Route path="/portfolio" component={Portfolio} />
           <Route path="/community" component={Community} />
           <Route path="/media" component={Media} />
           <Route path="/verification" component={Verification} />

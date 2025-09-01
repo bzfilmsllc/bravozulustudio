@@ -31,6 +31,7 @@ import {
   Eye,
   EyeOff,
   Sparkles,
+  WandSparkles,
   BarChart3,
   Calendar,
 } from "lucide-react";
@@ -42,6 +43,7 @@ const scriptFormSchema = z.object({
   genre: z.string().optional(),
   logline: z.string().optional(),
   isPublic: z.boolean().default(false),
+  festivalScore: z.string().optional(),
 });
 
 type ScriptFormData = z.infer<typeof scriptFormSchema>;

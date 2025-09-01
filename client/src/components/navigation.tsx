@@ -14,6 +14,7 @@ import {
   LogOut,
   Settings,
   User,
+  Briefcase,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -36,6 +37,7 @@ export function Navigation() {
   const navigation = [
     { name: "Home", href: "/", icon: Home },
     { name: "Tools", href: "/tools", icon: Wrench },
+    { name: "Portfolio", href: "/portfolio", icon: Briefcase },
     { name: "Community", href: "/community", icon: Users },
     { name: "Media", href: "/media", icon: Radio },
   ];

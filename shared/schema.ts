@@ -103,6 +103,26 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Festival submissions table
+export const festivalSubmissions = pgTable("festival_submissions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: 'cascade' }),
+  scriptId: varchar("script_id").references(() => scripts.id, { onDelete: 'cascade' }),
+  submitterId: varchar("submitter_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  festivalName: varchar("festival_name").notNull(),
+  festivalLocation: varchar("festival_location"),
+  festivalWebsite: varchar("festival_website"),
+  submissionCategory: varchar("submission_category"),
+  submissionDeadline: timestamp("submission_deadline"),
+  submissionFee: varchar("submission_fee"),
+  status: varchar("status", { enum: ['draft', 'submitted', 'under_review', 'accepted', 'rejected', 'withdrawn'] }).default('draft').notNull(),
+  submittedAt: timestamp("submitted_at"),
+  responseReceived: timestamp("response_received"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Project collaborators table
 export const projectCollaborators = pgTable("project_collaborators", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -289,6 +309,22 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   }),
 }));
 
+export const festivalSubmissionsRelations = relations(festivalSubmissions, ({ one }) => ({
+  project: one(projects, {
+    fields: [festivalSubmissions.projectId],
+    references: [projects.id],
+  }),
+  script: one(scripts, {
+    fields: [festivalSubmissions.scriptId],
+    references: [scripts.id],
+  }),
+  submitter: one(users, {
+    fields: [festivalSubmissions.submitterId],
+    references: [users.id],
+    relationName: "festivalSubmissions",
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -347,6 +383,12 @@ export const insertReportSchema = createInsertSchema(reports).omit({
   updatedAt: true,
 });
 
+export const insertFestivalSubmissionSchema = createInsertSchema(festivalSubmissions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type UpsertUser = z.infer<typeof upsertUserSchema>;
@@ -368,3 +410,5 @@ export type Message = typeof messages.$inferSelect;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type Report = typeof reports.$inferSelect;
 export type InsertReport = z.infer<typeof insertReportSchema>;
+export type FestivalSubmission = typeof festivalSubmissions.$inferSelect;
+export type InsertFestivalSubmission = z.infer<typeof insertFestivalSubmissionSchema>;

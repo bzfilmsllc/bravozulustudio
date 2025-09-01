@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
-import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema } from "@shared/schema";
+import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -454,6 +454,101 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating report:", error);
       res.status(500).json({ message: "Failed to create report" });
+    }
+  });
+
+  // Festival submission routes
+  app.post('/api/festival-submissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const submissionData = insertFestivalSubmissionSchema.parse({
+        ...req.body,
+        submitterId: userId,
+      });
+
+      const submission = await storage.createFestivalSubmission(submissionData);
+      res.json(submission);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid submission data", errors: error.errors });
+      }
+      console.error("Error creating festival submission:", error);
+      res.status(500).json({ message: "Failed to create festival submission" });
+    }
+  });
+
+  app.get('/api/festival-submissions', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const submissions = await storage.getUserFestivalSubmissions(userId);
+      res.json(submissions);
+    } catch (error) {
+      console.error("Error fetching festival submissions:", error);
+      res.status(500).json({ message: "Failed to fetch festival submissions" });
+    }
+  });
+
+  app.get('/api/festival-submissions/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const submission = await storage.getFestivalSubmission(id);
+      
+      if (!submission) {
+        return res.status(404).json({ message: "Festival submission not found" });
+      }
+
+      // Check if user owns this submission
+      const userId = req.user.claims.sub;
+      if (submission.submitterId !== userId) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(submission);
+    } catch (error) {
+      console.error("Error fetching festival submission:", error);
+      res.status(500).json({ message: "Failed to fetch festival submission" });
+    }
+  });
+
+  app.put('/api/festival-submissions/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+
+      // Check if user owns this submission
+      const existingSubmission = await storage.getFestivalSubmission(id);
+      if (!existingSubmission || existingSubmission.submitterId !== userId) {
+        return res.status(404).json({ message: "Festival submission not found" });
+      }
+
+      const updateData = insertFestivalSubmissionSchema.partial().parse(req.body);
+      const submission = await storage.updateFestivalSubmission(id, updateData);
+      res.json(submission);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid submission data", errors: error.errors });
+      }
+      console.error("Error updating festival submission:", error);
+      res.status(500).json({ message: "Failed to update festival submission" });
+    }
+  });
+
+  app.delete('/api/festival-submissions/:id', isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.claims.sub;
+
+      // Check if user owns this submission
+      const existingSubmission = await storage.getFestivalSubmission(id);
+      if (!existingSubmission || existingSubmission.submitterId !== userId) {
+        return res.status(404).json({ message: "Festival submission not found" });
+      }
+
+      await storage.deleteFestivalSubmission(id);
+      res.json({ message: "Festival submission deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting festival submission:", error);
+      res.status(500).json({ message: "Failed to delete festival submission" });
     }
   });
 

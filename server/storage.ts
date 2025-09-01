@@ -10,6 +10,7 @@ import {
   forumReplies,
   messages,
   reports,
+  festivalSubmissions,
   type User,
   type UpsertUser,
   type InsertUser,
@@ -30,6 +31,8 @@ import {
   type InsertMessage,
   type Report,
   type InsertReport,
+  type FestivalSubmission,
+  type InsertFestivalSubmission,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, or, desc, asc, count, sql } from "drizzle-orm";
@@ -86,6 +89,13 @@ export interface IStorage {
   createReport(report: InsertReport): Promise<Report>;
   getReports(status?: string): Promise<(Report & { reporter: User })[]>;
   updateReportStatus(reportId: string, status: 'reviewed' | 'resolved' | 'dismissed'): Promise<Report | undefined>;
+  
+  // Festival submission operations
+  createFestivalSubmission(submission: InsertFestivalSubmission): Promise<FestivalSubmission>;
+  getUserFestivalSubmissions(userId: string): Promise<(FestivalSubmission & { project?: Project; script?: Script })[]>;
+  getFestivalSubmission(id: string): Promise<(FestivalSubmission & { project?: Project; script?: Script; submitter: User }) | undefined>;
+  updateFestivalSubmission(id: string, updates: Partial<InsertFestivalSubmission>): Promise<FestivalSubmission | undefined>;
+  deleteFestivalSubmission(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -547,6 +557,101 @@ export class DatabaseStorage implements IStorage {
       .where(eq(reports.id, reportId))
       .returning();
     return report;
+  }
+
+  // Festival submission operations
+  async createFestivalSubmission(submission: InsertFestivalSubmission): Promise<FestivalSubmission> {
+    const [festivalSubmission] = await db
+      .insert(festivalSubmissions)
+      .values(submission)
+      .returning();
+    return festivalSubmission;
+  }
+
+  async getUserFestivalSubmissions(userId: string): Promise<(FestivalSubmission & { project?: Project; script?: Script })[]> {
+    const submissions = await db
+      .select({
+        id: festivalSubmissions.id,
+        projectId: festivalSubmissions.projectId,
+        scriptId: festivalSubmissions.scriptId,
+        submitterId: festivalSubmissions.submitterId,
+        festivalName: festivalSubmissions.festivalName,
+        festivalLocation: festivalSubmissions.festivalLocation,
+        festivalWebsite: festivalSubmissions.festivalWebsite,
+        submissionCategory: festivalSubmissions.submissionCategory,
+        submissionDeadline: festivalSubmissions.submissionDeadline,
+        submissionFee: festivalSubmissions.submissionFee,
+        status: festivalSubmissions.status,
+        submittedAt: festivalSubmissions.submittedAt,
+        responseReceived: festivalSubmissions.responseReceived,
+        notes: festivalSubmissions.notes,
+        createdAt: festivalSubmissions.createdAt,
+        updatedAt: festivalSubmissions.updatedAt,
+        project: projects,
+        script: scripts,
+      })
+      .from(festivalSubmissions)
+      .leftJoin(projects, eq(festivalSubmissions.projectId, projects.id))
+      .leftJoin(scripts, eq(festivalSubmissions.scriptId, scripts.id))
+      .where(eq(festivalSubmissions.submitterId, userId))
+      .orderBy(desc(festivalSubmissions.createdAt));
+
+    return submissions.map(submission => ({
+      ...submission,
+      project: submission.project || undefined,
+      script: submission.script || undefined,
+    }));
+  }
+
+  async getFestivalSubmission(id: string): Promise<(FestivalSubmission & { project?: Project; script?: Script; submitter: User }) | undefined> {
+    const [submission] = await db
+      .select({
+        id: festivalSubmissions.id,
+        projectId: festivalSubmissions.projectId,
+        scriptId: festivalSubmissions.scriptId,
+        submitterId: festivalSubmissions.submitterId,
+        festivalName: festivalSubmissions.festivalName,
+        festivalLocation: festivalSubmissions.festivalLocation,
+        festivalWebsite: festivalSubmissions.festivalWebsite,
+        submissionCategory: festivalSubmissions.submissionCategory,
+        submissionDeadline: festivalSubmissions.submissionDeadline,
+        submissionFee: festivalSubmissions.submissionFee,
+        status: festivalSubmissions.status,
+        submittedAt: festivalSubmissions.submittedAt,
+        responseReceived: festivalSubmissions.responseReceived,
+        notes: festivalSubmissions.notes,
+        createdAt: festivalSubmissions.createdAt,
+        updatedAt: festivalSubmissions.updatedAt,
+        project: projects,
+        script: scripts,
+        submitter: users,
+      })
+      .from(festivalSubmissions)
+      .leftJoin(projects, eq(festivalSubmissions.projectId, projects.id))
+      .leftJoin(scripts, eq(festivalSubmissions.scriptId, scripts.id))
+      .innerJoin(users, eq(festivalSubmissions.submitterId, users.id))
+      .where(eq(festivalSubmissions.id, id));
+
+    if (!submission) return undefined;
+
+    return {
+      ...submission,
+      project: submission.project || undefined,
+      script: submission.script || undefined,
+    };
+  }
+
+  async updateFestivalSubmission(id: string, updates: Partial<InsertFestivalSubmission>): Promise<FestivalSubmission | undefined> {
+    const [submission] = await db
+      .update(festivalSubmissions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(festivalSubmissions.id, id))
+      .returning();
+    return submission;
+  }
+
+  async deleteFestivalSubmission(id: string): Promise<void> {
+    await db.delete(festivalSubmissions).where(eq(festivalSubmissions.id, id));
   }
 }
 

@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Navigation } from "@/components/navigation";
 import { MemberGuard } from "@/components/member-guard";
 import { ScriptEditor } from "@/components/script-editor";
+import { ProjectManager } from "@/components/project-manager";
+import { FestivalTracker } from "@/components/festival-tracker";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -44,10 +46,10 @@ export default function Tools() {
     },
     {
       id: "festival",
-      name: "Festival Screener",
+      name: "Festival Tracker",
       icon: Trophy,
-      description: "Analyze scripts for festival readiness",
-      features: ["Script analysis", "Genre evaluation", "Market assessment", "Submission guide"],
+      description: "Track submissions to film festivals and competitions",
+      features: ["Submission tracking", "Deadline management", "Status updates", "Progress analytics"],
     },
     {
       id: "projects",
@@ -196,124 +198,14 @@ export default function Tools() {
                 </Card>
               </TabsContent>
 
-              {/* Festival Screener */}
+              {/* Festival Tracker */}
               <TabsContent value="festival" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Trophy className="w-6 h-6 text-primary mr-3" />
-                      Festival Screener
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid lg:grid-cols-2 gap-8">
-                      <div>
-                        <h3 className="text-xl font-semibold mb-4">Script Analysis</h3>
-                        <p className="text-muted-foreground mb-6">
-                          Upload your script for AI-powered analysis to determine festival readiness and market potential.
-                        </p>
-                        
-                        <div className="space-y-4">
-                          {aiFeatures.map((feature) => {
-                            const Icon = feature.icon;
-                            return (
-                              <div key={feature.name} className="flex items-start space-x-3" data-testid={`ai-feature-${feature.name.toLowerCase().replace(" ", "-")}`}>
-                                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                                  <Icon className="w-4 h-4 text-primary" />
-                                </div>
-                                <div>
-                                  <h4 className="font-semibold text-sm">{feature.name}</h4>
-                                  <p className="text-xs text-muted-foreground">{feature.description}</p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        <Button className="w-full mt-6" data-testid="button-analyze-script">
-                          <Trophy className="w-4 h-4 mr-2" />
-                          Analyze Script
-                        </Button>
-                      </div>
-
-                      <Card className="bg-secondary/30">
-                        <CardHeader>
-                          <CardTitle className="text-lg">Sample Analysis Report</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="space-y-4">
-                            <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium">Overall Score</span>
-                                <Badge variant="default">A-</Badge>
-                              </div>
-                              <Progress value={85} className="h-2" />
-                            </div>
-
-                            <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium">Character Development</span>
-                                <Badge variant="outline">B+</Badge>
-                              </div>
-                              <Progress value={80} className="h-2" />
-                            </div>
-
-                            <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium">Plot Structure</span>
-                                <Badge variant="default">A</Badge>
-                              </div>
-                              <Progress value={90} className="h-2" />
-                            </div>
-
-                            <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-sm font-medium">Market Appeal</span>
-                                <Badge variant="outline">B</Badge>
-                              </div>
-                              <Progress value={75} className="h-2" />
-                            </div>
-
-                            <div className="mt-6 p-4 bg-primary/10 rounded-lg">
-                              <h4 className="font-semibold text-sm mb-2">Recommendations</h4>
-                              <ul className="text-xs text-muted-foreground space-y-1">
-                                <li>• Strengthen character backstories</li>
-                                <li>• Add more conflict in Act II</li>
-                                <li>• Consider festival-specific themes</li>
-                              </ul>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CardContent>
-                </Card>
+                <FestivalTracker />
               </TabsContent>
 
               {/* Project Manager */}
               <TabsContent value="projects" className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <ListTodo className="w-6 h-6 text-primary mr-3" />
-                      Project Manager
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-12">
-                      <ListTodo className="w-24 h-24 text-muted-foreground mx-auto mb-6" />
-                      <h3 className="text-2xl font-semibold mb-4">Project Management Coming Soon</h3>
-                      <p className="text-muted-foreground mb-6 max-w-2xl mx-auto">
-                        Advanced project management tools with timeline tracking, team collaboration, 
-                        and resource management are currently in development.
-                      </p>
-                      <Button variant="outline" data-testid="button-notify-projects">
-                        <Clock className="w-4 h-4 mr-2" />
-                        Notify When Available
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ProjectManager />
               </TabsContent>
 
               {/* Creative Suite */}
@@ -375,7 +267,7 @@ export default function Tools() {
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {tools.map((tool) => {
                   const Icon = tool.icon;
-                  const isActive = tool.id === "scripts"; // Only script editor is active for now
+                  const isActive = tool.id === "scripts" || tool.id === "projects" || tool.id === "festival"; // Active tools
                   
                   return (
                     <Card 
