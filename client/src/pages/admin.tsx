@@ -393,17 +393,17 @@ export default function AdminPanel() {
                     </p>
                   ) : (
                     filteredUsers.map((user: any) => (
-                      <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                        <div className="flex items-center gap-3">
+                      <div key={user.id} className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-4 border rounded-lg space-y-3 lg:space-y-0">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             {user.isVerified && user.relationshipType && (
                               <ServiceBadge serviceType={user.relationshipType} size="sm" />
                             )}
-                            <div>
-                              <p className="font-medium text-sm">
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-sm truncate">
                                 {user.firstName} {user.lastName}
                               </p>
-                              <p className="text-xs text-muted-foreground">{user.email}</p>
+                              <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                               {user.militaryBranch && (
                                 <p className="text-xs text-blue-500">
                                   {user.militaryBranch.replace('_', ' ').toUpperCase()} • {user.relationshipType?.toUpperCase()}
@@ -413,50 +413,55 @@ export default function AdminPanel() {
                           </div>
                         </div>
                         
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <Badge variant={user.isVerified ? "default" : "secondary"} className="text-xs px-2 py-1">
+                        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+                          <Badge variant={user.isVerified ? "default" : "secondary"} className="text-xs px-2 py-1 mb-1 sm:mb-0">
                             {user.isVerified ? "Verified" : 
                              user.militaryBranch || user.relationshipType ? "Pending" : "Civilian"}
                           </Badge>
                           
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 px-2 text-xs"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setShowAwardCredits(true);
-                            }}
-                            data-testid={`button-award-credits-${user.id}`}
-                          >
-                            <CreditCard className="w-3 h-3" />
-                          </Button>
-                          
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 px-2 text-xs"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setShowVerifyUser(true);
-                            }}
-                            data-testid={`button-verify-user-${user.id}`}
-                          >
-                            <UserCheck className="w-3 h-3" />
-                          </Button>
-                          
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 px-2 text-xs"
-                            onClick={() => {
-                              setSelectedUser(user);
-                              setShowEditService(true);
-                            }}
-                            data-testid={`button-edit-service-${user.id}`}
-                          >
-                            <Edit className="w-3 h-3" />
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-3 text-xs"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setShowAwardCredits(true);
+                              }}
+                              data-testid={`button-award-credits-${user.id}`}
+                            >
+                              <CreditCard className="w-3 h-3 mr-1" />
+                              <span className="hidden sm:inline">Credits</span>
+                            </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-3 text-xs"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setShowVerifyUser(true);
+                              }}
+                              data-testid={`button-verify-user-${user.id}`}
+                            >
+                              <UserCheck className="w-3 h-3 mr-1" />
+                              <span className="hidden sm:inline">Verify</span>
+                            </Button>
+                            
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 px-3 text-xs"
+                              onClick={() => {
+                                setSelectedUser(user);
+                                setShowEditService(true);
+                              }}
+                              data-testid={`button-edit-service-${user.id}`}
+                            >
+                              <Edit className="w-3 h-3 mr-1" />
+                              <span className="hidden sm:inline">Edit</span>
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     ))
@@ -468,10 +473,10 @@ export default function AdminPanel() {
 
           {/* Service Verification Tab */}
           <TabsContent value="verification" className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
               <h2 className="font-command text-2xl font-bold">Military Service Verification</h2>
               <div className="flex gap-2">
-                <Button variant="outline">
+                <Button variant="outline" className="w-full lg:w-auto">
                   <Download className="w-4 h-4 mr-2" />
                   Export Report
                 </Button>
@@ -524,18 +529,18 @@ export default function AdminPanel() {
                     </p>
                   ) : (
                     (verificationRequests as any[]).map((request: any) => (
-                      <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <p className="font-medium">{request.user.firstName} {request.user.lastName}</p>
-                          <p className="text-sm text-muted-foreground">{request.user.email}</p>
+                      <div key={request.id} className="flex flex-col lg:flex-row lg:items-center lg:justify-between p-4 border rounded-lg space-y-3 lg:space-y-0">
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">{request.user.firstName} {request.user.lastName}</p>
+                          <p className="text-sm text-muted-foreground truncate">{request.user.email}</p>
                           <p className="text-xs text-blue-500">
                             {request.branch} • {request.serviceType} • {request.yearsServed} years
                           </p>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
                           <Button
                             size="sm"
-                            className="bg-green-500 hover:bg-green-600"
+                            className="bg-green-500 hover:bg-green-600 w-full sm:w-auto"
                             onClick={() => verifyServiceMutation.mutate({
                               userId: request.userId,
                               serviceType: request.serviceType,
@@ -549,6 +554,7 @@ export default function AdminPanel() {
                           <Button
                             size="sm"
                             variant="destructive"
+                            className="w-full sm:w-auto"
                             onClick={() => verifyServiceMutation.mutate({
                               userId: request.userId,
                               serviceType: request.serviceType,
@@ -571,10 +577,10 @@ export default function AdminPanel() {
 
           {/* Credit System Tab */}
           <TabsContent value="credits" className="space-y-6">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
               <h2 className="font-command text-2xl font-bold">Credit Management System</h2>
               <Button
-                className="bg-green-500 hover:bg-green-600"
+                className="bg-green-500 hover:bg-green-600 w-full lg:w-auto"
                 onClick={() => processMonthlyCredits.mutate()}
                 disabled={processMonthlyCredits.isPending}
                 data-testid="button-process-monthly-credits"
@@ -584,7 +590,8 @@ export default function AdminPanel() {
                 ) : (
                   <Gift className="w-4 h-4 mr-2" />
                 )}
-                Process Monthly Veteran Credits
+                <span className="hidden sm:inline">Process Monthly Veteran Credits</span>
+                <span className="sm:hidden">Monthly Credits</span>
               </Button>
             </div>
 
@@ -624,15 +631,15 @@ export default function AdminPanel() {
               <CardContent>
                 <div className="space-y-3">
                   {(creditTransactions as any[]).slice(0, 10).map((transaction: any) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <CreditCard className="w-5 h-5 text-honor-gold" />
-                        <div>
-                          <p className="font-medium">{transaction.user.firstName} {transaction.user.lastName}</p>
-                          <p className="text-sm text-muted-foreground">{transaction.description}</p>
+                    <div key={transaction.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded-lg space-y-2 sm:space-y-0">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <CreditCard className="w-5 h-5 text-honor-gold flex-shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="font-medium truncate">{transaction.user.firstName} {transaction.user.lastName}</p>
+                          <p className="text-sm text-muted-foreground truncate">{transaction.description}</p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className="text-left sm:text-right flex-shrink-0">
                         <p className="font-bold text-green-500">+{transaction.amount}</p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(transaction.createdAt).toLocaleDateString()}
