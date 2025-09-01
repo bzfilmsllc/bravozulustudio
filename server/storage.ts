@@ -20,6 +20,11 @@ import {
   giftCodeRedemptions,
   referralCodes,
   referrals,
+  // Achievement system tables
+  achievements,
+  userAchievements,
+  spendingTiers,
+  userSpending,
   // Director's Toolkit tables
   shotLists,
   shots,
@@ -68,6 +73,15 @@ import {
   type InsertReferralCode,
   type Referral,
   type InsertReferral,
+  // Achievement system types
+  type Achievement,
+  type InsertAchievement,
+  type UserAchievement,
+  type InsertUserAchievement,
+  type SpendingTier,
+  type InsertSpendingTier,
+  type UserSpending,
+  type InsertUserSpending,
   // Director's Toolkit types
   type ShotList,
   type InsertShotList,
@@ -1110,6 +1124,16 @@ export class DatabaseStorage implements IStorage {
 
       return [true];
     });
+
+    // If credits were successfully used, update spending tracking and check achievements
+    if (result) {
+      try {
+        await this.updateUserSpending(userId, amount);
+      } catch (error) {
+        console.error("Error updating user spending for achievements:", error);
+        // Don't fail the credit usage if achievement tracking fails
+      }
+    }
 
     return result;
   }
@@ -2313,6 +2337,233 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return deactivatedCode;
+  }
+
+  // ACHIEVEMENT SYSTEM METHODS
+
+  // Get all achievements
+  async getAchievements(): Promise<Achievement[]> {
+    return await db
+      .select()
+      .from(achievements)
+      .where(eq(achievements.isActive, true))
+      .orderBy(achievements.category, achievements.sortOrder);
+  }
+
+  // Get user's achievements with achievement details
+  async getUserAchievements(userId: string): Promise<(UserAchievement & { achievement: Achievement })[]> {
+    return await db
+      .select({
+        id: userAchievements.id,
+        userId: userAchievements.userId,
+        achievementId: userAchievements.achievementId,
+        unlockedAt: userAchievements.unlockedAt,
+        progress: userAchievements.progress,
+        achievement: achievements,
+      })
+      .from(userAchievements)
+      .innerJoin(achievements, eq(userAchievements.achievementId, achievements.id))
+      .where(eq(userAchievements.userId, userId))
+      .orderBy(desc(userAchievements.unlockedAt));
+  }
+
+  // Check if user has specific achievement
+  async hasAchievement(userId: string, achievementId: string): Promise<boolean> {
+    const [result] = await db
+      .select({ count: count() })
+      .from(userAchievements)
+      .where(and(
+        eq(userAchievements.userId, userId),
+        eq(userAchievements.achievementId, achievementId)
+      ));
+    
+    return result.count > 0;
+  }
+
+  // Award achievement to user
+  async awardAchievement(userId: string, achievementId: string, progress?: any): Promise<UserAchievement | null> {
+    try {
+      // Check if user already has this achievement
+      const hasIt = await this.hasAchievement(userId, achievementId);
+      if (hasIt) {
+        return null; // Already has it
+      }
+
+      const [newUserAchievement] = await db
+        .insert(userAchievements)
+        .values({
+          userId,
+          achievementId,
+          progress,
+        })
+        .returning();
+
+      return newUserAchievement;
+    } catch (error) {
+      // Handle unique constraint violation gracefully
+      return null;
+    }
+  }
+
+  // Get all spending tiers
+  async getSpendingTiers(): Promise<SpendingTier[]> {
+    return await db
+      .select()
+      .from(spendingTiers)
+      .where(eq(spendingTiers.isActive, true))
+      .orderBy(spendingTiers.sortOrder);
+  }
+
+  // Get or create user spending record
+  async getUserSpending(userId: string): Promise<UserSpending> {
+    let [userSpendingRecord] = await db
+      .select()
+      .from(userSpending)
+      .where(eq(userSpending.userId, userId));
+
+    if (!userSpendingRecord) {
+      // Create new record
+      [userSpendingRecord] = await db
+        .insert(userSpending)
+        .values({
+          userId,
+          totalCreditsSpent: 0,
+        })
+        .returning();
+    }
+
+    return userSpendingRecord;
+  }
+
+  // Update user spending and check for tier changes
+  async updateUserSpending(userId: string, creditsSpent: number): Promise<{ 
+    userSpending: UserSpending; 
+    tierChanged: boolean; 
+    newTier?: SpendingTier;
+    newAchievements: UserAchievement[];
+  }> {
+    // Get current spending record
+    const currentSpending = await this.getUserSpending(userId);
+    const newTotal = currentSpending.totalCreditsSpent + creditsSpent;
+
+    // Get all tiers to find the appropriate one
+    const tiers = await this.getSpendingTiers();
+    const newTier = tiers
+      .filter(tier => newTotal >= tier.minSpend && (tier.maxSpend === null || newTotal <= tier.maxSpend))
+      .sort((a, b) => b.minSpend - a.minSpend)[0]; // Get highest applicable tier
+
+    const tierChanged = newTier?.id !== currentSpending.currentTierId;
+
+    // Update spending record
+    const [updatedSpending] = await db
+      .update(userSpending)
+      .set({
+        totalCreditsSpent: newTotal,
+        currentTierId: newTier?.id || null,
+        lastTierUpdate: tierChanged ? new Date() : currentSpending.lastTierUpdate,
+        updatedAt: new Date(),
+      })
+      .where(eq(userSpending.userId, userId))
+      .returning();
+
+    // Check for new achievements based on spending
+    const newAchievements = await this.checkSpendingAchievements(userId, newTotal);
+
+    return { 
+      userSpending: updatedSpending, 
+      tierChanged, 
+      newTier: tierChanged ? newTier : undefined,
+      newAchievements 
+    };
+  }
+
+  // Check and award spending-based achievements
+  async checkSpendingAchievements(userId: string, totalSpent: number): Promise<UserAchievement[]> {
+    // Get all spending achievements
+    const spendingAchievements = await db
+      .select()
+      .from(achievements)
+      .where(and(
+        eq(achievements.isActive, true),
+        eq(achievements.category, 'spending')
+      ));
+
+    const newAchievements: UserAchievement[] = [];
+
+    for (const achievement of spendingAchievements) {
+      const requirement = achievement.requirement as any;
+      
+      // Check if this is a credits_spent achievement and user qualifies
+      if (requirement.type === 'credits_spent' && totalSpent >= requirement.amount) {
+        const awarded = await this.awardAchievement(userId, achievement.id);
+        if (awarded) {
+          newAchievements.push(awarded);
+        }
+      }
+    }
+
+    return newAchievements;
+  }
+
+  // Get user's current tier with details
+  async getUserCurrentTier(userId: string): Promise<SpendingTier | null> {
+    const userSpendingRecord = await this.getUserSpending(userId);
+    
+    if (!userSpendingRecord.currentTierId) {
+      return null;
+    }
+
+    const [tier] = await db
+      .select()
+      .from(spendingTiers)
+      .where(eq(spendingTiers.id, userSpendingRecord.currentTierId));
+
+    return tier || null;
+  }
+
+  // Get achievement stats for user
+  async getUserAchievementStats(userId: string): Promise<{
+    totalAchievements: number;
+    unlockedAchievements: number;
+    currentTier: SpendingTier | null;
+    totalSpent: number;
+    recentAchievements: (UserAchievement & { achievement: Achievement })[];
+  }> {
+    const [totalCount] = await db
+      .select({ count: count() })
+      .from(achievements)
+      .where(eq(achievements.isActive, true));
+
+    const [unlockedCount] = await db
+      .select({ count: count() })
+      .from(userAchievements)
+      .where(eq(userAchievements.userId, userId));
+
+    const userSpendingRecord = await this.getUserSpending(userId);
+    const currentTier = await this.getUserCurrentTier(userId);
+    
+    const recentAchievements = await db
+      .select({
+        id: userAchievements.id,
+        userId: userAchievements.userId,
+        achievementId: userAchievements.achievementId,
+        unlockedAt: userAchievements.unlockedAt,
+        progress: userAchievements.progress,
+        achievement: achievements,
+      })
+      .from(userAchievements)
+      .innerJoin(achievements, eq(userAchievements.achievementId, achievements.id))
+      .where(eq(userAchievements.userId, userId))
+      .orderBy(desc(userAchievements.unlockedAt))
+      .limit(5);
+
+    return {
+      totalAchievements: totalCount.count,
+      unlockedAchievements: unlockedCount.count,
+      currentTier,
+      totalSpent: userSpendingRecord.totalCreditsSpent,
+      recentAchievements,
+    };
   }
 }
 

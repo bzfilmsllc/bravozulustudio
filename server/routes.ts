@@ -2580,5 +2580,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ACHIEVEMENT SYSTEM ROUTES
+
+  // Get all achievements
+  app.get("/api/achievements", async (req, res) => {
+    try {
+      const achievements = await storage.getAchievements();
+      res.json(achievements);
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+
+  // Get user's achievements
+  app.get("/api/achievements/user", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const userAchievements = await storage.getUserAchievements(userId);
+      res.json(userAchievements);
+    } catch (error) {
+      console.error("Error fetching user achievements:", error);
+      res.status(500).json({ message: "Failed to fetch user achievements" });
+    }
+  });
+
+  // Get achievement stats for user
+  app.get("/api/achievements/stats", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const stats = await storage.getUserAchievementStats(userId);
+      res.json(stats);
+    } catch (error) {
+      console.error("Error fetching achievement stats:", error);
+      res.status(500).json({ message: "Failed to fetch achievement stats" });
+    }
+  });
+
+  // Get spending tiers
+  app.get("/api/spending-tiers", async (req, res) => {
+    try {
+      const tiers = await storage.getSpendingTiers();
+      res.json(tiers);
+    } catch (error) {
+      console.error("Error fetching spending tiers:", error);
+      res.status(500).json({ message: "Failed to fetch spending tiers" });
+    }
+  });
+
+  // Get user's current tier and spending
+  app.get("/api/user/tier", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = (req.user as any).claims.sub;
+      const spending = await storage.getUserSpending(userId);
+      const currentTier = await storage.getUserCurrentTier(userId);
+      
+      res.json({
+        spending,
+        currentTier,
+      });
+    } catch (error) {
+      console.error("Error fetching user tier:", error);
+      res.status(500).json({ message: "Failed to fetch user tier" });
+    }
+  });
+
   return httpServer;
 }

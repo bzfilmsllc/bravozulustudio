@@ -10,6 +10,7 @@ import {
   integer,
   decimal,
   pgEnum,
+  unique,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -1176,3 +1177,122 @@ export type ReferralCode = typeof referralCodes.$inferSelect;
 export type InsertReferralCode = z.infer<typeof insertReferralCodeSchema>;
 export type Referral = typeof referrals.$inferSelect;
 export type InsertReferral = z.infer<typeof insertReferralSchema>;
+
+// ACHIEVEMENT & BADGE SYSTEM
+
+// Achievement definitions - predefined achievements users can unlock
+export const achievements = pgTable("achievements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(), // e.g., "First Purchase", "Script Master"
+  description: text("description").notNull(),
+  badgeIcon: varchar("badge_icon").notNull(), // Lucide icon name
+  badgeColor: varchar("badge_color").notNull(), // Tailwind color class
+  category: varchar("category", { 
+    enum: ['spending', 'content', 'social', 'special', 'veteran', 'supporter'] 
+  }).notNull(),
+  requirement: jsonb("requirement").notNull(), // JSON with criteria: { type: 'credits_spent', amount: 100 }
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User achievements - tracking which achievements users have unlocked
+export const userAchievements = pgTable("user_achievements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  achievementId: varchar("achievement_id").notNull().references(() => achievements.id, { onDelete: 'cascade' }),
+  unlockedAt: timestamp("unlocked_at").defaultNow(),
+  progress: jsonb("progress"), // Optional progress tracking for multi-step achievements
+}, (table) => ({
+  // Ensure each user can only unlock each achievement once
+  uniqueUserAchievement: unique().on(table.userId, table.achievementId),
+}));
+
+// Spending tiers - different tiers based on total credits spent
+export const spendingTiers = pgTable("spending_tiers", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(), // e.g., "Supporter", "Producer", "Director"
+  description: text("description").notNull(),
+  minSpend: integer("min_spend").notNull(), // Minimum credits spent to reach this tier
+  maxSpend: integer("max_spend"), // Maximum credits (null for highest tier)
+  badgeIcon: varchar("badge_icon").notNull(),
+  badgeColor: varchar("badge_color").notNull(),
+  benefits: text("benefits"), // Description of tier benefits
+  isActive: boolean("is_active").default(true).notNull(),
+  sortOrder: integer("sort_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// User spending tracker - tracks total credits spent by each user
+export const userSpending = pgTable("user_spending", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }).unique(),
+  totalCreditsSpent: integer("total_credits_spent").default(0).notNull(),
+  currentTierId: varchar("current_tier_id").references(() => spendingTiers.id),
+  lastTierUpdate: timestamp("last_tier_update").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Achievement relations
+export const achievementsRelations = relations(achievements, ({ many }) => ({
+  userAchievements: many(userAchievements),
+}));
+
+export const userAchievementsRelations = relations(userAchievements, ({ one }) => ({
+  user: one(users, {
+    fields: [userAchievements.userId],
+    references: [users.id],
+  }),
+  achievement: one(achievements, {
+    fields: [userAchievements.achievementId],
+    references: [achievements.id],
+  }),
+}));
+
+export const spendingTiersRelations = relations(spendingTiers, ({ many }) => ({
+  userSpending: many(userSpending),
+}));
+
+export const userSpendingRelations = relations(userSpending, ({ one }) => ({
+  user: one(users, {
+    fields: [userSpending.userId],
+    references: [users.id],
+  }),
+  currentTier: one(spendingTiers, {
+    fields: [userSpending.currentTierId],
+    references: [spendingTiers.id],
+  }),
+}));
+
+// Achievement system insert schemas
+export const insertAchievementSchema = createInsertSchema(achievements).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserAchievementSchema = createInsertSchema(userAchievements).omit({
+  id: true,
+  unlockedAt: true,
+});
+
+export const insertSpendingTierSchema = createInsertSchema(spendingTiers).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertUserSpendingSchema = createInsertSchema(userSpending).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+// Export achievement system types
+export type Achievement = typeof achievements.$inferSelect;
+export type InsertAchievement = z.infer<typeof insertAchievementSchema>;
+export type UserAchievement = typeof userAchievements.$inferSelect;
+export type InsertUserAchievement = z.infer<typeof insertUserAchievementSchema>;
+export type SpendingTier = typeof spendingTiers.$inferSelect;
+export type InsertSpendingTier = z.infer<typeof insertSpendingTierSchema>;
+export type UserSpending = typeof userSpending.$inferSelect;
+export type InsertUserSpending = z.infer<typeof insertUserSpendingSchema>;

@@ -20,6 +20,7 @@ import CreativeSuite from "@/pages/creative-suite";
 import AdminPanel from "@/pages/admin";
 import Settings from "@/pages/settings";
 import Referrals from "@/pages/referrals";
+import Achievements from "@/pages/achievements";
 import { TutorialBot } from "@/components/tutorial-bot";
 
 function Router() {
@@ -45,6 +46,7 @@ function Router() {
           <Route path="/admin" component={AdminPanel} />
           <Route path="/settings" component={Settings} />
           <Route path="/referrals" component={Referrals} />
+          <Route path="/achievements" component={Achievements} />
         </>
       )}
       <Route component={NotFound} />

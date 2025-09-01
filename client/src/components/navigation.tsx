@@ -23,6 +23,7 @@ import {
   Archive,
   Shield,
   Gift,
+  Trophy,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -32,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserBadge } from "@/components/user-badge";
 
 export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -51,6 +53,7 @@ export function Navigation() {
     { name: "PORTFOLIO", href: "/portfolio", icon: Briefcase, description: "Your Projects" },
     { name: "COMMUNITY", href: "/community", icon: Users, description: "Connect & Share" },
     { name: "MEDIA", href: "/media", icon: Radio, description: "Gallery & Files" },
+    { name: "AWARDS", href: "/achievements", icon: Trophy, description: "Achievements & Tiers" },
     ...(isAdmin ? [{ name: "ADMIN", href: "/admin", icon: Shield, description: "Admin Control" }] : []),
   ];
 
@@ -122,11 +125,14 @@ export function Navigation() {
                         <div className="font-tactical text-sm text-yellow-400 truncate">
                           {user?.firstName || "OPERATOR"}
                         </div>
-                        {user?.role === "verified" && (
-                          <Badge className="text-[10px] bg-yellow-600/20 text-yellow-400 border-yellow-600/50">
-                            🏅 VERIFIED
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-1">
+                          {user?.role === "verified" && (
+                            <Badge className="text-[10px] bg-yellow-600/20 text-yellow-400 border-yellow-600/50">
+                              🏅 VERIFIED
+                            </Badge>
+                          )}
+                          <UserBadge variant="compact" />
+                        </div>
                       </div>
                     </div>
                   </Button>
