@@ -1726,11 +1726,15 @@ export class DatabaseStorage implements IStorage {
       throw new Error('Monthly veteran credits have already been processed for this month');
     }
 
-    // Get all verified veterans
+    // Get all verified veterans and military members
     const veterans = await db.select().from(users)
       .where(and(
+        eq(users.isVerified, true),
         eq(users.role, 'verified'),
-        sql`${users.militaryVerification}->>'serviceType' = ${'veteran'}`
+        or(
+          eq(users.relationshipType, 'veteran'),
+          eq(users.relationshipType, 'active_duty')
+        )
       ));
 
     let veteransProcessed = 0;

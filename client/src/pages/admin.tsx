@@ -213,6 +213,15 @@ export default function AdminPanel() {
         description: `Awarded 150 credits to ${(data as any).veteransAwarded} verified veterans!`,
       });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/credit-transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/stats'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "❌ Processing Failed",
+        description: error.message || "Failed to process monthly credits. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -222,9 +231,9 @@ export default function AdminPanel() {
                          u.email?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesFilter = filterStatus === "all" || 
-                         (filterStatus === "verified" && u.militaryVerification?.verified) ||
-                         (filterStatus === "pending" && u.militaryVerification && !u.militaryVerification.verified) ||
-                         (filterStatus === "civilian" && !u.militaryVerification);
+                         (filterStatus === "verified" && u.isVerified) ||
+                         (filterStatus === "pending" && (u.militaryBranch || u.relationshipType) && !u.isVerified) ||
+                         (filterStatus === "civilian" && !u.militaryBranch && !u.relationshipType);
     
     return matchesSearch && matchesFilter;
   });
