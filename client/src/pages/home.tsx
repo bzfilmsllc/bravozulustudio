@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/useAuth";
+import { BannerAd, SidebarAd } from "@/components/google-ads";
 import {
   Film,
   Edit,
@@ -47,6 +48,9 @@ export default function Home() {
         
         <main className="pt-20 pb-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Banner Ad */}
+            <BannerAd className="mb-6" />
+            
             {/* Welcome Section */}
             <div className="mb-12">
               <div className="flex items-center justify-between mb-6">
@@ -112,7 +116,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="grid lg:grid-cols-3 gap-8">
+            <div className="grid lg:grid-cols-4 gap-8">
               {/* Recent Scripts */}
               <Card data-testid="card-recent-scripts">
                 <CardHeader>
@@ -248,6 +252,11 @@ export default function Home() {
                   </Link>
                 </CardContent>
               </Card>
+
+              {/* Sidebar Ad */}
+              <div className="space-y-6">
+                <SidebarAd />
+              </div>
             </div>
 
             {/* Performance Dashboard */}

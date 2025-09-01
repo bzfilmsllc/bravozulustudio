@@ -999,6 +999,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/billing/subscription-status', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      
+      let subscription = null;
+      
+      if (user?.subscriptionPlanId && user?.subscriptionStatus) {
+        const plan = await storage.getSubscriptionPlan(user.subscriptionPlanId);
+        subscription = {
+          status: user.subscriptionStatus,
+          planName: plan?.name || 'Unknown Plan',
+          expiresAt: user.subscriptionExpiresAt,
+          planId: user.subscriptionPlanId
+        };
+      }
+      
+      res.json({ subscription });
+    } catch (error) {
+      console.error("Error fetching subscription status:", error);
+      res.status(500).json({ message: "Failed to fetch subscription status" });
+    }
+  });
+
   app.get('/api/billing/transactions', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

@@ -6,6 +6,7 @@ import { ProjectManager } from "@/components/project-manager";
 import { FestivalTracker } from "@/components/festival-tracker";
 import { DesignStudio } from "@/components/design-studio";
 import { AIScriptGenerator } from "@/components/ai-script-generator";
+import { BannerAd, InlineAd } from "@/components/google-ads";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -113,6 +114,9 @@ export default function Tools() {
         
         <main className="pt-20 pb-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Banner Ad */}
+            <BannerAd className="mb-6" />
+            
             {/* Header */}
             <div className="mb-12">
               <div className="flex items-center justify-between mb-6">
@@ -226,6 +230,9 @@ export default function Tools() {
               </TabsContent>
             </Tabs>
 
+            {/* Inline Ad */}
+            <InlineAd className="mt-12" />
+            
             {/* Tool Features Overview */}
             <div className="mt-12">
               <h2 className="text-2xl font-serif font-bold mb-6">Available Features</h2>

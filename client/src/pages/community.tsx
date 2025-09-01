@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Navigation } from "@/components/navigation";
 import { MemberGuard } from "@/components/member-guard";
+import { BannerAd, SidebarAd } from "@/components/google-ads";
 import { MemberProfile } from "@/components/member-profile";
 import { ActivityFeed } from "@/components/activity-feed";
 import { useAuth } from "@/hooks/useAuth";
@@ -230,6 +231,8 @@ export default function Community() {
         
         <main className="pt-20 pb-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Banner Ad */}
+            <BannerAd className="mb-6" />
             {/* Header */}
             <div className="mb-12">
               <h1 className="text-4xl font-serif font-bold mb-2">Veteran Creator Community</h1>
