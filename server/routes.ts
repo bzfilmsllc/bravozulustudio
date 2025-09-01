@@ -5,10 +5,7 @@ import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
 import { insertScriptSchema, insertProjectSchema, insertForumPostSchema, insertForumReplySchema, insertMessageSchema, insertReportSchema, insertFestivalSubmissionSchema, insertDesignAssetSchema, insertGiftCodeSchema, insertErrorReportSchema, insertUserErrorPreferencesSchema, insertModeratorSchema, insertModerationActionSchema, insertContentReportSchema, insertAutoModerationRuleSchema, insertPostModerationStatusSchema } from "@shared/schema";
-import OpenAI from "openai";
 import Stripe from "stripe";
-
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error('Missing required Stripe secret: STRIPE_SECRET_KEY');
@@ -679,16 +676,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Prompt, title, and asset type are required" });
       }
 
-      // Generate image using OpenAI DALL-E
-      const response = await openai.images.generate({
-        model: "dall-e-3",
-        prompt: prompt,
-        n: 1,
-        size: "1024x1024",
-        quality: "standard",
-      });
-
-      const imageUrl = response.data[0].url!;
+      // For now, we'll create a placeholder for image generation
+      // This would typically integrate with an image generation service
+      const imageUrl = `https://via.placeholder.com/1024x1024/1a1a1a/ffffff?text=${encodeURIComponent(title)}`;
 
       // Create design asset record
       const asset = await storage.createDesignAsset({
@@ -835,36 +825,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Generate script with OpenAI
-      const response = await openai.chat.completions.create({
-        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: `You are a professional screenplay writer for military and action films. Generate a compelling script based on the user's requirements. Format it properly with scene headings, action lines, and dialogue. Keep it authentic to military culture and respectful to service members.`
-          },
-          {
-            role: "user",
-            content: `Generate a ${length || 'short'} script with the following requirements:
-            Genre: ${genre || 'action'}
-            Tone: ${tone || 'dramatic'}
-            Prompt: ${prompt}
-            
-            Please format it as a proper screenplay with:
-            - Scene headings (INT./EXT. LOCATION - TIME)
-            - Character names in caps
-            - Action lines
-            - Dialogue
-            - Proper formatting
-            
-            Keep it military-themed and authentic.`
-          }
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
+      // Generate script with Anthropic
+      const Anthropic = require('@anthropic-ai/sdk');
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
       });
 
-      const generatedScript = response.choices[0].message.content;
+      const response = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 2000,
+        system: `You are a professional screenplay writer for military and action films. Generate a compelling script based on the user's requirements. Format it properly with scene headings, action lines, and dialogue. Keep it authentic to military culture and respectful to service members.`,
+        messages: [{
+          role: 'user',
+          content: `Generate a ${length || 'short'} script with the following requirements:
+          Genre: ${genre || 'action'}
+          Tone: ${tone || 'dramatic'}
+          Prompt: ${prompt}
+          
+          Please format it as a proper screenplay with:
+          - Scene headings (INT./EXT. LOCATION - TIME)
+          - Character names in caps
+          - Action lines
+          - Dialogue
+          - Proper formatting
+          
+          Keep it military-themed and authentic.`
+        }]
+      });
+
+      const generatedScript = response.content[0].text;
 
       // Create notification for AI task completion
       const notification = await storage.createNotification({
@@ -932,36 +921,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Enhance script with OpenAI
-      const response = await openai.chat.completions.create({
-        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: `You are a professional script doctor specializing in military and action films. Enhance the provided script based on the user's requirements while maintaining military authenticity and respect for service members.`
-          },
-          {
-            role: "user",
-            content: `Please enhance this script with the following focus: ${enhancement}
-
-            Original Script:
-            ${scriptContent}
-            
-            Provide an improved version that maintains the original structure but enhances:
-            - Character development
-            - Dialogue quality
-            - Action sequences
-            - Military authenticity
-            - Emotional impact
-            
-            Keep the military theme authentic and respectful.`
-          }
-        ],
-        max_tokens: 2000,
-        temperature: 0.7,
+      // Enhance script with Anthropic
+      const Anthropic = require('@anthropic-ai/sdk');
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
       });
 
-      const enhancedScript = response.choices[0].message.content;
+      const response = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 2000,
+        system: `You are a professional script doctor specializing in military and action films. Enhance the provided script based on the user's requirements while maintaining military authenticity and respect for service members.`,
+        messages: [{
+          role: 'user',
+          content: `Please enhance this script with the following focus: ${enhancement}
+
+          Original Script:
+          ${scriptContent}
+          
+          Provide an improved version that maintains the original structure but enhances:
+          - Character development
+          - Dialogue quality
+          - Action sequences
+          - Military authenticity
+          - Emotional impact
+          
+          Keep the military theme authentic and respectful.`
+        }]
+      });
+
+      const enhancedScript = response.content[0].text;
 
       // Create notification for AI task completion
       const notification = await storage.createNotification({
@@ -1027,36 +1015,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
-      // Analyze script with OpenAI
-      const response = await openai.chat.completions.create({
-        model: "gpt-4", // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: `You are a professional script analyst with expertise in military and action films. Provide detailed feedback on the script's strengths, weaknesses, and suggestions for improvement. Focus on military authenticity, character development, pacing, and commercial viability.`
-          },
-          {
-            role: "user",
-            content: `Please analyze this script and provide detailed feedback:
-
-            ${scriptContent}
-            
-            Please provide analysis on:
-            1. Overall structure and pacing
-            2. Character development and dialogue
-            3. Military authenticity and accuracy
-            4. Commercial viability and target audience
-            5. Strengths and areas for improvement
-            6. Festival submission potential
-            
-            Be constructive and specific in your feedback.`
-          }
-        ],
-        max_tokens: 1500,
-        temperature: 0.3,
+      // Analyze script with Anthropic
+      const Anthropic = require('@anthropic-ai/sdk');
+      const anthropic = new Anthropic({
+        apiKey: process.env.ANTHROPIC_API_KEY,
       });
 
-      const analysis = response.choices[0].message.content;
+      const response = await anthropic.messages.create({
+        model: 'claude-3-5-sonnet-20241022',
+        max_tokens: 1500,
+        system: `You are a professional script analyst with expertise in military and action films. Provide detailed feedback on the script's strengths, weaknesses, and suggestions for improvement. Focus on military authenticity, character development, pacing, and commercial viability.`,
+        messages: [{
+          role: 'user',
+          content: `Please analyze this script and provide detailed feedback:
+
+          ${scriptContent}
+          
+          Please provide analysis on:
+          1. Overall structure and pacing
+          2. Character development and dialogue
+          3. Military authenticity and accuracy
+          4. Commercial viability and target audience
+          5. Strengths and areas for improvement
+          6. Festival submission potential
+          
+          Be constructive and specific in your feedback.`
+        }]
+      });
+
+      const analysis = response.content[0].text;
 
       // Create notification for AI task completion
       const notification = await storage.createNotification({
@@ -1104,7 +1091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const requiredCredits = 3; // Lower cost for chat interactions
 
       // Check if user is super user (unlimited credits)
-      if (!isSuperUser(user.email)) {
+      if (!isSuperUser(user.email || '')) {
         const userCredits = await storage.getUserCredits(userId);
         if (userCredits < requiredCredits) {
           return res.status(402).json({ 
@@ -1171,10 +1158,10 @@ Keep responses conversational, helpful, and encouraging. If asked to make specif
       const assistantResponse = response.content[0].text;
 
       // Deduct credits for non-super users
-      if (!isSuperUser(user.email)) {
-        await storage.deductCredits(
+      if (!isSuperUser(user.email || '')) {
+        await storage.addCredits(
           userId,
-          requiredCredits,
+          -requiredCredits,
           'ai_chat',
           'AI script chat assistance',
           'ai_tools'
@@ -1184,7 +1171,7 @@ Keep responses conversational, helpful, and encouraging. If asked to make specif
       // Create notification for chat response
       const notification = await storage.createNotification({
         userId,
-        type: 'ai_generation',
+        type: 'ai_task_complete',
         title: '🤖 AI Chat Response',
         message: `Your AI script assistant has responded with helpful feedback and suggestions!`,
         actionUrl: `/ai-tools`,
@@ -1205,7 +1192,7 @@ Keep responses conversational, helpful, and encouraging. If asked to make specif
       res.json({
         response: assistantResponse,
         creditsUsed: requiredCredits,
-        remainingCredits: isSuperUser(user.email) ? 999999 : await storage.getUserCredits(userId) - requiredCredits
+        remainingCredits: isSuperUser(user.email || '') ? 999999 : await storage.getUserCredits(userId) - requiredCredits
       });
     } catch (error: any) {
       console.error("Error in AI chat:", error);
