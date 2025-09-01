@@ -111,8 +111,8 @@ export function Navigation() {
                           {user?.firstName?.[0] || user?.email?.[0] || "U"}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="text-left">
-                        <div className="font-tactical text-sm text-yellow-400">
+                      <div className="text-left min-w-0 flex-1">
+                        <div className="font-tactical text-sm text-yellow-400 truncate">
                           {user?.firstName || "OPERATOR"}
                         </div>
                         {user?.role === "verified" && (

@@ -136,7 +136,7 @@ export function NotificationCenter({ onNotificationClick }: NotificationCenterPr
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto bg-tactical-black/90 border-honor-gold/20">
+    <Card className="w-full max-w-md bg-tactical-black/90 border-honor-gold/20">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
         <CardTitle className="text-honor-gold font-orbitron flex items-center gap-2">
           <Bell className="h-5 w-5" />
@@ -176,34 +176,34 @@ export function NotificationCenter({ onNotificationClick }: NotificationCenterPr
             <p className="text-sm">No new notifications at this time.</p>
           </div>
         ) : (
-          <ScrollArea className="h-96">
+          <ScrollArea className="h-80 max-h-80">
             <div className="space-y-3">
               {notifications.map((notification: Notification) => (
                 <div
                   key={notification.id}
                   className={cn(
-                    "group relative p-4 rounded-lg border-l-4 cursor-pointer transition-all duration-200",
+                    "group relative p-3 rounded-lg border-l-4 cursor-pointer transition-all duration-200",
                     getNotificationColor(notification.type),
                     !notification.isRead ? "opacity-100" : "opacity-70",
-                    "hover:scale-[1.02] hover:shadow-lg"
+                    "hover:shadow-lg"
                   )}
                   onClick={() => handleNotificationClick(notification)}
                   data-testid={`notification-${notification.id}`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-start gap-2">
                     <div className="flex-shrink-0 mt-1">
                       {getNotificationIcon(notification.type)}
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 overflow-hidden">
                       <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-foreground text-sm">
+                        <div className="flex-1 min-w-0 pr-2">
+                          <p className="font-medium text-foreground text-sm truncate">
                             {notification.title}
                           </p>
-                          <p className="text-muted-foreground text-xs mt-1">
+                          <p className="text-muted-foreground text-xs mt-1 line-clamp-2 break-words">
                             {notification.message}
                           </p>
-                          <p className="text-xs text-muted-foreground/60 mt-2">
+                          <p className="text-xs text-muted-foreground/60 mt-2 truncate">
                             {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                           </p>
                         </div>

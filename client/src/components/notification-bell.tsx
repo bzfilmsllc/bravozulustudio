@@ -120,10 +120,11 @@ export function NotificationBell({ className }: NotificationBellProps) {
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-96 p-0 border-honor-gold/20 bg-tactical-black/95 backdrop-blur-sm" 
+        className="w-80 max-w-[90vw] p-0 border-honor-gold/20 bg-tactical-black/95 backdrop-blur-sm" 
         align="end"
         side="bottom"
         sideOffset={5}
+        avoidCollisions={true}
       >
         <NotificationCenter onNotificationClick={() => setIsOpen(false)} />
       </PopoverContent>

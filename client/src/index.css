@@ -447,3 +447,40 @@
 .btn-command:hover::before {
   left: 100%;
 }
+
+/* Text utilities for proper text containment */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Prevent text overflow and ensure proper containment */
+.text-container {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Better responsive text handling */
+@media (max-width: 768px) {
+  .line-clamp-2 {
+    -webkit-line-clamp: 1;
+  }
+}
