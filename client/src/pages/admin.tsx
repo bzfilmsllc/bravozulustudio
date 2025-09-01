@@ -336,18 +336,22 @@ export default function AdminPanel() {
 
         {/* Main Admin Interface */}
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-tactical-black/20">
-            <TabsTrigger value="users" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500">
-              User Management
+          <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4 bg-tactical-black/20 h-auto">
+            <TabsTrigger value="users" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
+              <span className="hidden sm:inline">User Management</span>
+              <span className="sm:hidden">Users</span>
             </TabsTrigger>
-            <TabsTrigger value="verification" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500">
-              Service Verification
+            <TabsTrigger value="verification" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
+              <span className="hidden sm:inline">Service Verification</span>
+              <span className="sm:hidden">Verify</span>
             </TabsTrigger>
-            <TabsTrigger value="credits" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500">
-              Credit System
+            <TabsTrigger value="credits" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
+              <span className="hidden sm:inline">Credit System</span>
+              <span className="sm:hidden">Credits</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500">
-              System Settings
+            <TabsTrigger value="settings" className="font-rajdhani data-[state=active]:text-white data-[state=active]:bg-red-500 text-xs lg:text-sm px-2 py-3">
+              <span className="hidden sm:inline">System Settings</span>
+              <span className="sm:hidden">Settings</span>
             </TabsTrigger>
           </TabsList>
 
