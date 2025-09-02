@@ -1,256 +1,130 @@
-import { useEffect, useRef } from "react";
+// client/src/components/google-ads.tsx
 import { useQuery } from "@tanstack/react-query";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { X, Zap } from "lucide-react";
+import { useMemo, useState } from "react";
 
-interface UserBilling {
-  subscription: {
-    status: string;
-    planName: string;
-    expiresAt: string;
-    isSuperUser?: boolean;
-  } | null;
+// Adjust to match your real payload
+export interface GoogleAd {
+  id: string;
+  headline: string;
+  description?: string;
+  status: "active" | "paused" | "draft" | "disapproved";
+  createdAt: string; // ISO date string
+  // add any other fields your API returns (e.g., campaign, adGroup, cpc, impressions, clicks)
 }
 
-interface GoogleAdsProps {
-  slot: string;
-  format?: "auto" | "rectangle" | "vertical" | "horizontal";
-  style?: React.CSSProperties;
-  className?: string;
-}
+export function GoogleAds() {
+  const [activeFilter, setActiveFilter] = useState<"all" | GoogleAd["status"]>("all");
+  const [search, setSearch] = useState("");
 
-export function GoogleAds({ slot, format = "auto", style, className }: GoogleAdsProps) {
-  const adRef = useRef<HTMLDivElement>(null);
-  
-  // Check user subscription status
-  const { data: billingInfo } = useQuery<UserBilling>({
-    queryKey: ['/api/billing/subscription-status'],
+  // ✅ Typed query; do NOT destructure data as `ads = []` (that’s what causes 'unknown')
+  const query = useQuery<GoogleAd[]>({
+    queryKey: ["/api/google-ads"],
+    queryFn: async () => {
+      const res = await fetch("/api/google-ads");
+      if (!res.ok) return [];
+      return (await res.json()) as GoogleAd[];
+    },
+    refetchInterval: 30000,
   });
 
-  const hasActiveSubscription = billingInfo?.subscription?.status === 'active';
-  const isSuperUser = billingInfo?.subscription?.isSuperUser === true;
+  const isLoading = query.isLoading;
+  const error = query.error;
+  const ads: GoogleAd[] = query.data ?? [];
 
-  useEffect(() => {
-    // Only load ads if user doesn't have active subscription and is not a super user
-    if (!hasActiveSubscription && !isSuperUser && adRef.current) {
-      try {
-        // Load Google AdSense script if not already loaded
-        if (!window.adsbygoogle) {
-          const script = document.createElement('script');
-          script.async = true;
-          script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_ADSENSE_ID';
-          script.crossOrigin = 'anonymous';
-          document.head.appendChild(script);
-        }
-
-        // Initialize ad
-        if (window.adsbygoogle) {
-          window.adsbygoogle.push({});
-        }
-      } catch (error) {
-        console.error('Error loading Google Ads:', error);
-      }
+  // Optional: simple client filtering
+  const visibleAds = useMemo(() => {
+    let list = ads;
+    if (activeFilter !== "all") {
+      list = list.filter(a => a.status === activeFilter);
     }
-  }, [hasActiveSubscription, isSuperUser, slot]);
-
-  // Don't render ads for premium subscribers or super users
-  if (hasActiveSubscription || isSuperUser) {
-    return null;
-  }
-
-  return (
-    <div className={`relative ${className}`}>
-      <Card className="bg-slate-900/50 border-slate-600/50 p-4">
-        <div className="flex items-center justify-between mb-2">
-          <Badge variant="secondary" className="text-xs">
-            Advertisement
-          </Badge>
-          <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-600/50">
-            <Zap className="w-3 h-3 mr-1" />
-            Remove with Premium
-          </Badge>
-        </div>
-        
-        <div ref={adRef} style={style}>
-          <ins
-            className="adsbygoogle"
-            style={{ display: 'block' }}
-            data-ad-client="ca-pub-YOUR_ADSENSE_ID"
-            data-ad-slot={slot}
-            data-ad-format={format}
-            data-full-width-responsive="true"
-          />
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-// Banner ad component for top of pages
-export function BannerAd({ className }: { className?: string }) {
-  return (
-    <GoogleAds
-      slot="1234567890"
-      format="horizontal"
-      className={className}
-      style={{ minHeight: '90px' }}
-    />
-  );
-}
-
-// Sidebar ad component
-export function SidebarAd({ className }: { className?: string }) {
-  return (
-    <GoogleAds
-      slot="0987654321"
-      format="vertical"
-      className={className}
-      style={{ minHeight: '250px', maxWidth: '300px' }}
-    />
-  );
-}
-
-// Inline content ad
-export function InlineAd({ className }: { className?: string }) {
-  return (
-    <GoogleAds
-      slot="1122334455"
-      format="rectangle"
-      className={className}
-      style={{ minHeight: '250px' }}
-    />
-  );
-}
-
-// Video ad placeholder (for future integration)
-export function VideoAd({ className }: { className?: string }) {
-  const { data: billingInfo } = useQuery<UserBilling>({
-    queryKey: ['/api/billing/subscription-status'],
-  });
-
-  const hasActiveSubscription = billingInfo?.subscription?.status === 'active';
-
-  if (hasActiveSubscription) {
-    return null;
-  }
-
-  return (
-    <div className={`relative ${className}`}>
-      <Card className="bg-slate-900/50 border-slate-600/50 p-4">
-        <div className="flex items-center justify-between mb-2">
-          <Badge variant="secondary" className="text-xs">
-            Video Advertisement
-          </Badge>
-          <Badge variant="outline" className="text-xs text-yellow-400 border-yellow-600/50">
-            <Zap className="w-3 h-3 mr-1" />
-            Skip with Premium
-          </Badge>
-        </div>
-        
-        <div className="bg-slate-800 rounded-lg p-8 text-center min-h-[200px] flex items-center justify-center">
-          <div className="text-slate-400">
-            <div className="w-16 h-16 bg-slate-700 rounded-full mx-auto mb-4 flex items-center justify-center">
-              <div className="w-0 h-0 border-l-[8px] border-l-slate-400 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent ml-1"></div>
-            </div>
-            <p className="text-sm">Video Ad</p>
-            <p className="text-xs mt-1">Upgrade to Premium to remove ads</p>
-          </div>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-// Bottom Ad Component - Elegant and Unobtrusive
-export function BottomAd({ className }: { className?: string }) {
-  const adRef = useRef<HTMLDivElement>(null);
-  
-  const { data: billingInfo } = useQuery<UserBilling>({
-    queryKey: ['/api/billing/subscription-status'],
-  });
-
-  const hasActiveSubscription = billingInfo?.subscription?.status === 'active';
-  const isSuperUser = billingInfo?.subscription?.isSuperUser === true;
-
-  useEffect(() => {
-    // Only load ads if user doesn't have active subscription and is not a super user
-    if (!hasActiveSubscription && !isSuperUser && adRef.current) {
-      try {
-        // Load Google AdSense script if not already loaded
-        if (!window.adsbygoogle) {
-          const script = document.createElement('script');
-          script.async = true;
-          script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-YOUR_ADSENSE_ID';
-          script.crossOrigin = 'anonymous';
-          document.head.appendChild(script);
-        }
-
-        // Initialize ad
-        if (window.adsbygoogle) {
-          window.adsbygoogle.push({});
-        }
-      } catch (error) {
-        console.error('Error loading Google Ads:', error);
-      }
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        a =>
+          a.headline.toLowerCase().includes(q) ||
+          (a.description ?? "").toLowerCase().includes(q)
+      );
     }
-  }, [hasActiveSubscription, isSuperUser]);
-
-  // Don't render ads for premium subscribers or super users
-  if (hasActiveSubscription || isSuperUser) {
-    return null;
-  }
+    return list;
+  }, [ads, activeFilter, search]);
 
   return (
-    <div className={`w-full ${className}`}>
-      {/* Elegant separator line */}
-      <div className="flex items-center mb-6">
-        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-600/50 to-transparent"></div>
-        <div className="px-4">
-          <Badge variant="outline" className="text-xs text-slate-400 border-slate-600/50 bg-tactical-black/50">
-            <Zap className="w-3 h-3 mr-1" />
-            Advertisement
-          </Badge>
-        </div>
-        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-slate-600/50 to-transparent"></div>
+    <div className="p-4 border rounded">
+      <h2 className="font-bold mb-3">Google Ads</h2>
+
+      {/* Controls */}
+      <div className="flex items-center gap-2 mb-4">
+        <select
+          className="border rounded px-2 py-1"
+          value={activeFilter}
+          onChange={(e) => setActiveFilter(e.target.value as typeof activeFilter)}
+        >
+          <option value="all">All</option>
+          <option value="active">Active</option>
+          <option value="paused">Paused</option>
+          <option value="draft">Draft</option>
+          <option value="disapproved">Disapproved</option>
+        </select>
+
+        <input
+          type="text"
+          className="border rounded px-2 py-1 flex-1"
+          placeholder="Search headline or description…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
-      {/* Ad container with sophisticated styling */}
-      <div className="max-w-4xl mx-auto">
-        <Card className="bg-gradient-to-br from-tactical-black/60 to-slate-900/40 border-honor-gold/20 backdrop-blur-sm">
-          <div className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-honor-gold rounded-full animate-pulse"></div>
-                <span className="font-tactical text-xs text-slate-300 tracking-wider">SPONSORED CONTENT</span>
-              </div>
-              <Badge variant="outline" className="text-xs text-honor-gold/70 hover:text-honor-gold border-honor-gold/30">
-                Remove with Premium
-              </Badge>
-            </div>
-            
-            <div ref={adRef} style={{ minHeight: '120px', width: '100%' }}>
-              <ins
-                className="adsbygoogle"
-                style={{ display: 'block' }}
-                data-ad-client="ca-pub-YOUR_ADSENSE_ID"
-                data-ad-slot="9876543210"
-                data-ad-format="horizontal"
-                data-full-width-responsive="true"
-              />
-            </div>
-          </div>
-        </Card>
-      </div>
+      {/* States */}
+      {isLoading && <p>Loading ads…</p>}
+      {error && <p className="text-red-500">Error loading ads</p>}
 
-      {/* Bottom fade effect */}
-      <div className="mt-6 h-8 bg-gradient-to-b from-transparent to-tactical-black/30 pointer-events-none"></div>
+      {/* List */}
+      {!isLoading && !error && (
+        <>
+          <p className="text-sm text-gray-600 mb-2">
+            Showing {visibleAds.length} of {ads.length} total
+          </p>
+          {visibleAds.length === 0 ? (
+            <p>No ads match your filters.</p>
+          ) : (
+            <ul className="space-y-2">
+              {visibleAds.map((ad) => (
+                <li
+                  key={ad.id}
+                  className="p-3 border rounded flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+                >
+                  <div>
+                    <div className="font-medium">{ad.headline}</div>
+                    {ad.description && (
+                      <div className="text-sm text-gray-600">{ad.description}</div>
+                    )}
+                    <div className="text-xs text-gray-500">
+                      Created {new Date(ad.createdAt).toLocaleString()}
+                    </div>
+                  </div>
+                  <span
+                    className={
+                      "text-xs px-2 py-1 rounded self-start sm:self-auto " +
+                      (ad.status === "active"
+                        ? "bg-green-100 text-green-700"
+                        : ad.status === "paused"
+                        ? "bg-yellow-100 text-yellow-700"
+                        : ad.status === "draft"
+                        ? "bg-gray-100 text-gray-700"
+                        : "bg-red-100 text-red-700")
+                    }
+                  >
+                    {ad.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
+      )}
     </div>
   );
 }
 
-declare global {
-  interface Window {
-    adsbygoogle: any;
-  }
-}
+export default GoogleAds;
