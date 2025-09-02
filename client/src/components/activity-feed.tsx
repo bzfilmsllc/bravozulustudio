@@ -1,4 +1,4 @@
-﻿import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -42,8 +42,12 @@ interface ActivityItem {
 }
 
 export function ActivityFeed() {
-  // typed query + fetcher
-  const { data: activities = [], isLoading } = useQuery<ActivityItem[]>({
+  // Fetch activity data from our API. By specifying the generic
+  // `ActivityItem[]` type on `useQuery` and then assigning the result to
+  // a `data` variable separately, we avoid the TypeScript limitation
+  // where renaming a destructured property with a default value causes the
+  // type to be widened to `unknown`.
+  const query = useQuery<ActivityItem[]>({
     queryKey: ["/api/activities"],
     queryFn: async () => {
       const res = await fetch("/api/activities");
@@ -52,6 +56,13 @@ export function ActivityFeed() {
     },
     refetchInterval: 30000, // Refresh every 30 seconds
   });
+
+  const data = query.data;
+  const isLoading = query.isLoading;
+  // Coerce `data` into a properly typed array. If the query hasn't loaded yet,
+  // fall back to an empty array. This ensures that `activities` is never
+  // considered `unknown` or `undefined` in subsequent logic.
+  const activities: ActivityItem[] = data ?? [];
 
   const getActivityIcon = (type: ActivityItem["type"]) => {
     switch (type) {
@@ -182,23 +193,23 @@ export function ActivityFeed() {
                     {getActivityText(activity)}
                   </p>
 
-                  {activity.content.description && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                      {activity.content.description}
-                    </p>
-                  )}
+                    {activity.content.description && (
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                        {activity.content.description}
+                      </p>
+                    )}
 
-                  {activity.content.link && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="mt-2 px-0 h-auto text-xs"
-                      data-testid={`activity-link-${activity.id}`}
-                    >
-                      <ExternalLink className="w-3 h-3 mr-1" />
-                      View Details
-                    </Button>
-                  )}
+                    {activity.content.link && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-2 px-0 h-auto text-xs"
+                        data-testid={`activity-link-${activity.id}`}
+                      >
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        View Details
+                      </Button>
+                    )}
                 </div>
               </div>
             ))}
